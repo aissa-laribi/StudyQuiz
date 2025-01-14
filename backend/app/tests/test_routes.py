@@ -103,4 +103,15 @@ def test_get_answers():
     assert response.status_code == 200
     assert response.json() == mock_response
 
+def test_get_follow_up_quizzes():
+    user_id = 1
+    mock_follow_ups = [
+        {"quiz_id": 1, "module_id": 1, "quiz_name": "Gauss-Jordan Algorithm", "due_date": "2025-01-20"},
+        {"quiz_id": 2, "module_id": 2, "quiz_name": "Modelling SLE", "due_date": "2025-01-22"},
+    ]
+    response = client.get(f"/users/{user_id}/follow-ups")
+    assert response.status_code == 200
+    assert response.json() == {"user_id": user_id, "follow_ups": mock_follow_ups}
+
+
 
