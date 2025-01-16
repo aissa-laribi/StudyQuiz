@@ -88,4 +88,3 @@ def get_follow_up_quizzes(user_id: int):
         {"quiz_id": 2, "module_id": 2, "quiz_name": "Modelling SLE", "due_date": "2025-01-22"},
     ]
     return {"user_id": user_id, "follow_ups": follow_ups}
-

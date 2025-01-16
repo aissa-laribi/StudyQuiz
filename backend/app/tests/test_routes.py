@@ -114,4 +114,3 @@ def test_get_follow_up_quizzes():
     assert response.json() == {"user_id": user_id, "follow_ups": mock_follow_ups}
 
 
-
