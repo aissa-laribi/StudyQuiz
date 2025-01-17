@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.routes import user, module, quiz, question, answer, followup, performance
+import sys
+print(sys.path)
 
 app = FastAPI()
 

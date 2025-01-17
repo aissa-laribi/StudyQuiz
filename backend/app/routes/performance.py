@@ -1,8 +1,8 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 
-app = FastAPI()
+router = APIRouter()
 
-@app.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/performance")
+@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/performance")
 def get_quiz_performance(user_id: int, module_id: int, quiz_id: int):
     performance = {
         "attempts": [

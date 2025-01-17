@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 
-app = FastAPI()
+router = APIRouter()
 
 
-@app.get("/users/{user_id}/followups")
+
+
+@router.get("/users/{user_id}/followups")
 def get_follow_up_quizzes(user_id: int):
     follow_ups = [
         {"quiz_id": 1, "module_id": 1, "quiz_name": "Gauss-Jordan Algorithm", "due_date": "2025-01-20"},
