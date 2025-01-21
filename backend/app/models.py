@@ -10,7 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key= True, index = True)
     user_name = Column(String(45), nullable=False, unique=True)
     email = Column(String(245), nullable=False, unique=True)
-    hashed_password = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     modules = relationship("Module", back_populates="owner")
