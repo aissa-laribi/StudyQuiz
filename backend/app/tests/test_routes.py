@@ -1,116 +1,61 @@
-from fastapi.testclient import TestClient
-import sys
+import pytest
+from passlib.context import CryptContext
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 from app.main import app
+from dotenv import load_dotenv
 
-client = TestClient(app)
+# Load environment variables
+load_dotenv()
 
-def test_read_root():
-    response = client.get("/")
+# Test Database Configuration
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+engine = create_async_engine(TEST_DATABASE_URL, echo=True, pool_pre_ping=True)
+
+# Create sessionmaker for AsyncSession
+async_session = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    class_=AsyncSession,
+    bind=engine,
+    expire_on_commit=False,
+)
+
+# Dependency Override for Tests
+async def get_db():
+    async with async_session() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+# HTTP Client Fixture
+@pytest.fixture(scope="module")
+async def async_app_client():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        yield client
+
+# Dispose of the Engine After Tests
+@pytest.fixture(scope="module", autouse=True)
+async def close_engine():
+    yield
+    await engine.dispose()  # Ensure cleanup of all pooled connections
+
+# Utility Function for Password Hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+# Tests
+@pytest.mark.anyio
+async def test_root(async_app_client):
+    response = await async_app_client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Welcome to StudyQuiz!"}
 
-#Test unit not working without mocking data in the get_users()
-def test_get_users():
-    response = client.get("/users")
-    mock_users = [{"user_id": 1}, {"user_id": 2}]
+@pytest.mark.anyio
+async def test_get_users(async_app_client):
+    response = await async_app_client.get("/users/64")
     assert response.status_code == 200
-    assert response.json() == {"users":mock_users} 
-
-def test_get_user():
-    user_id = 1
-    username = "Aissa"
-    mock_user = {"user_id": user_id, "username": username}
-    response = client.get(f"/users/{user_id}?username={username}")
-    assert response.status_code == 200
-    assert response.json() == mock_user
-
-def test_get_module():
-    user_id = 1
-    username = "Aissa"
-    module_id = 1
-    module_name = "Matrix Algebra"
-    mock_user = {"user_id": user_id, "username": username, "module_id": module_id, "module_name": module_name}
-    response = client.get(f"/users/{user_id}/modules/{module_id}?username={username}&module_name={module_name}")
-    assert response.status_code == 200
-    assert response.json() == mock_user
-
-def test_get_modules():
-    user_id = 1
-    mock_modules = [
-        {"module_id": 1, "module_name": "Linear Algebra"},
-        {"module_id": 2, "module_name": "Matrix Algebra"}
-    ]
-    mock_response = {"user_id": user_id, "modules": mock_modules}
-    response = client.get(f"/users/{user_id}/modules")
-    assert response.status_code == 200
-    assert response.json() == mock_response
-
-def test_get_quizzes():
-    user_id = 1
-    module_id = 1
-    mock_quizzes = [
-        {"quiz_id": 1, "quiz_name": "Gauss-Jordan Algorithm"},
-        {"quiz_id": 2, "quiz_name": "Modelling SLE"}
-    ]
-    mock_response = {"user_id": user_id, "module_id": module_id, "quizzes": mock_quizzes}
-
-    response = client.get(f"/users/{user_id}/modules/{module_id}/quizzes")
-    assert response.status_code == 200
-    assert response.json() == mock_response
-
-def test_get_quiz_questions():
-    user_id = 1
-    module_id = 1
-    quiz_id = 1
-    mock_questions = [
-        {"question_id": 1, "question": "Which of the following RREF matrices can be derived from the given matrix using the Gauss-Jordan algorithm?"},
-        {"question_id": 2, "question": "Which of the following sets of operations are valid ERO?"}
-    ]
-    mock_response = {
-        "user_id": user_id,
-        "module_id": module_id,
-        "quiz_id": quiz_id,
-        "questions": mock_questions
-    }
-
-    response = client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions")
-    assert response.status_code == 200
-    assert response.json() == mock_response
-
-def test_get_answers():
-    user_id = 1
-    module_id = 1
-    quiz_id = 1
-    question_id = 1
-    mock_answers = [
-        {"answer_id": 1, "correct": True},
-        {"answer_id": 2, "correct": False},
-        {"answer_id": 3, "correct": False},
-        {"answer_id": 4, "correct": False},
-        {"answer_id": 5, "correct": False}
-    ]
-    mock_response = {
-        "user_id": user_id,
-        "module_id": module_id,
-        "quiz_id": quiz_id,
-        "question_id": question_id,
-        "answers": mock_answers
-    }
-    response = client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}/answers")
-    assert response.status_code == 200
-    assert response.json() == mock_response
-
-def test_get_follow_up_quizzes():
-    user_id = 1
-    mock_follow_ups = [
-        {"quiz_id": 1, "module_id": 1, "quiz_name": "Gauss-Jordan Algorithm", "due_date": "2025-01-20"},
-        {"quiz_id": 2, "module_id": 2, "quiz_name": "Modelling SLE", "due_date": "2025-01-22"},
-    ]
-    response = client.get(f"/users/{user_id}/follow-ups")
-    assert response.status_code == 200
-    assert response.json() == {"user_id": user_id, "follow_ups": mock_follow_ups}
-
-

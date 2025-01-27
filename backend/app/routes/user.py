@@ -28,7 +28,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         db.add(new_user) #Add the instance of the ORM User to the db session
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
-        return {"User " + str(new_user.user_name) + " successfully added"}
+        return {"User " + str(new_user.user_name) + "successfully added"}
     except IntegrityError:  # Handle unique constraint violations
         await db.rollback()  # Rollback the transaction to clean up the session
         raise HTTPException(
