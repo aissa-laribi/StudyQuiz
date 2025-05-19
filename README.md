@@ -25,13 +25,27 @@ StudyQuiz is a web application designed for students to create quizzes, take the
 ## Setup Instructions
 
 ### Backend
-1. Install dependencies:
+1. Navigate to the backend directory
+
+2. (Optional but recommended) Create and activate a virtual environment:
+```
+    # Create virtual environment
+    python3 -m venv venv
+
+    # Activate it (Linux/macOS)
+    source venv/bin/activate
+
+    # OR on Windows (cmd)
+    venv\Scripts\activate.bat
+```
+
+3. Install dependencies:
 ```
    pip install -r requirements.txt
 ```
-2. Run the FastAPI server:
+4. Run the FastAPI server:
 ```
-    uvicorn backend.app.main:app --reload
+    uvicorn app.main:app --reload
 ```
 ### Frontend
 1. Navigate to the frontend directory:
