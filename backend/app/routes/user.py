@@ -31,11 +31,10 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         return {"User " + str(new_user.user_name) + "successfully added"}
     except IntegrityError:  # Handle unique constraint violations
         await db.rollback()  # Rollback the transaction to clean up the session
-        raise HTTPException(
-            status_code=400, detail="Username or email address already exists"
-        )
+
     """
-    TODOS: Force the user to enter a secure password on client side and serverside as well
+    TODOS:  
+            Force the user to enter a secure password on client side and serverside as well
     """
 
 @router.patch("/users/{user_id}")
@@ -59,6 +58,9 @@ async def update_user(user_id: int, new_data: dict, db: AsyncSession = Depends(g
     await db.commit()
     await db.refresh(user)
     return user
+    """
+    TODOS: Not return password in bodyresponse if password not updated
+    """
 
 @router.delete("/users/{user_id}")
 async def delete_user(
