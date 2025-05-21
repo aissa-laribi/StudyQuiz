@@ -14,3 +14,13 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True  # Enables ORM model conversion to this schema
+
+class ModuleCreate(BaseModel):
+    name: str
+
+class ModuleOut(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
