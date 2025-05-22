@@ -1,9 +1,78 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from app.models import User, Module, Quiz, Question
+from app.schemas import QuestionCreate
+from sqlalchemy.future import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import get_db
+
+
+"""
+class Quiz(Base):
+    __tablename__ = "quiz"
+    id = Column(Integer, primary_key= True, index = True)
+    quiz_name = Column(String(245), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False, index=True)
+    module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
+    created_at = Column(DateTime, default=func.now(), nullable=True)
+    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)    
+    module = relationship("Module", back_populates="quizzes")
+    questions = relationship("Question", back_populates="quiz")
+    attempts = relationship("Attempt", back_populates="quiz")
+    followups = relationship("Followup", back_populates="quiz")
+"""
+
 
 router = APIRouter()
 
-@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions")
-def get_quiz_questions(user_id: int, module_id: int, quiz_id: int):
-    questions = [{"question_id": 1, "question": "Which of the following RREF matrices can be derived from the given matrix using the Gauss-Jordan algorithm?"},
-                 {"question_id": 2, "question": "Which of the following sets of operations are valid ERO?"}]
-    return {"user_id" : user_id, "module_id": module_id, "quiz_id": quiz_id, "questions": questions}
+@router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/")
+async def create_question(user_id: int, module_id: int, quiz_id: int, question: QuestionCreate ,db: AsyncSession = Depends(get_db)):
+    new_question = Question(question_name= question.name, user_id=user_id, module_id=module_id, quiz_id=quiz_id)
+    db.add(new_question)
+    await db.commit()
+    await db.refresh(new_question)
+    return new_question.id
+
+@router.patch("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}")
+async def update_question(user_id: int, module_id: int, quiz_id: int, question_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Question).where(Question.user_id == user_id).where(Question.module_id == module_id).where(Question.quiz_id == quiz_id).where(Question.id == question_id))
+    question = result.scalars().first()
+
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    for key, value in new_data.items():
+        setattr(question, key, value)
+
+    # Commit the changes
+    db.add(question)
+    await db.commit()
+    await db.refresh(question)
+    return question.id
+
+@router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}")
+async def delete_question(user_id: int, module_id: int, quiz_id: int, question_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Question).where(User.id == user_id).where(Module.id == module_id).where(Quiz.id == quiz_id).where(Question.id == question_id))
+    question = result.scalars().first()
+
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found for user")
+    await db.delete(question)
+    await db.commit()
+    
+    return {"message": "question deleted successfully", "question_id": question_id}
+
+@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}")
+async def get_question(user_id: int, module_id: int, quiz_id: int, question_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Question).where(User.id == user_id).where(Module.id == module_id).where(Quiz.id == quiz_id).where(Question.id == question_id))
+    question = result.scalars().first()
+
+    if not question:
+        raise HTTPException(status_code=404, detail="Module not found for user" + str(user_id))
+    return question
+
+@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/")
+async def get_questions(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Question).where(User.id == user_id).where(Module.id == module_id).where(Quiz.id == quiz_id))
+    questions = result.scalars().all()
+
+    return questions

@@ -1,9 +1,7 @@
-from fastapi import APIRouter
 from sqlalchemy.future import select
-from fastapi import FastAPI, APIRouter, Depends, HTTPException#
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
-from app.schemas import ModuleCreate,ModuleOut
+from app.schemas import ModuleCreate
 from app.database import get_db
 from app.models import User, Module
 
@@ -22,15 +20,13 @@ class Module(Base):
     quizzes = relationship("Quiz", back_populates="module")
 """
 
-router = APIRouter()
-
 @router.post("/users/{user_id}/modules/")
 async def create_module(user_id: int, module: ModuleCreate, db: AsyncSession = Depends(get_db)):
     new_module = Module(module_name=module.name, user_id=user_id)
     db.add(new_module)
     await db.commit()
     await db.refresh(new_module)
-    return "Module successfully created"
+    return new_module.id
 
 @router.patch("/users/{user_id}/modules/{module_id}")
 async def update_user(user_id: int, module_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
@@ -47,7 +43,7 @@ async def update_user(user_id: int, module_id: int, new_data: dict, db: AsyncSes
     db.add(module)
     await db.commit()
     await db.refresh(module)
-    return module
+    return module.id
 
 @router.delete("/users/{user_id}/modules/{module_id}")
 async def delete_module(user_id: int, module_id: int, db: AsyncSession = Depends(get_db)):
@@ -71,6 +67,6 @@ async def get_user(user_id: int,module_id: int, db: AsyncSession = Depends(get_d
 
 @router.get("/users/{user_id}/modules/")
 async def get_users(user_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Module).where(Module.user_id == user_id))
+    result = await db.execute(select(Module).where(User.id == user_id))
     modules = result.scalars().all()
     return modules

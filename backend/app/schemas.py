@@ -24,3 +24,43 @@ class ModuleOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class QuizCreate(BaseModel):
+    name: str
+
+class QuizOut(BaseModel):
+    id: int
+    name: str
+    module: str
+    #questions: dict
+
+    class Config:
+        from_attributes = True
+
+class QuestionCreate(BaseModel):
+    name: str
+    
+
+class QuestionOut(BaseModel):
+    id: int
+    name: str
+    module: str
+    quiz: str
+    #answers: dict
+
+    class Config:
+        from_attributes = True
+
+class AnswerCreate(BaseModel):
+    name: str
+    correct: bool
+
+class AnswerOut(BaseModel):
+    id: int
+    name: str
+    module: str
+    quiz: str
+    answer: str
+
+    class Config:
+        from_attributes = True
