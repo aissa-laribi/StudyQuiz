@@ -49,11 +49,11 @@ async def update_user(user_id: int, new_data: dict, db: AsyncSession = Depends(g
         user.password = hash_password(new_data['password'])
         del new_data['password']
     
-    restricted_fields = {"id", "created_at"}
     for key, value in new_data.items():
         setattr(user, key, value)
 
     # Commit the changes
+    print(type(User))
     db.add(user)
     await db.commit()
     await db.refresh(user)
