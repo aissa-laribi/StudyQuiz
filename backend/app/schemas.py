@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
 
 #Checks the validity of the data passed for user_name, email, and password
 class UserCreate(BaseModel):
@@ -64,3 +65,7 @@ class AnswerOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AttemptCreate(BaseModel):
+    attempt_score: int
+    created_at: datetime
