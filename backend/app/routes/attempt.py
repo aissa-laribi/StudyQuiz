@@ -34,6 +34,7 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
     questions = fgd_shuffling(questions,len(questions))
     correct_answers = 0
     selected_answer = 0
+    score = 0
     #answers_counter = 0
     print(questions[0])
     for question in questions:
@@ -55,13 +56,18 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
             except Exception:
                 print("Please enter a value between 1 and " + str(len(answers)))
         if array[selected_answer - 1].answer_correct:
-            correct_answers += 1    
+            correct_answers += 1
+    score = round((correct_answers/len(questions))*100)
     print("Result: " + str(round((correct_answers/len(questions))*100)) + "%")
-    #attempt = await Attempt(attempt_score=round((correct_answers/len(questions))*100), created_at=datetime.now,user_id=user_id, module_id=module_id, quiz_id = quiz_id)
+    attempt = Attempt(attempt_score=score, created_at=datetime.now(), user_id=user_id, module_id=module_id, quiz_id=quiz_id)
     db.add(attempt)
     await db.commit()
     await db.refresh(attempt)
     return attempt.id
 
-    
+@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts")
+async def get_attempt(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Attempt).where(Attempt.user_id == user_id).where(Attempt.module_id == module_id).where(Attempt.quiz_id == quiz_id))
+    attempts = result.scalars().all()
+    return attempts
     
