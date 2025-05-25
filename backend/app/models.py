@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, DateTime, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -32,7 +32,12 @@ class Quiz(Base):
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False, index=True)
     module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
     created_at = Column(DateTime, default=func.now(), nullable=True)
-    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)    
+    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
+    repetitions = Column(Integer,nullable=False,default=0)
+    interval = Column(Integer,nullable=False,default=0)
+    ease_factor = Column(Float,nullable=False,default=2.5)
+    next_due = Column(DateTime,nullable=True)
+    last_score =  Column(Integer,nullable=False,default=0)   
     module = relationship("Module", back_populates="quizzes")
     questions = relationship("Question", back_populates="quiz")
     attempts = relationship("Attempt", back_populates="quiz")

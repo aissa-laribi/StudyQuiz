@@ -33,7 +33,11 @@ class QuizOut(BaseModel):
     id: int
     name: str
     module: str
-    #questions: dict
+    repetitions: int
+    interval: int
+    ease_factor: float
+    next_due: datetime
+    last_score: int  
 
     class Config:
         from_attributes = True
@@ -69,3 +73,6 @@ class AnswerOut(BaseModel):
 class AttemptCreate(BaseModel):
     attempt_score: int
     created_at: datetime
+
+class FollowupCreate(BaseModel):
+    due_date: datetime

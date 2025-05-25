@@ -2,10 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models import User, Module, Quiz, Question,Answer, Attempt
-from app.schemas import AttemptCreate
+from app.models import User, Module, Quiz, Question,Answer, Attempt, Followup
+from app.schemas import AttemptCreate, FollowupCreate
+from app.routes.question import get_questions
+from app.routes.quiz import get_quiz
+from app.routes.followup import get_follow_up_quiz
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 router = APIRouter()
 
 def fgd_shuffling(array: list, size: int):
@@ -28,15 +31,24 @@ def fgd_shuffling(array: list, size: int):
 
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/")
-async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Question).where(Question.user_id == user_id).where(Question.module_id == module_id).where(Question.quiz_id == quiz_id))
-    questions = result.scalars().all()
-    questions = fgd_shuffling(questions,len(questions))
+async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, followup: FollowupCreate, db: AsyncSession = Depends(get_db)):
+    result = await get_questions(user_id, module_id, quiz_id, db)
+    print(result)
+    questions = fgd_shuffling(result,len(result))
+    print(questions)
     correct_answers = 0
     selected_answer = 0
     score = 0
-    #answers_counter = 0
-    print(questions[0])
+    quiz = await get_quiz(user_id , module_id , quiz_id, db)
+    
+    if quiz.repetitions is None:
+        quiz.repetitions = 0
+        quiz.interval = 0
+        quiz.ease_factor = 2.5
+        db.add(quiz)
+        await db.commit()
+        await db.refresh(quiz)
+
     for question in questions:
         answers_result = await db.execute(select(Answer).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question.id))
         answers = answers_result.scalars().all()
@@ -57,17 +69,68 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
                 print("Please enter a value between 1 and " + str(len(answers)))
         if array[selected_answer - 1].answer_correct:
             correct_answers += 1
+    print(len(questions))
     score = round((correct_answers/len(questions))*100)
     print("Result: " + str(round((correct_answers/len(questions))*100)) + "%")
     attempt = Attempt(attempt_score=score, created_at=datetime.now(), user_id=user_id, module_id=module_id, quiz_id=quiz_id)
     db.add(attempt)
     await db.commit()
     await db.refresh(attempt)
+    if score < 60:
+        quiz.interval = 1
+        quiz.repetitions = 0
+    else:
+        quiz.repetitions += 1
+        if quiz.repetitions == 1:
+            quiz.interval = 1
+        elif quiz.repetitions == 2:
+            quiz.interval = 6
+        else:
+            quiz.interval = round(quiz.interval * quiz.ease_factor)
+    if score >= 90:
+        quality = 5
+    elif score >= 80:
+        quality = 4
+    elif score >= 70:
+        quality = 3
+    elif score >= 60:
+        quality = 2
+    else:
+        quality = 0
+    quiz.ease_factor += (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+    if quiz.ease_factor < 1.3:
+        quiz.ease_factor = 1.3
+    quiz.next_due = datetime.now() + timedelta(days=quiz.interval)
+    quiz.last_score = score
+    db.add(quiz)
+    await db.commit()
+    await db.refresh(quiz)
+    
+    if get_follow_up_quiz(user_id,module_id,quiz_id,db) is None: 
+        followup = Followup(due_date= quiz.next_due,  user_id = user_id, module_id=module_id, quiz_id = quiz_id)
+        followup.followup_due_date = quiz.next_due
+        db.add(followup)
+        await db.commit()
+        await db.refresh(followup)
+    else:
+        result = await db.execute(select(Followup).where(Followup.user_id == user_id).where(Followup.module_id == module_id).where(Followup.quiz_id == quiz_id))
+        followup = result.scalars().first()
+        followup.followup_due_date = quiz.next_due
+        db.add(followup)
+        await db.commit()
+        await db.refresh(followup)
+
+
     return attempt.id
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts")
-async def get_attempt(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
+async def get_attempts(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Attempt).where(Attempt.user_id == user_id).where(Attempt.module_id == module_id).where(Attempt.quiz_id == quiz_id))
     attempts = result.scalars().all()
     return attempts
-    
+
+@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/{attempt_id}")
+async def get_attempt(user_id: int, module_id: int, quiz_id: int, attempt_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Attempt).where(Attempt.user_id == user_id).where(Attempt.module_id == module_id).where(Attempt.quiz_id == quiz_id).where(Attempt.id == attempt_id))
+    attempt = result.scalars().all()
+    return attempt
