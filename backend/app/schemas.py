@@ -75,4 +75,4 @@ class AttemptCreate(BaseModel):
     created_at: datetime
 
 class FollowupCreate(BaseModel):
-    due_date: datetime
+    followup_due_date : datetime

@@ -6,7 +6,7 @@ from app.models import User, Module, Quiz, Question,Answer, Attempt, Followup
 from app.schemas import AttemptCreate, FollowupCreate
 from app.routes.question import get_questions
 from app.routes.quiz import get_quiz
-from app.routes.followup import get_follow_up_quiz
+from app.routes.followup import post_follow_up_quiz
 import random
 from datetime import datetime, timedelta
 router = APIRouter()
@@ -31,7 +31,7 @@ def fgd_shuffling(array: list, size: int):
 
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/")
-async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, followup: FollowupCreate, db: AsyncSession = Depends(get_db)):
+async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, db: AsyncSession = Depends(get_db)):
     result = await get_questions(user_id, module_id, quiz_id, db)
     print(result)
     questions = fgd_shuffling(result,len(result))
@@ -105,22 +105,7 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
     db.add(quiz)
     await db.commit()
     await db.refresh(quiz)
-    
-    if get_follow_up_quiz(user_id,module_id,quiz_id,db) is None: 
-        followup = Followup(due_date= quiz.next_due,  user_id = user_id, module_id=module_id, quiz_id = quiz_id)
-        followup.followup_due_date = quiz.next_due
-        db.add(followup)
-        await db.commit()
-        await db.refresh(followup)
-    else:
-        result = await db.execute(select(Followup).where(Followup.user_id == user_id).where(Followup.module_id == module_id).where(Followup.quiz_id == quiz_id))
-        followup = result.scalars().first()
-        followup.followup_due_date = quiz.next_due
-        db.add(followup)
-        await db.commit()
-        await db.refresh(followup)
-
-
+    await post_follow_up_quiz(quiz.user_id,quiz.module_id,quiz.id,AttemptCreate,quiz.next_due,db)
     return attempt.id
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts")
