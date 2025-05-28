@@ -51,7 +51,7 @@ async def update_quiz(user_id: int, module_id: int, quiz_id: int, new_data: dict
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
 async def delete_quiz(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Quiz).where(User.id == user_id).where(Module.id == module_id).where(Quiz.id == quiz_id))
+    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == module_id).where(Quiz.id == quiz_id))
     quiz = result.scalars().first()
 
     if not quiz:

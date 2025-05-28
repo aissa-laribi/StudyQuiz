@@ -69,6 +69,10 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
                 print("Please enter a value between 1 and " + str(len(answers)))
         if array[selected_answer - 1].answer_correct:
             correct_answers += 1
+        else:
+            correct_answer = await db.execute(
+                select(Answer)).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question.id).where(Answer.answer_correct == True)
+            print("Wrong, correct answer is " + str(correct_answer.name))
     print(len(questions))
     score = round((correct_answers/len(questions))*100)
     print("Result: " + str(round((correct_answers/len(questions))*100)) + "%")
