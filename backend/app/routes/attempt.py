@@ -33,9 +33,9 @@ def fgd_shuffling(array: list, size: int):
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/")
 async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, db: AsyncSession = Depends(get_db)):
     result = await get_questions(user_id, module_id, quiz_id, db)
-    print(result)
+    #print(result)
     questions = fgd_shuffling(result,len(result))
-    print(questions)
+    #print(questions)
     correct_answers = 0
     selected_answer = 0
     score = 0
@@ -70,9 +70,13 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
         if array[selected_answer - 1].answer_correct:
             correct_answers += 1
         else:
-            correct_answer = await db.execute(
-                select(Answer)).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question.id).where(Answer.answer_correct == True)
-            print("Wrong, correct answer is " + str(correct_answer.name))
+            result = await db.execute(
+                select(Answer).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question.id).where(Answer.answer_correct == True))
+            correct_answer = result.scalars().first()
+            if correct_answer == None:
+                print("Error: correct answer not in the db")
+            else:
+                print("Wrong, correct answer is " + str(correct_answer.answer_name))
     print(len(questions))
     score = round((correct_answers/len(questions))*100)
     print("Result: " + str(round((correct_answers/len(questions))*100)) + "%")
@@ -110,6 +114,7 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
     await db.commit()
     await db.refresh(quiz)
     await post_follow_up_quiz(quiz.user_id,quiz.module_id,quiz.id,AttemptCreate,quiz.next_due,db)
+    print("Next due date: "+ str(quiz.next_due))
     return attempt.id
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts")

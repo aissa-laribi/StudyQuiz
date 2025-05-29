@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import List, Optional
 
 #Checks the validity of the data passed for user_name, email, and password
 class UserCreate(BaseModel):
@@ -18,6 +19,9 @@ class UserResponse(BaseModel):
 
 class ModuleCreate(BaseModel):
     name: str
+
+class ModuleUpdate(BaseModel):
+    module_name: Optional[str] = None
 
 class ModuleOut(BaseModel):
     id: int
@@ -76,3 +80,9 @@ class AttemptCreate(BaseModel):
 
 class FollowupCreate(BaseModel):
     followup_due_date : datetime
+
+class BatchModules(BaseModel):
+    data: List[ModuleCreate]
+
+class BatchModulesDelete(BaseModel):
+    data: List[int]

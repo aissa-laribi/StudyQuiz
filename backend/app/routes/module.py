@@ -1,9 +1,9 @@
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas import ModuleCreate
+from app.schemas import ModuleCreate, BatchModules, ModuleUpdate, BatchModulesDelete
 from app.database import get_db
-from app.models import User, Module
+from app.models import Module
 
 
 router = APIRouter()
@@ -28,15 +28,29 @@ async def create_module(user_id: int, module: ModuleCreate, db: AsyncSession = D
     await db.refresh(new_module)
     return new_module.id
 
+@router.post("/users/{user_id}/modules/batch-create")
+async def create_modules(user_id: int, modules: BatchModules,db: AsyncSession = Depends(get_db)):
+    results = {}
+    for module in modules.data:
+        new_module = Module(module_name=module.name, user_id=user_id)
+        db.add(new_module)
+        await db.flush()
+        await db.refresh(new_module)
+        results[new_module.id] = new_module.module_name
+    await db.commit()
+    return results
+
+
 @router.patch("/users/{user_id}/modules/{module_id}")
-async def update_user(user_id: int, module_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
+async def update_module(user_id: int, module_id: int, update: ModuleUpdate, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Module).where(Module.user_id == user_id).where(Module.id == module_id))
     module = result.scalars().first()
 
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
 
-    for key, value in new_data.items():
+    update_data = update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(module, key, value)
 
     # Commit the changes
@@ -45,9 +59,23 @@ async def update_user(user_id: int, module_id: int, new_data: dict, db: AsyncSes
     await db.refresh(module)
     return module.id
 
+@router.delete("/users/{user_id}/modules/batch-delete")
+async def delete_modules(user_id: int, module_ids: BatchModulesDelete, db: AsyncSession = Depends(get_db)):
+    deleted_ids = []
+    for module_id in module_ids.data:
+        result = await db.execute(
+            select(Module).where(Module.user_id == user_id).where(Module.id == module_id)
+        )
+        module = result.scalars().first()
+        if module is not None:
+            await db.delete(module)
+            deleted_ids.append(module_id)
+    await db.commit()
+    return {"deleted": deleted_ids}
+    
 @router.delete("/users/{user_id}/modules/{module_id}")
 async def delete_module(user_id: int, module_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Module).where(User.id == user_id).where(Module.id == module_id))
+    result = await db.execute(select(Module).where(Module.user_id == user_id).where(Module.id == module_id))
     module = result.scalars().first()
 
     if not module:
@@ -57,16 +85,18 @@ async def delete_module(user_id: int, module_id: int, db: AsyncSession = Depends
     
     return {"message": "Module deleted successfully", "module_id": module_id}
 
+
+
 @router.get("/users/{user_id}/modules/{module_id}")
-async def get_user(user_id: int,module_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Module).where(User.id == user_id).where(Module.id == module_id))
+async def get_module(user_id: int,module_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Module).where(Module.user_id == user_id).where(Module.id == module_id))
     module = result.scalars().first()
     if not module:
         raise HTTPException(status_code=404, detail="Module not found for user " + str(user_id))
     return module
 
 @router.get("/users/{user_id}/modules/")
-async def get_users(user_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Module).where(User.id == user_id))
+async def get_modules(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Module).where(Module.user_id == user_id))
     modules = result.scalars().all()
     return modules

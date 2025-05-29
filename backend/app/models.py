@@ -23,14 +23,15 @@ class Module(Base):
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)  
     owner = relationship("User", back_populates="modules")
-    quizzes = relationship("Quiz", back_populates="module")
+    quizzes = relationship("Quiz", back_populates="module", cascade="all, delete-orphan")
+
 
 class Quiz(Base):
     __tablename__ = "quiz"
     id = Column(Integer, primary_key= True, index = True)
     quiz_name = Column(String(245), nullable=False, unique=True)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False, index=True)
-    module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
+    module_id = Column(Integer, ForeignKey("module.id", ondelete="CASCADE"),nullable=False, index=True)
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     repetitions = Column(Integer,nullable=False,default=0)
