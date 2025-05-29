@@ -75,10 +75,11 @@ class Attempt(Base):
     attempt_score = Column(Integer, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"),nullable=False, index=True)
     module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
-    quiz_id = Column(Integer, ForeignKey("quiz.id"),nullable=False)
+    quiz_id = Column(Integer, ForeignKey("quiz.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     quiz = relationship("Quiz", back_populates="attempts")
+    
 
 class Followup(Base):
     __tablename__ = "followup"
@@ -86,7 +87,7 @@ class Followup(Base):
     followup_due_date = Column(DateTime, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"),nullable=False, index=True)
     module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
-    quiz_id = Column(Integer, ForeignKey("quiz.id"),nullable=False, index=True)
+    quiz_id = Column(Integer, ForeignKey("quiz.id",ondelete="CASCADE"),nullable=False, index=True)
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     quiz = relationship("Quiz", back_populates="followups")

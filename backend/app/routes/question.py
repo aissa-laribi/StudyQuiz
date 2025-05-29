@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.models import User, Module, Quiz, Question
-from app.schemas import QuestionCreate
+from app.models import User, Module, Quiz, Question, Answer
+from app.schemas import QuestionCreate, BatchQuestionsCreate, BatchAnswersCreate, BatchQuestionsWithAnswersCreate
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -23,6 +23,30 @@ class Quiz(Base):
 
 
 router = APIRouter()
+
+@router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/batch-create")
+async def create_full_quiz(user_id: int, module_id: int, quiz_id: int, data: BatchQuestionsWithAnswersCreate, db: AsyncSession = Depends(get_db)):
+    results = []
+    for question in data.data:
+        new_question = Question(question_name=question.name, user_id=user_id, module_id = module_id, quiz_id = quiz_id)
+        db.add(new_question)
+        await db.flush()
+        await db.refresh(new_question)
+        
+        answer_names = []
+        for answer in question.answers:
+            new_answer = Answer(answer_name = answer.name,user_id=user_id, module_id = module_id, quiz_id = quiz_id, question_id = new_question.id,answer_correct = answer.correct)
+            db.add(new_answer)
+            await db.flush()
+            await db.refresh(new_answer)
+            answer_names.append(new_answer.answer_name)
+
+        results.append({
+            "question": new_question.question_name,
+            "answers": answer_names
+        })
+    await db.commit()
+    return results
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/")
 async def create_question(user_id: int, module_id: int, quiz_id: int, question: QuestionCreate ,db: AsyncSession = Depends(get_db)):

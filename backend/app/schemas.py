@@ -86,3 +86,23 @@ class BatchModules(BaseModel):
 
 class BatchModulesDelete(BaseModel):
     data: List[int]
+
+class BatchQuizCreate(BaseModel):
+    data: List[ModuleCreate]
+
+class BatchQuizDelete(BaseModel):
+    data: List[int]
+
+class BatchQuestionsCreate(BaseModel):
+    data: List[QuestionCreate]
+
+class BatchAnswersCreate(BaseModel):
+    data: List[AnswerCreate]
+
+class QuestionWithAnswersCreate(BaseModel):
+    name: str
+    answers: List[AnswerCreate]
+
+class BatchQuestionsWithAnswersCreate(BaseModel):
+    data: List[QuestionWithAnswersCreate]
+

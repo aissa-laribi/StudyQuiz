@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.models import User,Module, Quiz
-from app.schemas import QuizCreate
+from app.schemas import QuizCreate, BatchQuizCreate, BatchQuizDelete
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -23,6 +23,19 @@ class Quiz(Base):
 
 
 router = APIRouter()
+@router.post("/users/{user_id}/modules/{module_id}/quizzes/batch-create")
+async def create_quizzes(user_id: int, module_id: int, quizzes: BatchQuizCreate, db: AsyncSession = Depends(get_db)):
+    results = {}
+    for quiz in quizzes.data:
+        new_quiz = Quiz(user_id=user_id, module_id=module_id, quiz_name=quiz.name)
+        db.add(new_quiz)
+        await db.flush()
+        await db.refresh(new_quiz)
+        results[new_quiz.id] = new_quiz.quiz_name
+    await db.commit()
+    return results
+
+
 
 @router.post("/users/{user_id}/modules/{module_id}")
 async def create_quiz(user_id: int, module_id: int, quiz: QuizCreate, db: AsyncSession = Depends(get_db)):
@@ -48,6 +61,20 @@ async def update_quiz(user_id: int, module_id: int, quiz_id: int, new_data: dict
     await db.commit()
     await db.refresh(quiz)
     return quiz.id
+
+@router.delete("/users/{user_id}/modules/{module_id}/quizzes/batch-delete")
+async def delete_modules(user_id: int, module_id: int, quizzes_ids: BatchQuizDelete,db: AsyncSession = Depends(get_db)):
+    deleted_ids = []
+    for quiz_id in quizzes_ids.data:
+        result = await db.execute(
+            select(Quiz).where(Quiz.user_id == user_id,Quiz.id == quiz_id)
+        )
+        quiz = result.scalars().first()
+        if quiz is not None:
+            await db.delete(quiz)
+            deleted_ids.append(quiz_id)
+    await db.commit()
+    return {"deleted": deleted_ids}
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
 async def delete_quiz(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
