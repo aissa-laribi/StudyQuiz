@@ -1,6 +1,7 @@
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from app.schemas import ModuleCreate, BatchModules, ModuleUpdate, BatchModulesDelete
 from app.database import get_db
 from app.models import Module
@@ -22,12 +23,14 @@ class Module(Base):
 
 @router.post("/users/{user_id}/modules/")
 async def create_module(user_id: int, module: ModuleCreate, db: AsyncSession = Depends(get_db)):
-    new_module = Module(module_name=module.name, user_id=user_id)
-    db.add(new_module)
-    await db.commit()
-    await db.refresh(new_module)
-    return new_module.id
-
+    try:
+        new_module = Module(module_name=module.name, user_id=user_id)
+        db.add(new_module)
+        await db.commit()
+        await db.refresh(new_module)
+        return new_module.id
+    except IntegrityError:
+        await db.rollback()
 @router.post("/users/{user_id}/modules/batch-create")
 async def create_modules(user_id: int, modules: BatchModules,db: AsyncSession = Depends(get_db)):
     results = {}
