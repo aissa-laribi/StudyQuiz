@@ -33,7 +33,6 @@ def fgd_shuffling(array: list, size: int):
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/")
 async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, db: AsyncSession = Depends(get_db)):
     result = await get_questions(user_id, module_id, quiz_id, db)
-    #print(result)
     questions = fgd_shuffling(result,len(result))
     #print(questions)
     correct_answers = 0

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.models import User,Module, Quiz
+from app.models import User,Module, Quiz, Attempt, Followup
 from app.schemas import QuizCreate, BatchQuizCreate, BatchQuizDelete
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
+from app.routes.question import delete_all_questions
 
 
 """
@@ -63,7 +64,7 @@ async def update_quiz(user_id: int, module_id: int, quiz_id: int, new_data: dict
     return quiz.id
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/batch-delete")
-async def delete_modules(user_id: int, module_id: int, quizzes_ids: BatchQuizDelete,db: AsyncSession = Depends(get_db)):
+async def delete_quizzes(user_id: int, module_id: int, quizzes_ids: BatchQuizDelete,db: AsyncSession = Depends(get_db)):
     deleted_ids = []
     for quiz_id in quizzes_ids.data:
         result = await db.execute(
@@ -83,6 +84,15 @@ async def delete_quiz(user_id: int, module_id: int, quiz_id: int, db: AsyncSessi
 
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found for user" + str(user_id))
+    result_followups = await db.execute(select(Followup).where(Followup.user_id == user_id,Followup.module_id == module_id,Followup.quiz_id == quiz_id))
+    followups = result_followups.scalars().all()
+    for followup in followups:
+        await db.delete(followup) 
+    result_attempts = await db.execute(select(Attempt).where(Attempt.user_id == user_id,Attempt.module_id == module_id,Attempt.quiz_id == quiz_id))
+    attempts = result_attempts.scalars().all()
+    for attempt in attempts:
+        await db.delete(attempt)
+    await delete_all_questions(user_id,module_id,quiz_id,db)
     await db.delete(quiz)
     await db.commit()
     

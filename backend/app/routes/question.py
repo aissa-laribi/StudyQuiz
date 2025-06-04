@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.models import User, Module, Quiz, Question, Answer
-from app.schemas import QuestionCreate, BatchQuestionsCreate, BatchAnswersCreate, BatchQuestionsWithAnswersCreate
+from app.schemas import QuestionCreate, BatchQuestionsWithAnswersCreate
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -72,6 +72,27 @@ async def update_question(user_id: int, module_id: int, quiz_id: int, question_i
     await db.commit()
     await db.refresh(question)
     return question.id
+
+@router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/batch-delete")
+async def delete_all_questions(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
+    print("WARNING!: All answers associated with the questions will be removed as well.")
+    deleted_ids = []
+    result = await db.execute(
+            select(Question).where(Question.user_id == user_id).where(Question.module_id == module_id).where(Question.quiz_id == quiz_id))
+    questions = result.scalars().all()
+    for question in questions:
+        print(question.question_name)
+        if question is not None:
+            answers_result = await db.execute(select(Answer).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question.id))
+            answers = answers_result.scalars().all()
+            for answer in answers:
+                await db.delete(answer)
+            await db.delete(question)
+            deleted_ids.append(question.id)
+        else:
+            print("None")
+    await db.commit()
+    return {"deleted": deleted_ids}
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}")
 async def delete_question(user_id: int, module_id: int, quiz_id: int, question_id: int, db: AsyncSession = Depends(get_db)):
