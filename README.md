@@ -9,7 +9,9 @@ StudyQuiz is a web application designed for students to create quizzes, take the
 - **Quiz Management**: Create modules, add quizzes, and track progress.
 - **Question Shuffling**: Display questions in a random order.
 - **Spaced Repetition**: Schedule follow-ups based on performance.
-- **Future Enhancements**:
+
+## Planned Enhancements:
+  - 🌐 Web-based user interface (in progress) 
   - AI-powered quiz generation from slides.
   - AI-assisted answer suggestions.
 
@@ -20,6 +22,14 @@ StudyQuiz is a web application designed for students to create quizzes, take the
 - **Frontend**: Svelte, TailwindCSS
 - **Deployment**: Docker (optional), Uvicorn
 
+---
+## Roadmap
+- ✅ Backend API for quiz logic
+- ✅ SuperMemo 2 implementation
+- ✅ CLI interaction via FASTAPI
+- 🔲 Frontend development (in progress)
+- 🔲 Hosted version (planned)
+- 🔲 AI integration (future)
 ---
 
 ## Setup Instructions
@@ -47,7 +57,7 @@ StudyQuiz is a web application designed for students to create quizzes, take the
 ```
     uvicorn app.main:app --reload
 ```
-### Frontend
+### Frontend (Coming Soon)
 1. Navigate to the frontend directory:
 ```
     cd frontend
