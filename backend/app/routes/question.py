@@ -5,20 +5,10 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 
-
 """
-class Quiz(Base):
-    __tablename__ = "quiz"
-    id = Column(Integer, primary_key= True, index = True)
-    quiz_name = Column(String(245), nullable=False, unique=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False, index=True)
-    module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
-    created_at = Column(DateTime, default=func.now(), nullable=True)
-    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)    
-    module = relationship("Module", back_populates="quizzes")
-    questions = relationship("Question", back_populates="quiz")
-    attempts = relationship("Attempt", back_populates="quiz")
-    followups = relationship("Followup", back_populates="quiz")
+    TODOS: 
+        - Allowing a single question to belong to multiple quizzes
+     
 """
 
 

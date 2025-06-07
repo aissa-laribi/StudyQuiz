@@ -21,7 +21,7 @@ class Module(Base):
     module_name = Column(String(245), nullable=False, unique=True)
     user_id= Column(Integer, ForeignKey("user.id"), nullable = False, index=True)
     created_at = Column(DateTime, default=func.now(), nullable=True)
-    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)  
+    updated_at = Column(DateTime, onupdate=func.now(),nullable=True)  
     owner = relationship("User", back_populates="modules")
     quizzes = relationship("Quiz", back_populates="module", cascade="all, delete-orphan")
 
@@ -40,9 +40,9 @@ class Quiz(Base):
     next_due = Column(DateTime,nullable=True)
     last_score =  Column(Integer,nullable=False,default=0)   
     module = relationship("Module", back_populates="quizzes")
-    questions = relationship("Question", back_populates="quiz")
-    attempts = relationship("Attempt", back_populates="quiz")
-    followups = relationship("Followup", back_populates="quiz")
+    questions = relationship("Question", back_populates="quiz",cascade="all, delete-orphan")
+    attempts = relationship("Attempt", back_populates="quiz", cascade="all, delete-orphan")
+    followups = relationship("Followup", back_populates="quiz", cascade="all, delete-orphan")
 
 class Question(Base):
     __tablename__ = "question"
@@ -54,7 +54,7 @@ class Question(Base):
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)    
     quiz = relationship("Quiz", back_populates="questions")
-    answers = relationship("Answer", back_populates="question")
+    answers = relationship("Answer", back_populates="question", cascade="all, delete-orphan")
 
 class Answer(Base):
     __tablename__ = "answer"
