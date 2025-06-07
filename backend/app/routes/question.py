@@ -5,12 +5,6 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 
-"""
-    TODOS: 
-        - Allowing a single question to belong to multiple quizzes
-     
-"""
-
 
 router = APIRouter()
 

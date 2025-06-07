@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, DateTime, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, DateTime, Float, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -17,6 +17,7 @@ class User(Base):
     
 class Module(Base):
     __tablename__ = "module"
+    __table_args__ = (UniqueConstraint('user_id', 'module_name', name='unique_module_per_user'),)
     id = Column(Integer, primary_key= True, index = True)
     module_name = Column(String(245), nullable=False, unique=True)
     user_id= Column(Integer, ForeignKey("user.id"), nullable = False, index=True)
@@ -28,6 +29,7 @@ class Module(Base):
 
 class Quiz(Base):
     __tablename__ = "quiz"
+    __table_args__ = (UniqueConstraint('user_id', 'quiz_name', name='unique_quiz_name_per_module'),)
     id = Column(Integer, primary_key= True, index = True)
     quiz_name = Column(String(245), nullable=False, unique=True)
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False, index=True)

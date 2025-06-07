@@ -163,4 +163,21 @@ async def test_delete_module(async_app_client):
     result2 = copy.deepcopy(await async_app_client.get(f"/users/{user_id}/modules/"))
     new_modules = copy.deepcopy(result2.json())
     assert new_modules == []
+
+@pytest.mark.anyio
+async def test_delete_module_empty_quizzes(async_app_client):
+    #TODO
+    pass
+
+@pytest.mark.anyio
+async def test_delete_module_quizzes_questions_answers(async_app_client):
+    #TODO
+    pass
+
+@pytest.mark.anyio
+async def test_delete_module_attempted_quizzes(async_app_client):
+    #TODO
+    pass
+
+
     
