@@ -47,10 +47,10 @@ class Quiz(Base):
 class Question(Base):
     __tablename__ = "question"
     id = Column(Integer, primary_key= True, index = True)
-    question_name = Column(String(445), nullable=False, unique=True)
     user_id = Column(Integer, ForeignKey("user.id"),nullable=False, index=True)
     module_id = Column(Integer, ForeignKey("module.id"),nullable=False, index=True)
     quiz_id = Column(Integer, ForeignKey("quiz.id",ondelete="CASCADE"),nullable=False, index=True)
+    question_name = Column(String(445), nullable=False)
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)    
     quiz = relationship("Quiz", back_populates="questions")
