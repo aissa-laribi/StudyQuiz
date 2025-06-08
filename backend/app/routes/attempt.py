@@ -6,7 +6,6 @@ from app.models import User, Module, Quiz, Question,Answer, Attempt, Followup
 from app.schemas import AttemptCreate, FollowupCreate
 from app.routes.question import get_questions
 from app.routes.quiz import get_quiz
-from app.routes.followup import post_follow_up_quiz
 import random
 from datetime import datetime, timedelta
 router = APIRouter()
@@ -112,8 +111,23 @@ async def take_quiz(user_id: int, module_id: int, quiz_id: int, attempt: Attempt
     db.add(quiz)
     await db.commit()
     await db.refresh(quiz)
-    await post_follow_up_quiz(quiz.user_id,quiz.module_id,quiz.id,AttemptCreate,quiz.next_due,db)
+    #await post_follow_up_quiz(quiz.user_id,quiz.module_id,quiz.id,AttemptCreate,quiz.next_due,db)
     print("Next due date: "+ str(quiz.next_due))
+    result = await db.execute(
+        select(Followup).where(
+            Followup.user_id == user_id,
+            Followup.module_id == module_id,
+            Followup.quiz_id == quiz_id
+        )
+    )
+    followup = result.scalar_one_or_none()
+    if followup:
+        followup.followup_due_date = quiz.next_due
+    else:
+        followup = Followup(followup_due_date = quiz.next_due, user_id = user_id, module_id = module_id, quiz_id = quiz.id)
+    db.add(followup)
+    await db.commit()
+    await db.refresh(followup)
     return attempt.id
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts")
