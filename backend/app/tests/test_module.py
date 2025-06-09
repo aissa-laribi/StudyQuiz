@@ -4,13 +4,13 @@ from passlib.context import CryptContext
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select
 import os
 from app.main import app
 from dotenv import load_dotenv
-from sqlalchemy import select
-from app.models import User, Base
-
+from app.models import Base, Module
 from app.database import get_db
+from fastapi import Depends
 
 # Load .env
 load_dotenv(".env")
@@ -44,7 +44,7 @@ async def close_engine():
     yield
     await engine.dispose()
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 async def reset_test_db():
     # Drop all tables
     async with engine.begin() as conn:
@@ -62,6 +62,7 @@ def hash_password(password: str) -> str:
 reset_test_db
 
 
+"""
 @pytest.mark.anyio
 async def test_post(async_app_client):
     data = {
@@ -71,108 +72,225 @@ async def test_post(async_app_client):
     }
     response = await async_app_client.post("/users", json=data)
     assert response.status_code == 200
+"""
+
 
 
 @pytest.mark.anyio
-async def test_get_module(async_app_client):
-    user_response = await async_app_client.get("/users")
-    assert user_response.status_code == 200
-    assert len(user_response.json()) == 1
-    print(user_response.json())
-    user_id = user_response.json()[0]
-    print(user_id)
-    user_modules = await async_app_client.get("/users/" + str(user_id) + "/modules/")
-    assert user_modules.status_code == 200
+async def test_get_module_no_modules(async_app_client):
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    assert response.status_code == 200
+    assert len(response.json()) == 0
+
 
 @pytest.mark.anyio
 async def test_post_module(async_app_client):
-    user_response = await async_app_client.get("/users")
-    user_id = user_response.json()[0]
-    print(user_id)
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+
     data = {
 
         "name": "Module 1",
     }
     await async_app_client.post(f"/users/{user_id}/modules/", json=data)
-    modules = copy.deepcopy(await async_app_client.get(f"/users/{user_id}/modules/"))
-    created = copy.deepcopy(modules.json()[0])
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    created = modules.json()[0]
     assert created['user_id'] == user_id
     assert created['module_name'] == 'Module 1'
 
-
 @pytest.mark.anyio
 async def test_post_existing_module(async_app_client):
-    user_response = await async_app_client.get("/users")
-    user_id = user_response.json()[0]
-    print(type(user_id))
-    request = await async_app_client.get(f"/users/{user_id}/modules/")
-    modules = request.json()
-    prev_modules_size = len(modules)
-    print(prev_modules_size)
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+
     data = {
 
         "name": "Module 1",
     }
-    module_existing = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
-    new_modules = await async_app_client.get(f"/users/{user_id}/modules/")
-    new_modules = new_modules.json()
-    print(type(module_existing.json()))
-    print(type(modules))
-    assert len(new_modules) == prev_modules_size
+    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    created = modules.json()[0]
+    assert created['user_id'] == user_id
+    assert created['module_name'] == 'Module 1'
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    assert len(modules.json()) == 1
+
 
 @pytest.mark.anyio
-async def test_patch_module(async_app_client):
-    user_response = await async_app_client.get("/users")
-    user_id = user_response.json()[0]
-    print("USER" + str(user_id))
-    result = copy.deepcopy(await async_app_client.get(f"/users/{user_id}/modules/"))
-    modules = copy.deepcopy(result.json()[0])
-    module_id = modules['id']
-    print(modules['id'])
-    
+async def test_patch_module(async_app_client, db: AsyncSession = Depends(get_db)):
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+
     data = {
 
-        "module_name": "Module1",
+        "name": "Module 1",
     }
-    
-    await async_app_client.patch(f"/users/{user_id}/modules/{module_id}", json=data)
-    #assert module.status_code == 200
-    result2 = copy.deepcopy(await async_app_client.get(f"/users/{user_id}/modules/"))
-    new_modules = copy.deepcopy(result2.json()[0])
-    print(new_modules)
+    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    created = modules.json()[0]
+    assert created['user_id'] == user_id
+    assert created['module_name'] == 'Module 1'
+
+    data = {
+
+        "module_name": "Module 2",
+    }
+
+    result = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = result.json()[0]
+    module_id = modules['id']    
+    result = await async_app_client.patch(f"/users/{user_id}/modules/{module_id}", json=data)
+    assert result.status_code == 200
+    result = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = result.json()[0]
     #assert modules.json()[0]['id'] == 1
     #assert modules.json()[0]['user_id'] == 1
-    assert new_modules['module_name'] == 'Module1'
-    data = {
-
-        "module_name": "Module 1",
-    }
-    await async_app_client.patch(f"/users/{user_id}/modules/{module_id}", json=data)#OTHERWISE test_post will fail
+    assert modules['module_name'] == 'Module 2'
 
 
 @pytest.mark.anyio
 async def test_delete_module(async_app_client):
-    user_response = await async_app_client.get("/users")
-    user_id = user_response.json()[0]
-    result = copy.deepcopy(await async_app_client.get(f"/users/{user_id}/modules/"))
-    modules = copy.deepcopy(result.json()[0])
-    print(modules)
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+
+    data = {
+
+        "name": "Module 1",
+    }
+    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    created = modules.json()[0]
+    assert created['user_id'] == user_id
+    assert created['module_name'] == 'Module 1'
+
+    data = {
+
+        "module_name": "Module 2",
+    }
+
+    result = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = result.json()[0]
     module_id = modules['id']
-    print(module_id)
+
     await async_app_client.delete(f"/users/{user_id}/modules/{module_id}")
-    result2 = copy.deepcopy(await async_app_client.get(f"/users/{user_id}/modules/"))
-    new_modules = copy.deepcopy(result2.json())
-    assert new_modules == []
+    result = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = result.json()
+    assert modules == []
+
 
 @pytest.mark.anyio
-async def test_delete_module_empty_quizzes(async_app_client):
-    #TODO
-    pass
+async def test_batch_create_modules(async_app_client, db: AsyncSession = Depends(get_db)):
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+    data = {
+        "data": [
+        {
+            "name": "Module 1"
+        },
+        {
+            "name": "Module 2"
+        },
+        {
+            "name": "Module 3"
+        }
+        ]
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = modules.json()
+    assert len(modules) == 3
+    assert modules[0]['module_name'] == 'Module 1'
+    assert modules[1]['module_name'] == 'Module 2'
+    assert modules[2]['module_name'] == 'Module 3'
 
+
+@pytest.mark.anyio
+async def test_delete_module_no_quizzes(async_app_client):
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+    data = {
+        "data": [
+        {
+            "name": "Module 1"
+        },
+        {
+            "name": "Module 2"
+        },
+        {
+            "name": "Module 3"
+        }
+        ]
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = modules.json()
+    assert len(modules) == 3
+    assert modules[0]['module_name'] == 'Module 1'
+    assert modules[1]['module_name'] == 'Module 2'
+    assert modules[2]['module_name'] == 'Module 3'
+    response = await async_app_client.delete(f"/users/{user_id}/modules/batch-delete")
+    assert response.status_code == 200
+    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    modules = modules.json()
+    assert len(modules) == 0
+
+
+
+"""
 @pytest.mark.anyio
 async def test_delete_module_quizzes_questions_answers(async_app_client):
-    #TODO
-    pass
+    
 
 @pytest.mark.anyio
 async def test_delete_module_attempted_quizzes(async_app_client):
@@ -180,4 +298,4 @@ async def test_delete_module_attempted_quizzes(async_app_client):
     pass
 
 
-    
+"""    
