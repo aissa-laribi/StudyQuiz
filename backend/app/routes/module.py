@@ -63,16 +63,20 @@ async def update_module(user_id: int, module_id: int, update: ModuleUpdate, db: 
     return module.id
 
 @router.delete("/users/{user_id}/modules/batch-delete")
-async def delete_modules(user_id: int, module_ids: BatchModulesDelete, db: AsyncSession = Depends(get_db)):
+async def delete_modules(user_id: int, db: AsyncSession = Depends(get_db)):
     deleted_ids = []
-    for module_id in module_ids.data:
+    result = await db.execute(select(Module).where(Module.user_id == user_id))
+    module_ids = result.scalars().all()
+    
+    
+    for module_id in module_ids:
+        
         result = await db.execute(
-            select(Module).where(Module.user_id == user_id).where(Module.id == module_id)
+            select(Module).where(Module.user_id == user_id).where(Module.id == module_id.id)
         )
-        module = result.scalars().first()
-        if module is not None:
-            await db.delete(module)
-            deleted_ids.append(module_id)
+        
+        await db.delete(module_id)
+        deleted_ids.append(module_id)
     await db.commit()
     return {"deleted": deleted_ids}
     
