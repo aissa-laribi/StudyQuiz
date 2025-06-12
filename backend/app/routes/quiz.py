@@ -24,7 +24,7 @@ class Quiz(Base):
 
 
 router = APIRouter()
-@router.post("/users/{user_id}/modules/{module_id}/quizzes/batch-create")
+@router.post("/users/{user_id}/modules/{module_id}/quizzes/batch-create/")
 async def create_quizzes(user_id: int, module_id: int, quizzes: BatchQuizCreate, db: AsyncSession = Depends(get_db)):
     results = {}
     for quiz in quizzes.data:

@@ -88,7 +88,7 @@ class BatchModulesDelete(BaseModel):
     data: List[int]
 
 class BatchQuizCreate(BaseModel):
-    data: List[ModuleCreate]
+    data: List[QuizCreate]
 
 class BatchQuizDelete(BaseModel):
     data: List[int]

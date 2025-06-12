@@ -1,14 +1,12 @@
-import copy
 import pytest
 from passlib.context import CryptContext
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import select
 import os
 from app.main import app
 from dotenv import load_dotenv
-from app.models import Base, Module
+from app.models import Base
 from app.database import get_db
 from fastapi import Depends
 
@@ -247,9 +245,8 @@ async def test_batch_create_modules(async_app_client, db: AsyncSession = Depends
     assert modules[1]['module_name'] == 'Module 2'
     assert modules[2]['module_name'] == 'Module 3'
 
-
 @pytest.mark.anyio
-async def test_delete_module_no_quizzes(async_app_client):
+async def test_get_modules(async_app_client):
     data = {
         "user_name": "testuser1",
         "email": "user1@gmail.com",
@@ -279,23 +276,12 @@ async def test_delete_module_no_quizzes(async_app_client):
     assert modules[0]['module_name'] == 'Module 1'
     assert modules[1]['module_name'] == 'Module 2'
     assert modules[2]['module_name'] == 'Module 3'
-    response = await async_app_client.delete(f"/users/{user_id}/modules/batch-delete")
-    assert response.status_code == 200
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
-    modules = modules.json()
-    assert len(modules) == 0
+    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    assert len(response.json()) == 3
+    assert response.json()[0]['module_name'] == 'Module 1'
+    assert response.json()[1]['module_name'] == 'Module 2'
+    assert response.json()[2]['module_name'] == 'Module 3'
 
-
-
-"""
-@pytest.mark.anyio
-async def test_delete_module_quizzes_questions_answers(async_app_client):
-    
-
-@pytest.mark.anyio
-async def test_delete_module_attempted_quizzes(async_app_client):
-    #TODO
-    pass
-
-
-"""    
+    """
+        TODOS: -test CRUD modules operations with quizzes, questions, answers, attemps inside
+    """
