@@ -38,7 +38,7 @@ async def create_quizzes(user_id: int, module_id: int, quizzes: BatchQuizCreate,
 
 
 
-@router.post("/users/{user_id}/modules/{module_id}")
+@router.post("/users/{user_id}/modules/{module_id}/quizzes/")
 async def create_quiz(user_id: int, module_id: int, quiz: QuizCreate, db: AsyncSession = Depends(get_db)):
     new_quiz = Quiz(quiz_name=quiz.name, user_id=user_id, module_id=module_id)
     db.add(new_quiz)
@@ -64,17 +64,18 @@ async def update_quiz(user_id: int, module_id: int, quiz_id: int, new_data: dict
     return quiz.id
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/batch-delete")
-async def delete_quizzes(user_id: int, module_id: int, quizzes_ids: BatchQuizDelete,db: AsyncSession = Depends(get_db)):
+async def delete_quizzes(user_id: int, module_id: int, db: AsyncSession = Depends(get_db)):
     deleted_ids = []
-    for quiz_id in quizzes_ids.data:
+    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == module_id))
+    quizzes = result.scalars().all()
+    for quiz in quizzes:
         result = await db.execute(
-            select(Quiz).where(Quiz.user_id == user_id,Quiz.id == quiz_id)
+            select(Quiz).where(Quiz.user_id == user_id,Quiz.module_id == module_id, Quiz.id == quiz.id)
         )
         quiz = result.scalars().first()
-        if quiz is not None:
-            await db.delete(quiz)
-            deleted_ids.append(quiz_id)
-    await db.commit()
+        await db.delete(quiz)
+        deleted_ids.append(quiz.id)
+        await db.commit()
     return {"deleted": deleted_ids}
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
