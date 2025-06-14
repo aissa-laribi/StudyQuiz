@@ -284,4 +284,5 @@ async def test_get_modules(async_app_client):
 
     """
         TODOS: -test CRUD modules operations with quizzes, questions, answers, attemps inside
+               - Forgot to test GET request
     """

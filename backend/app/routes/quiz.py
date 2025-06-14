@@ -108,7 +108,8 @@ async def get_quiz(user_id: int, module_id: int, quiz_id: int, db: AsyncSession 
     return quiz
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/")
-async def get_quizzes(user_id: int, modules_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == modules_id))
+async def get_quizzes(user_id: int, module_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id, Quiz.module_id == module_id))
     quizzes = result.scalars().all()
     return quizzes
+
