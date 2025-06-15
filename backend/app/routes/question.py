@@ -57,7 +57,7 @@ async def update_question(user_id: int, module_id: int, quiz_id: int, question_i
     await db.refresh(question)
     return question.id
 
-@router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/batch-delete")
+@router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/batch-delete/")
 async def delete_all_questions(user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
     print("WARNING!: All answers associated with the questions will be removed as well.")
     deleted_ids = []
@@ -92,7 +92,7 @@ async def delete_question(user_id: int, module_id: int, quiz_id: int, question_i
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}")
 async def get_question(user_id: int, module_id: int, quiz_id: int, question_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Question).where(Question.user_idid == user_id).where(Question.module_id == module_id).where(Question.quiz_id == quiz_id).where(Question.id == question_id))
+    result = await db.execute(select(Question).where(Question.user_id == user_id).where(Question.module_id == module_id).where(Question.quiz_id == quiz_id).where(Question.id == question_id))
     question = result.scalars().first()
 
     if not question:
