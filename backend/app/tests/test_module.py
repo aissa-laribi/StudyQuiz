@@ -282,7 +282,30 @@ async def test_get_modules(async_app_client):
     assert response.json()[1]['module_name'] == 'Module 2'
     assert response.json()[2]['module_name'] == 'Module 3'
 
-    """
-        TODOS: -test CRUD modules operations with quizzes, questions, answers, attemps inside
-               - Forgot to test GET request
-    """
+
+
+@pytest.mark.anyio
+async def test_get_module(async_app_client):
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users")
+    user_id = response.json()[0]
+
+    data = {
+
+        "name": "Module 1",
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    assert response.status_code == 200
+    assert response.json() == 1
+    module_id = response.json()
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}")
+    assert response.status_code == 200
+
+    assert response.json()['module_name'] == "Module 1"
+    
