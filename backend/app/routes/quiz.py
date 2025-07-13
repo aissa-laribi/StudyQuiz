@@ -113,3 +113,9 @@ async def get_quizzes(user_id: int, module_id: int, db: AsyncSession = Depends(g
     quizzes = result.scalars().all()
     return quizzes
 
+@router.get("/users/{user_id}/quizzes/new")
+async def get_quizzes_not_attempted(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id, Quiz.next_due == None))
+    quizzes = result.scalars().all()
+    return quizzes
+

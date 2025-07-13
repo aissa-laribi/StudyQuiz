@@ -1,14 +1,28 @@
 from fastapi import FastAPI
 from app.routes import user, module, quiz, question, answer, followup, attempt
 import sys
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 print(sys.path)
 
 app = FastAPI()
 
+
+# Allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Svelte default dev port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to StudyQuiz!"}
+    
 
 app.include_router(user.router, prefix="", tags=["Users"])
 app.include_router(module.router, prefix="", tags=["Modules"])

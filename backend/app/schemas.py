@@ -7,12 +7,14 @@ class UserCreate(BaseModel):
     user_name: str
     email: EmailStr
     password: str #Plain text password entered from User
+    
 
 #Ensuring password nost sent in the response
 class UserResponse(BaseModel):
     id: int
     user_name: str
     email: EmailStr
+    role: str
 
     class Config:
         orm_mode = True  # Enables ORM model conversion to this schema
@@ -106,3 +108,20 @@ class QuestionWithAnswersCreate(BaseModel):
 class BatchQuestionsWithAnswersCreate(BaseModel):
     data: List[QuestionWithAnswersCreate]
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+    role: str | None = None
+    user_id: int | None = None
+
+class TokenRequest(BaseModel):
+    username: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str

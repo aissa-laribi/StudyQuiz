@@ -11,6 +11,7 @@ class User(Base):
     user_name = Column(String(45), nullable=False, unique=True)
     email = Column(String(245), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
+    role = Column(String(4),nullable=False) #I just added that
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     modules = relationship("Module", back_populates="owner")
@@ -93,3 +94,4 @@ class Followup(Base):
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     quiz = relationship("Quiz", back_populates="followups")
+    
