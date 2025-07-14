@@ -2,7 +2,7 @@ from sqlalchemy.future import select
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from app.schemas import UserCreate, TokenData, Token
+from app.schemas import UserCreate, TokenData, Token, UserResponse
 from app.database import get_db
 from app.models import User
 from passlib.context import CryptContext
@@ -70,7 +70,8 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: As
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_exception
-    user = get_user(token_data.user_id, get_db)
+    result = await db.execute(select(User).where(User.user_name == token_data.username))
+    user = result.scalars().first()
     if user is None:
         raise credentials_exception
     return user
@@ -79,8 +80,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: As
 async def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 @router.post("/token")
@@ -99,11 +98,6 @@ async def login_for_access_token(
         data={"sub": user.user_name, "role":user.role}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
-
-
-
-
-
 
     
 @router.post("/users")
@@ -133,20 +127,24 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """
 
 @router.patch("/users/{user_id}")
-async def update_user(user_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
+async def update_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
+    
+    if current_user.role == "root" or current_user.id == user_id:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
+    
     if 'password' in new_data:
         user.password = hash_password(new_data['password'])
         del new_data['password']
     
+    
     for key, value in new_data.items():
         setattr(user, key, value)
-
+    
     # Commit the changes
     print(type(User))
     db.add(user)
@@ -159,40 +157,43 @@ async def update_user(user_id: int, new_data: dict, db: AsyncSession = Depends(g
 
 @router.delete("/users/{user_id}")
 async def delete_user(
-    user_id: int,
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[User, Depends(get_current_active_user)],user_id: int,
+    db: AsyncSession = Depends(get_db), 
 ):
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
+    if current_user.role == "root" or current_user.id == user_id:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    await db.delete(user)
-    await db.commit()
+
+        await db.delete(user)
+        await db.commit()
     
-    return {"message": "User deleted successfully", "user_id": user_id}
+        return {"message": "User deleted successfully", "user_id": user_id}
 
 @router.get("/users/{user_id}")
-async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {
-    "user_id": user_id,
-    "user_name": user.user_name,
-    "email": user.email,
-    "role":user.role
-    }
+async def get_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, db: AsyncSession = Depends(get_db)):
+    if current_user.role == "root" or current_user.id == user_id:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
+
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+        "user_id": user_id,
+        "user_name": user.user_name,
+        "email": user.email,
+        "role":user.role
+        }
 
 @router.get("/users")
-async def get_users(db: AsyncSession = Depends(get_db)):
-    """if user.role != "root":
-        raise HTTPException(status_code=403, detail="Website admin access only")
-    """
-    query  = select(User.id)
-    print(query)
-    result = await db.execute(query)
-    users = result.scalars().all()
-    return users
+async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
+
+    if current_user.role == "root":
+        result = await db.execute(select(User))
+        users = result.scalars().all()
+        return users
+
