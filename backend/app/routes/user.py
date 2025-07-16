@@ -2,7 +2,7 @@ from sqlalchemy.future import select
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from app.schemas import UserCreate, TokenData, Token, UserResponse
+from app.schemas import UserCreate, TokenData, Token
 from app.database import get_db
 from app.models import User
 from passlib.context import CryptContext
@@ -22,7 +22,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
 
 # Set up password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -82,7 +82,42 @@ async def get_current_active_user(
 ):
     return current_user
 
-@router.post("/token")
+@router.get("/users/me")
+async def get_user_details(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
+
+    result = await db.execute(select(User).where(User.id == current_user.id))
+    user = result.scalars().first()
+    return {"user_id": user.id,"user_name": user.user_name,"email": user.email,"role":user.role}
+
+@router.get("/users")
+async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
+
+    if current_user.role == "root":
+        result = await db.execute(select(User))
+        users = result.scalars().all()
+        return users
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
+@router.get("/users/{user_id}")
+async def get_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, db: AsyncSession = Depends(get_db)):
+    if current_user.role == "root" or current_user.id == user_id:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
+
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+        "user_id": user_id,
+        "user_name": user.user_name,
+        "email": user.email,
+        "role":user.role
+        }
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
+@router.post("/users/token")
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],db: AsyncSession = Depends(get_db)
 ) -> Token:
@@ -132,7 +167,9 @@ async def update_user(current_user: Annotated[User, Depends(get_current_active_u
     if current_user.role == "root" or current_user.id == user_id:
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
-
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -160,40 +197,32 @@ async def delete_user(
     current_user: Annotated[User, Depends(get_current_active_user)],user_id: int,
     db: AsyncSession = Depends(get_db), 
 ):
-    if current_user.role == "root" or current_user.id == user_id:
+    
+    if current_user.role == "root":
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
+        if user.role == "root":
+            raise HTTPException(status_code=403, detail="Root user cannot delete themselves.")
+        else:
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalars().first()
+            if user is None:
+                raise HTTPException(status_code=404, detail="User not found")
 
+
+            await db.delete(user)
+            await db.commit()
+    
+            return {"message": "User deleted successfully", "user_id": user_id}
+    elif current_user.id == user_id:
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
-
-
         await db.delete(user)
         await db.commit()
-    
         return {"message": "User deleted successfully", "user_id": user_id}
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
-@router.get("/users/{user_id}")
-async def get_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalars().first()
-
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        return {
-        "user_id": user_id,
-        "user_name": user.user_name,
-        "email": user.email,
-        "role":user.role
-        }
-
-@router.get("/users")
-async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
-
-    if current_user.role == "root":
-        result = await db.execute(select(User))
-        users = result.scalars().all()
-        return users
 

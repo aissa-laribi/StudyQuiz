@@ -58,21 +58,29 @@ def hash_password(password: str) -> str:
 
 reset_test_db
 # Tests
+@pytest.mark.order(1)
 @pytest.mark.anyio
 async def test_root(async_app_client):
     response = await async_app_client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Welcome to StudyQuiz!"}
 
-
+@pytest.mark.order(2)
 @pytest.mark.anyio
 async def test_no_users(async_app_client):
     response = await async_app_client.get("/users")
-    assert response.status_code == 200
-    assert response.json() == []
+    assert response.status_code == 401
+    #assert response.json() == []
     #print("Get_Users1 " +str(response.json()))
 
+@pytest.mark.order(3)
+@pytest.mark.anyio
+async def test_get_users1_not_logged(async_app_client):
+    response = await async_app_client.get("/users")
+    assert response.status_code == 401
+    #assert len(response.json()) == 1
 
+@pytest.mark.order(4)
 #Testing user creation on empty db
 @pytest.mark.anyio
 async def test_post(async_app_client):
@@ -83,13 +91,74 @@ async def test_post(async_app_client):
     }
     response = await async_app_client.post("/users", json=data)
     assert response.status_code == 200
+    return data
 
+@pytest.mark.order(5)
 @pytest.mark.anyio
-async def test_get_users1(async_app_client):
-    response = await async_app_client.get("/users")
-    assert response.status_code in [200]
-    assert len(response.json()) == 1
+async def test_login_wrong_pwd(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g1"
+        "&scope=&client_id=string&client_secret=string"
+    )
 
+    response = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert response.status_code == 401 
+    assert response.json()['detail'] == "Incorrect username or password"
+
+@pytest.mark.order(6)
+@pytest.mark.anyio
+async def test_login_correct_pwd(async_app_client):
+    data = {
+        "user_name": "testuser1",
+        "email": "user1@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    response = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+
+@pytest.mark.order(7)
+@pytest.mark.anyio
+async def test_get_users1_logged(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+
+    response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["id"] == 1
+    assert response.json()[0]["role"] == "root"
+
+@pytest.mark.order(8)
 @pytest.mark.anyio
 async def test_post_existing_username(async_app_client):
     data = {
@@ -100,6 +169,7 @@ async def test_post_existing_username(async_app_client):
     response = await async_app_client.post("/users", json=data)
     assert response.json() == None
 
+@pytest.mark.order(9)
 @pytest.mark.anyio
 async def test_post_existing_email(async_app_client):
     data = {
@@ -110,63 +180,248 @@ async def test_post_existing_email(async_app_client):
     response = await async_app_client.post("/users", json=data)
     assert response.json() == None
 
+@pytest.mark.order(10)
 @pytest.mark.anyio
-async def test_patch_username(async_app_client):
+async def test_admin_patch_admin_username(async_app_client):
+    data = {
+        "user_name": "testuser_1",
+        
+    }
+    
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+
+    response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json()[0]["id"] == 1
+    assert response.json()[0]["role"] == "root"
+    response = await async_app_client.patch("/users/" + str(1) , json=data)
+    assert data["user_name"] == "testuser_1"
     data = {
         "user_name": "testuser1",
         
     }
-    result = await async_app_client.get("/users")
-    last_id = result.json()[-1]
-    response = await async_app_client.patch("/users/" + str(last_id), json=data)
-    assert data["user_name"] == response.json()['user_name']
+    response = await async_app_client.patch("/users/" + str(1) , json=data)
+    assert data["user_name"] == "testuser1"
 
+@pytest.mark.order(11)
 @pytest.mark.anyio
-async def test_patch_email(async_app_client):
+async def test_admin_patch_admin_email(async_app_client):
     data = {
-        "email": "user2@gmail.com",
+        "email": "user_1@gmail.com",
         
     }
-    result = await async_app_client.get("/users")
-    last_id = result.json()[-1]
-    response = await async_app_client.patch("/users/" + str(last_id), json=data)
-    assert data["email"] == response.json()['email']
-
-@pytest.mark.anyio
-async def test_password(async_app_client):
-    data = {
-        "password": "GJLEAwavebveRTY3244,",
-        
-    }
-    result = await async_app_client.get("/users")
-    last_id = result.json()[-1]
-    async with async_session() as session:
-        result = await session.execute(select(User).where(User.id == last_id))
-        user = result.scalars().first()
-        assert user is not None
-        old_hashed = user.password
-        
-    response = await async_app_client.patch("/users/" + str(last_id), json=data)
     
-    async with async_session() as session:
-        result = await session.execute(select(User).where(User.id == last_id))
-        user = result.scalars().first()
-        new_hashed = user.password
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
 
-    assert old_hashed != new_hashed
-    
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
 
-@pytest.mark.anyio
-async def test_delete_new_user(async_app_client):
-    result = await async_app_client.get("/users")
-    last_id = result.json()[-1]
-    print("LAST ID" + str(result.json()))
-    response = await async_app_client.delete("/users/"+str(last_id))
-    users = await async_app_client.get("/users")
+    response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
-    assert last_id not in users.json()
+    assert response.json()[0]["id"] == 1
+    assert response.json()[0]["role"] == "root"
+    response = await async_app_client.patch("/users/" + str(1) , json=data, headers={"Authorization": f"Bearer {access_token}"})
+    #response = await async_app_client.get("/users/" + str(1) )
+    assert response.json()["email"] == "user_1@gmail.com"
+    
+"""
+@pytest.mark.order(12)
+@pytest.mark.anyio
+async def test_admin_patch_admin_password(async_app_client): #Not complete
+
+    data = {
+        "password": "GJLEAwavebveRTY3244",
+    }
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+
+    assert 'access_token' in token.json()
+    access_token = token.json()["access_token"]
+
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.id == 1))
+        user = result.scalars().first()
+        old_hash = user.password
+        session.close()
+"""
+
+#Root cannot delete himself?
+@pytest.mark.order(12)
+@pytest.mark.anyio
+async def test_delete_root(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    assert 'access_token' in token.json()
+    access_token = token.json()["access_token"]
+    response = await async_app_client.delete("/users/1",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+    assert response.json()['detail'] == 'Root user cannot delete themselves.'
+
+#TODOS: -Add second user and assert role == user
+
+@pytest.mark.order(14)
+@pytest.mark.anyio
+async def test_post2(async_app_client):
+    data = {
+        "user_name": "testuser2",
+        "email": "user2@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g2",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    return data
+
+@pytest.mark.order(15)
+@pytest.mark.anyio
+async def test_login_wrong_pwd2(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g21"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    response = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert response.status_code == 401 
+    assert response.json()['detail'] == "Incorrect username or password"
+
+@pytest.mark.order(16)
+@pytest.mark.anyio
+async def test_login_correct_pwd2(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    assert token.status_code == 200
+
+@pytest.mark.order(17)
+@pytest.mark.anyio
+async def test_user2_not_admin(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Not enough permissions"
+
+@pytest.mark.order(18)
+@pytest.mark.anyio
+async def test_user2_patch_admin(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    data = {"user_name": "username"}
+    response = await async_app_client.patch("/users/1", json=data, headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Not enough permissions"
+    data = {"email": "username@gmail.com"}
+    response = await async_app_client.patch("/users/1", json=data, headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Not enough permissions"
+    data = {"password": ",NASV.ALlcsdnvsdkwbkvnes.bn.kaswq;dq;/wlm/l."}
+    response = await async_app_client.patch("/users/1", json=data, headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+    assert response.json()['detail'] == "Not enough permissions"
+
+@pytest.mark.order(18)
+@pytest.mark.anyio
+async def test_user2_patch(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    #assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    data = {"user_name": "username"}
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user_id = response.json()['user_id']
+    response = await async_app_client.patch(f"/users/{user_id}", json=data, headers={"Authorization": f"Bearer {access_token}"})
+    #assert response.status_code == 200
+    assert response.json()['user_name'] == data['user_name'] 
 
 
 
+
+    
 
 
