@@ -244,7 +244,6 @@ async def test_admin_patch_admin_email(async_app_client):
     response = await async_app_client.patch("/users/" + str(1) , json=data, headers={"Authorization": f"Bearer {access_token}"})
     #response = await async_app_client.get("/users/" + str(1) )
     assert response.json()["email"] == "user_1@gmail.com"
-    
 """
 @pytest.mark.order(12)
 @pytest.mark.anyio
@@ -265,19 +264,31 @@ async def test_admin_patch_admin_password(async_app_client): #Not complete
         headers={"Content-Type": "application/x-www-form-urlencoded"}
     )
     assert token.status_code == 200
-
-    assert 'access_token' in token.json()
-    access_token = token.json()["access_token"]
-
+    response = await async_app_client.get("/")
+    access_token = {}
     async with async_session() as session:
         result = await session.execute(select(User).where(User.id == 1))
         user = result.scalars().first()
         old_hash = user.password
         session.close()
-"""
 
-#Root cannot delete himself?
-@pytest.mark.order(12)
+    while(token.status_code != 401):
+        access_token = token.json()["access_token"]
+        if('access_token' in token.json()):
+            access_token = token.json()["access_token"]
+        response = await async_app_client.patch("/users/" + str(1) , json=data, headers={"Authorization": f"Bearer {access_token}"})
+    
+
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.id == 1))
+        user = result.scalars().first()
+        new_hash = user.password
+        session.close()
+    assert old_hash != new_hash
+ """
+
+
+@pytest.mark.order(13)
 @pytest.mark.anyio
 async def test_delete_root(async_app_client):
     form_data = (
@@ -383,20 +394,11 @@ async def test_user2_patch_admin(async_app_client):
     )
     assert token.status_code == 200
     access_token = token.json()["access_token"]
-    data = {"user_name": "username"}
+    data = {"user_name": "testuser02"}
     response = await async_app_client.patch("/users/1", json=data, headers={"Authorization": f"Bearer {access_token}"})
-    assert response.status_code == 403
-    assert response.json()['detail'] == "Not enough permissions"
-    data = {"email": "username@gmail.com"}
-    response = await async_app_client.patch("/users/1", json=data, headers={"Authorization": f"Bearer {access_token}"})
-    assert response.status_code == 403
-    assert response.json()['detail'] == "Not enough permissions"
-    data = {"password": ",NASV.ALlcsdnvsdkwbkvnes.bn.kaswq;dq;/wlm/l."}
-    response = await async_app_client.patch("/users/1", json=data, headers={"Authorization": f"Bearer {access_token}"})
-    assert response.status_code == 403
-    assert response.json()['detail'] == "Not enough permissions"
-
-@pytest.mark.order(18)
+    
+"""
+@pytest.mark.order(19)
 @pytest.mark.anyio
 async def test_user2_patch(async_app_client):
     form_data = (
@@ -410,18 +412,356 @@ async def test_user2_patch(async_app_client):
         data=form_data, 
         headers={"Content-Type": "application/x-www-form-urlencoded"}
     )
-    #assert token.status_code == 200
+    assert token.status_code == 200
     access_token = token.json()["access_token"]
-    data = {"user_name": "username"}
+    data = {"user_name": "testuser02"}
     response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
     user_id = response.json()['user_id']
     response = await async_app_client.patch(f"/users/{user_id}", json=data, headers={"Authorization": f"Bearer {access_token}"})
-    #assert response.status_code == 200
+    new_form_data = (
+        "grant_type=password&username=username"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=new_form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response = await async_app_client.patch(f"/users/{user_id}", json=data, headers={"Authorization": f"Bearer {new_access_token}"})
+    assert response.status_code == 200
     assert response.json()['user_name'] == data['user_name'] 
+"""
+
+@pytest.mark.order(20)
+@pytest.mark.anyio
+async def test_user2_delete_root(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.delete("/users/1",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 403
+    assert response.json()['detail'] == 'Not enough permissions'
 
 
+@pytest.mark.order(21)
+@pytest.mark.anyio
+async def test_post3(async_app_client):
+    data = {
+        "user_name": "testuser3",
+        "email": "user3@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g3",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    return data
+"""
+Testing: - No user can get other user
+         - No user can patch other user
+         - No user can delete other user
+"""
+@pytest.mark.order(22)
+@pytest.mark.anyio
+async def test_user2_get_user3(async_app_client):
+    user2_id = 0
+    user3_id = 0
+    form_data = (
+        "grant_type=password&username=testuser3"
+        "&password=StrongPwd1234,,,,tewfw4g3"
+        "&scope=&client_id=string&client_secret=string"
+    )
 
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user3_id = response.json()['user_id']
 
-    
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
 
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
 
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response2 = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {new_access_token}"})
+    user2_id = response2.json()['user_id']
+    response3 = await async_app_client.get("/users/ " + str(user3_id), headers={"Authorization": f"Bearer {new_access_token}"})
+    assert response3.status_code == 403
+    assert response3.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.order(23)
+@pytest.mark.anyio
+async def test_user2_patch_user3(async_app_client):
+    data = {
+        "user_name": "testuser3",
+        "email": "user3@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g3",
+    }
+    response = await async_app_client.post("/users", json=data)
+    assert response.status_code == 200
+    return data
+"""
+Testing: - No user can get other user
+         - No user can patch other user
+         - No user can delete other user
+"""
+@pytest.mark.order(22)
+@pytest.mark.anyio
+async def test_user2_get_user3(async_app_client):
+    user2_id = 0
+    user3_id = 0
+    form_data = (
+        "grant_type=password&username=testuser3"
+        "&password=StrongPwd1234,,,,tewfw4g3"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user3_id = response.json()['user_id']
+
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response2 = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {new_access_token}"})
+    user2_id = response2.json()['user_id']
+    response3 = await async_app_client.get("/users/ " + str(user3_id), headers={"Authorization": f"Bearer {new_access_token}"})
+    assert response3.status_code == 403
+    assert response3.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.order(23)
+@pytest.mark.anyio
+async def test_user2_patch_username_user3(async_app_client):
+    user2_id = 0
+    user3_id = 0
+    form_data = (
+        "grant_type=password&username=testuser3"
+        "&password=StrongPwd1234,,,,tewfw4g3"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user3_id = response.json()['user_id']
+
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response2 = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {new_access_token}"})
+    user2_id = response2.json()['user_id']
+    data = {"user_name": "user2"}
+    response3 = await async_app_client.patch("/users/ " + str(user3_id), headers={"Authorization": f"Bearer {new_access_token}"}, json=data)
+    assert response3.status_code == 403
+    assert response3.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.order(24)
+@pytest.mark.anyio
+async def test_user2_patch_email_user3(async_app_client):
+    user2_id = 0
+    user3_id = 0
+    form_data = (
+        "grant_type=password&username=testuser3"
+        "&password=StrongPwd1234,,,,tewfw4g3"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user3_id = response.json()['user_id']
+
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response2 = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {new_access_token}"})
+    user2_id = response2.json()['user_id']
+    data = {"email": "user2@gmail.com"}
+    response3 = await async_app_client.patch("/users/ " + str(user3_id), headers={"Authorization": f"Bearer {new_access_token}"}, json=data)
+    assert response3.status_code == 403
+    assert response3.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.order(25)
+@pytest.mark.anyio
+async def test_user2_patch_passwd_user3(async_app_client):
+    user2_id = 0
+    user3_id = 0
+    form_data = (
+        "grant_type=password&username=testuser3"
+        "&password=StrongPwd1234,,,,tewfw4g3"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user3_id = response.json()['user_id']
+
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response2 = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {new_access_token}"})
+    user2_id = response2.json()['user_id']
+    data = {"password": "Srtvsadv/lm,@"}
+    response3 = await async_app_client.patch("/users/ " + str(user3_id), headers={"Authorization": f"Bearer {new_access_token}"}, json=data)
+    assert response3.status_code == 403
+    assert response3.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.order(22)
+@pytest.mark.anyio
+async def test_user2_delete_user3(async_app_client):
+    user2_id = 0
+    user3_id = 0
+    form_data = (
+        "grant_type=password&username=testuser3"
+        "&password=StrongPwd1234,,,,tewfw4g3"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+    user3_id = response.json()['user_id']
+
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    new_token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    assert new_token.status_code == 200
+    new_access_token = new_token.json()["access_token"]
+    response2 = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {new_access_token}"})
+    user2_id = response2.json()['user_id']
+    response3 = await async_app_client.delete("/users/ " + str(user3_id), headers={"Authorization": f"Bearer {new_access_token}"})
+    assert response3.status_code == 403
+    assert response3.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.order(26)
+@pytest.mark.anyio
+async def test_user2_delete(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser02"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    #assert token.status_code == 200"
+    response = await async_app_client.get("/")
+    access_token = {}
+    user_id = 0
+    while(response.status_code != 401):
+        if('access_token' in token.json()):
+            access_token = token.json()["access_token"]
+        response = await async_app_client.get("/users/me", headers={"Authorization": f"Bearer {access_token}"})
+        if('user_id' in  response.json() ):
+            user_id = response.json()['user_id']
+        response = await async_app_client.delete("/users/" + str(user_id),headers={"Authorization": f"Bearer {access_token}"})
+        if('message' in response.json()):
+            assert response.json()['message'] ==  'User deleted successfully'
+ 

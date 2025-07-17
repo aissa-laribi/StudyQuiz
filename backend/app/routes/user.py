@@ -178,16 +178,23 @@ async def update_user(current_user: Annotated[User, Depends(get_current_active_u
         user.password = hash_password(new_data['password'])
         del new_data['password']
     
-    
+    allowed_fields = {"user_name", "email", "password"}
     for key, value in new_data.items():
-        setattr(user, key, value)
+        if key in allowed_fields:
+            setattr(user, key, value)
     
     # Commit the changes
     print(type(User))
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    return user
+
+    return {
+        "user_id": user.id,
+        "user_name": user.user_name,
+        "email": user.email,
+        "role": user.role
+    }
     """
     TODOS: Not return password in bodyresponse if password not updated
     """
