@@ -64,6 +64,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: As
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
+
         role = payload.get("role")
         if username is None or role is None:
             raise credentials_exception
@@ -83,11 +84,10 @@ async def get_current_active_user(
     return current_user
 
 @router.get("/users/me")
-async def get_user_details(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
-
+async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
     user = result.scalars().first()
-    return {"user_id": user.id,"user_name": user.user_name,"email": user.email,"role":user.role}
+    return {"user_name": user.user_name,"email": user.email,"role":user.role}
 
 @router.get("/users")
 async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):

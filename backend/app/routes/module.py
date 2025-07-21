@@ -121,6 +121,14 @@ async def get_module(current_user: Annotated[User, Depends(get_current_active_us
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
 
+@router.get("/users/me/modules/")
+async def get_my_modules(current_user: User = Depends(get_current_active_user),db: AsyncSession = Depends(get_db)):
+    user_id = current_user.id
+    result = await db.execute(
+        select(Module).where(Module.user_id == user_id)
+    )
+    return result.scalars().all()
+
 @router.get("/users/{user_id}/modules/")
 async def get_modules(current_user: Annotated[User, Depends(get_current_active_user)], user_id: int, db: AsyncSession = Depends(get_db)):
     if current_user.role == "root" or current_user.id == user_id:    
@@ -129,3 +137,7 @@ async def get_modules(current_user: Annotated[User, Depends(get_current_active_u
         return modules
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    
+
+    
+

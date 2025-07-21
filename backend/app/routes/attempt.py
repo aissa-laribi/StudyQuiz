@@ -34,13 +34,13 @@ def fgd_shuffling(array: list, size: int):
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/")
 async def take_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, db: AsyncSession = Depends(get_db)):
     if current_user.role == "root" or current_user.id == user_id:
-        result = await get_questions(user_id, module_id, quiz_id, db)
+        result = await get_questions(current_user,user_id, module_id, quiz_id, db)
         questions = fgd_shuffling(result,len(result))
         #print(questions)
         correct_answers = 0
         selected_answer = 0
         score = 0
-        quiz = await get_quiz(user_id , module_id , quiz_id, db)
+        quiz = await get_quiz(current_user,user_id , module_id , quiz_id, db)
     
         if quiz.repetitions is None:
             quiz.repetitions = 0

@@ -114,6 +114,14 @@ async def delete_quiz(current_user: Annotated[User, Depends(get_current_active_u
         return {"message": "Quiz deleted successfully"}
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+@router.get("/users/me/quizzes/")
+async def get_my_modules(current_user: User = Depends(get_current_active_user),db: AsyncSession = Depends(get_db)):
+    user_id = current_user.id
+    # reuse your existing DB call logic here
+    result = await db.execute(
+        select(Quiz).where(Quiz.user_id == user_id)
+    )
+    return result.scalars().all()
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
 async def get_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
