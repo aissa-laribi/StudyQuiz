@@ -22,6 +22,22 @@ class Module(Base):
     quizzes = relationship("Quiz", back_populates="module")
 """
 
+@router.post("/users/me/modules/")
+async def create_module(current_user: Annotated[User, Depends(get_current_active_user)], module: ModuleCreate, db: AsyncSession = Depends(get_db)):
+    user_id = current_user.id
+    try:
+        if current_user.role == "root" or current_user.id == user_id:
+            new_module = Module(module_name=module.name, user_id=user_id)
+            db.add(new_module)
+            await db.commit()
+            await db.refresh(new_module)
+            return new_module
+        else:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    except IntegrityError:
+        await db.rollback()
+
+
 @router.post("/users/{user_id}/modules/")
 async def create_module(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module: ModuleCreate, db: AsyncSession = Depends(get_db)):
     try:
@@ -35,6 +51,7 @@ async def create_module(current_user: Annotated[User, Depends(get_current_active
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
     except IntegrityError:
         await db.rollback()
+
 @router.post("/users/{user_id}/modules/batch-create")
 async def create_modules(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, modules: BatchModules,db: AsyncSession = Depends(get_db)):
     results = {}

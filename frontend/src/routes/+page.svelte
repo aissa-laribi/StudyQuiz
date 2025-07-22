@@ -82,12 +82,12 @@
         grid-area: main;
         background-color: #f6f7fb;
         display: grid;
-        height: 100%; 
+        height: 100vh; 
         vertical-align: baseline;
         justify-content: center;
         vertical-align: baseline;
         //grid-template-columns: 1fr;
-        grid-template-rows: 0.2fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
         row-gap: 20px;
         grid-template-areas:
         'hero-spacer'
@@ -96,13 +96,13 @@
         ;
     }
     main h1 {
-      font-family: 'Montserrat' sans-serif;
+      font-family: 'Montserrat', sans-serif;
       text-align: center;
       font-weight: 700;
       font-size: 2.5rem;
     }
     main p {
-      font-family: 'Montserrat' sans-serif;
+      font-family: 'Montserrat', sans-serif;
       min-height: 1.5rem;
       text-align: center;
       font-weight: 400;
@@ -167,7 +167,7 @@
       'feat-col1 feat-col2 feat-col3 feat-col4';
       text-align: center;
       color : white;
-      font-family: 'Montserrat' sans-serif;
+      font-family: 'Montserrat', sans-serif;
       font-size: 1.5em;
       border-radius: 1em;
   
@@ -195,9 +195,9 @@
 
 <section class="container">
   <nav>
-  <div class="logo-box"><img src="/logo.png"></div>
+  <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
   <div class="menu-box">
-      <a href="./pagetogo">{login}</a>
+      <a href="./login">{login}</a>
   </div>
   </nav>
   <main>
