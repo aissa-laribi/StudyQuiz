@@ -59,19 +59,49 @@ async def get_answer(current_user: Annotated[User, Depends(get_current_active_us
     if current_user.role == "root" or current_user.id == user_id:
         result = await db.execute(select(Answer).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question_id).where(Answer.id == answer_id))
         answer = result.scalars().first()
-
         if not answer:
             raise HTTPException(status_code=404, detail="Module not found for user" + str(user_id))
         return answer
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
+@router.get("/users/me/modules/{module_name}/quizzes/{quiz_name}/questions/{question_name}/answers")
+async def get_answers_from_question_name(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    module_name: str,
+    quiz_name: str,
+    question_name: str,
+    db: AsyncSession = Depends(get_db)
+):
+    user_id = current_user.id
+
+    result = await db.execute(
+        select(Answer)
+        .join(Answer.question)
+        .join(Question.quiz)
+        .join(Quiz.module)
+        .where(Answer.user_id == user_id)
+        .where(Question.question_name == question_name)
+        .where(Quiz.quiz_name == quiz_name)
+        .where(Module.module_name == module_name)
+        .order_by(Answer.id)
+    )
+    return result.scalars().all()
+
+@router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/")
+async def get_questions(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
+    if current_user.role == "root" or current_user.id == user_id:
+        result = await db.execute(select(Question).where(Question.user_id == user_id).where(Question.module_id == module_id).where(Question.quiz_id == quiz_id))
+        questions = result.scalars().all()
+
+        return questions
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/{question_id}/answers/")
 async def get_answers(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, question_id: int, db: AsyncSession = Depends(get_db)):
     if current_user.role == "root" or current_user.id == user_id:
         result = await db.execute(select(Answer).where(Answer.user_id == user_id).where(Answer.module_id == module_id).where(Answer.quiz_id == quiz_id).where(Answer.question_id == question_id))
         answers = result.scalars().all()
-
         return answers
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")

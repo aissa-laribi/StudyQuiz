@@ -40,6 +40,32 @@ async def create_quizzes(current_user: Annotated[User, Depends(get_current_activ
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
+@router.post("/users/me/modules/{module_name}/quizzes/")
+async def create_quiz_from_module_name(current_user: Annotated[User, Depends(get_current_active_user)], module_name: str, quiz: QuizCreate, db: AsyncSession = Depends(get_db)
+):
+    user_id = current_user.id
+    if current_user.role == "root" or current_user.id == user_id:
+        result = await db.execute(
+            select(Module).where(Module.module_name == module_name, Module.user_id == user_id)
+        )
+        module = result.scalars().first()
+
+        if module is None:
+            raise HTTPException(status_code=404, detail="Module not found")
+
+        new_quiz = Quiz(
+            quiz_name=quiz.name,
+            user_id=user_id,
+            module_id=module.id
+        )
+
+        db.add(new_quiz)
+        await db.commit()
+        await db.refresh(new_quiz)
+
+        return new_quiz
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/")
@@ -114,12 +140,16 @@ async def delete_quiz(current_user: Annotated[User, Depends(get_current_active_u
         return {"message": "Quiz deleted successfully"}
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
-@router.get("/users/me/quizzes/")
-async def get_my_modules(current_user: User = Depends(get_current_active_user),db: AsyncSession = Depends(get_db)):
+
+@router.get("/users/me/modules/{module_name}/quizzes/")
+async def get_quizzes_by_module_name(current_user: Annotated[User, Depends(get_current_active_user)] ,module_name: str, db: AsyncSession = Depends(get_db)):
     user_id = current_user.id
-    # reuse your existing DB call logic here
     result = await db.execute(
-        select(Quiz).where(Quiz.user_id == user_id)
+        select(Quiz)
+        .join(Module, Quiz.module_id == Module.id)
+        .where(Module.module_name == module_name)
+        .where(Quiz.user_id == user_id)
+        .order_by(Quiz.id)
     )
     return result.scalars().all()
 

@@ -26,6 +26,7 @@ class Module(Base):
     updated_at = Column(DateTime, onupdate=func.now(),nullable=True)  
     owner = relationship("User", back_populates="modules")
     quizzes = relationship("Quiz", back_populates="module", cascade="all, delete-orphan")
+    followups = relationship("Followup", back_populates="module")
 
 
 class Quiz(Base):
@@ -93,5 +94,6 @@ class Followup(Base):
     quiz_id = Column(Integer, ForeignKey("quiz.id",ondelete="CASCADE"),nullable=False, index=True)
     created_at = Column(DateTime, default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
+    module = relationship("Module", back_populates="followups")
     quiz = relationship("Quiz", back_populates="followups")
     
