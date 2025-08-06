@@ -3,7 +3,7 @@ from app.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models import User, Module, Quiz, Question,Answer, Attempt, Followup
-from app.schemas import AttemptCreate, FollowupCreate
+from app.schemas import AttemptCreate, FollowupCreate, AttemptCreateClient
 from app.routes.question import get_questions
 from app.routes.quiz import get_quiz
 import random
@@ -30,6 +30,154 @@ def fgd_shuffling(array: list, size: int):
         i += 1
     return array
 
+@router.get("/users/me/modules/{module_name}/quizzes/{quiz_name}/questions/attempts/shuffled-questions")
+async def get_questions_from_name_shuffled(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    module_name: str,
+    quiz_name: str,
+    db: AsyncSession = Depends(get_db)
+):
+    user_id = current_user.id
+    result = await db.execute(select(Module).where(Module.user_id == user_id).where(Module.module_name == module_name))
+    module = result.scalars().first()
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found for user " + str(user_id))
+    module_id = module.id
+    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == module_id).where(Quiz.quiz_name == quiz_name))
+    quiz = result.scalars().first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found for user " + str(user_id))
+    result = await get_questions(current_user, user_id, module_id, quiz.id,db)
+    questions = fgd_shuffling(result,len(result))
+    return questions
+
+@router.post("/users/me/modules/{module_name}/quizzes/{quiz_name}/attempts/")
+async def post_quiz_attempt(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    module_name: str,
+    quiz_name: str,
+    attempt: AttemptCreateClient,
+    db: AsyncSession = Depends(get_db)
+):
+    user_id = current_user.id
+
+    # Fetch module
+    module_result = await db.execute(
+        select(Module).where(Module.module_name == module_name, Module.user_id == user_id)
+    )
+    module = module_result.scalar_one_or_none()
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    # Fetch quiz
+    quiz_result = await db.execute(
+        select(Quiz).where(Quiz.quiz_name == quiz_name, Quiz.user_id == user_id, Quiz.module_id == module.id)
+    )
+    quiz = quiz_result.scalar_one_or_none()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+
+    # Score computation
+    total_questions = len(attempt.answers)
+    correct_answers = 0
+    wrong_answers = {}
+
+    for ans in attempt.answers:
+        answer = await db.get(Answer, ans.answer_id)
+        if answer and answer.answer_correct:
+            correct_answers += 1
+        else:
+            result = await db.execute(select(Question).where(Question.user_id == user_id, Question.id == answer.question_id))
+            question = result.scalars().first()
+            result2 = await db.execute(select(Answer).where(Answer.user_id == user_id, Answer.id == ans.answer_id))
+            answer_fetched = result2.scalars().first()
+            print(question.question_name + " " + "Selected answer:" + str(answer_fetched.answer_name))
+            wrong_answers[question.question_name] = answer_fetched.answer_name
+    score = round((correct_answers / total_questions) * 100)
+
+    # Create Attempt
+    if attempt.created_at.tzinfo is not None:
+        attempt.created_at = attempt.created_at.replace(tzinfo=None)
+    
+    new_attempt = Attempt(
+        user_id=user_id,
+        module_id=module.id,
+        quiz_id=quiz.id,
+        created_at=attempt.created_at,
+        attempt_score=score
+    )
+    db.add(new_attempt)
+    await db.commit()
+    await db.refresh(new_attempt)
+
+    # Apply SM-2 logic
+    if quiz.repetitions is None:
+        quiz.repetitions = 0
+        quiz.interval = 0
+        quiz.ease_factor = 2.5
+
+    if score < 60:
+        quiz.interval = 1
+        quiz.repetitions = 0
+    else:
+        quiz.repetitions += 1
+        if quiz.repetitions == 1:
+            quiz.interval = 1
+        elif quiz.repetitions == 2:
+            quiz.interval = 6
+        else:
+            quiz.interval = round(quiz.interval * quiz.ease_factor)
+
+    quality = (
+        5 if score >= 90 else
+        4 if score >= 80 else
+        3 if score >= 70 else
+        2 if score >= 60 else
+        0
+    )
+
+    quiz.ease_factor += (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+    quiz.ease_factor = max(1.3, quiz.ease_factor)
+    quiz.next_due = datetime.now() + timedelta(days=quiz.interval)
+    quiz.last_score = score
+
+    db.add(quiz)
+    await db.commit()
+    await db.refresh(quiz)
+
+    # Update or insert followup
+    followup_result = await db.execute(
+        select(Followup).where(
+            Followup.user_id == user_id,
+            Followup.module_id == module.id,
+            Followup.quiz_id == quiz.id
+        )
+    )
+    followup = followup_result.scalar_one_or_none()
+    if followup:
+        followup.followup_due_date = quiz.next_due
+    else:
+        followup = Followup(
+            followup_due_date=quiz.next_due,
+            user_id=user_id,
+            module_id=module.id,
+            quiz_id=quiz.id
+        )
+    db.add(followup)
+    await db.commit()
+    print(quiz.repetitions)
+    print(wrong_answers)
+    return {
+        "attempt_id": new_attempt.id,
+        "score": score,
+        "correct_answers": correct_answers,
+        "total_questions": total_questions,
+        "next_due": quiz.next_due,
+        "repetitions": quiz.repetitions,
+        "interval": quiz.interval,
+        "ease_factor": round(quiz.ease_factor, 2),
+        "wrong_answers": wrong_answers
+    }
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts/")
 async def take_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, attempt: AttemptCreate, db: AsyncSession = Depends(get_db)):
@@ -134,6 +282,7 @@ async def take_quiz(current_user: Annotated[User, Depends(get_current_active_use
         return attempt.id
     else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/attempts")
 async def get_attempts(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
