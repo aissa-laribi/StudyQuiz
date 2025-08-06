@@ -4,24 +4,38 @@
   let users = [];
   let login = "";
   let logged = false;
+  let user_name = "";
+
+  async function getUsername(){
+    const token = await localStorage.getItem("access_token");
+    if(!token) return;
+
+    const userQuery = await fetch(`http://localhost:8000/users/me`, {
+      method: 'GET',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if(userQuery.ok){
+      const data = await userQuery.json();
+      user_name = data['user_name'];
+    } else {
+      message = "Failed to retrieve username";
+    }
+  }
 
   onMount(async () => {
-    const res = await fetch("http://localhost:8000/");
-    const data = await res.json();
-    message = data.message;
-
-    const query = await fetch("http://localhost:8000/users");
-    const query_data = await query.json();  
-    users = query_data; 
+    getUsername();
   });
 
-  //Maybe a function will be more appropriated
-  if(logged){
-    login="Logged in";
+  if(user_name.length > 0){
+    login= user_name;
   } else {
     login = "Login";
   }
-
+  console.log("Message", user_name);
 </script>
 
 <style>
@@ -49,6 +63,7 @@
         //background-color: yellow;
         display: flex;
         justify-content: flex-end;
+        cursor: touch;
         
         
 
@@ -68,10 +83,11 @@
     }
     .menu-box a{
       text-decoration: none;
-      font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 2em;
       color:rgb(18, 105, 192);
       margin-right:0.5em;
+      cursor: touch;
       
     }
     
@@ -102,11 +118,11 @@
       font-size: 2.5rem;
     }
     main p {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       min-height: 1.5rem;
       text-align: center;
       font-weight: 400;
-      font-size: 1.35rem;
+      font-size: 1.5rem;
       line-height: 1.4;
     }
     main #hero-spacer {
@@ -129,11 +145,10 @@
       border-radius: 1.25em;
       border: 0;
       color: white;
-      //font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       //font: inherit;
       font-size: 2em;
-      
-      
+      justify-content: center;
     }
 
     main #hero button:hover {
@@ -142,10 +157,11 @@
       border-radius: 1.25em;
       border: 0;
       color: white;
-      //font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       //font: inherit;
       font-size: 2em;
       justify-content: center;
+      cursor: touch;
     }
 
     
@@ -157,9 +173,7 @@
 
     }
     #feature-grid-inner {
-      
       background-color: #0c1642;
-      
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
       grid-template-rows: 1fr;
@@ -170,7 +184,6 @@
       font-family: 'Montserrat', sans-serif;
       font-size: 1.5em;
       border-radius: 1em;
-  
     }
 
     #feature-grid #col1 {
