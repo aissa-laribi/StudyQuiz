@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models import User, Module, Quiz, Question, Followup
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.routes.user import router, get_current_active_user
@@ -12,10 +13,14 @@ router = APIRouter()
 async def get_my_followups(current_user: User = Depends(get_current_active_user),db: AsyncSession = Depends(get_db)):
     user_id = current_user.id
     if current_user.role == "root" or current_user.id == user_id:
-        result = await db.execute(select(Followup).where(Followup.user_id == user_id)
-            #.join(Quiz, Followup.quiz_id == Quiz.id)
-            #.where(Followup.user_id == current_user.id)
-            .order_by(Followup.followup_due_date))
+        result = await db.execute(
+    select(Followup)
+    .options(selectinload(Followup.module))
+    .options(selectinload(Followup.quiz))
+    .where(Followup.user_id == user_id)
+    .order_by(Followup.followup_due_date)
+)
+        
 
         """
         followups = []
