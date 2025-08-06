@@ -80,6 +80,14 @@ class AttemptCreate(BaseModel):
     attempt_score: int
     created_at: datetime
 
+class AnswerSubmission(BaseModel):
+    question_id: int
+    answer_id: int
+
+class AttemptCreateClient(BaseModel):
+    created_at: datetime
+    answers: List[AnswerSubmission]
+
 class FollowupCreate(BaseModel):
     followup_due_date : datetime
 
@@ -106,7 +114,7 @@ class QuestionWithAnswersCreate(BaseModel):
     answers: List[AnswerCreate]
 
 class BatchQuestionsWithAnswersCreate(BaseModel):
-    data: List[QuestionWithAnswersCreate]
+    questions: List[QuestionWithAnswersCreate]
 
 class Token(BaseModel):
     access_token: str
