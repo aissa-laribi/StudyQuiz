@@ -92,7 +92,7 @@
     }
     .menu-box a{
       text-decoration: none;
-      font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 2em;
       color:rgb(18, 105, 192);
       margin-right:0.5em;
@@ -118,7 +118,7 @@
         ;
     }
     main p {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       min-height: 1.5rem;
       font-weight: 400;
       font-size: 1.3rem;
@@ -163,8 +163,7 @@
       //letter-spacing: 0.1em;
       color: #111111a1;
       //text-indent: 0.6em;
-      font-family: 'Montserrat', sans-serif;
-
+      font-family: font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
     svg{
@@ -183,7 +182,16 @@
       background-color: rgb(0, 80, 160);
       color: white;
       font-size: 1.4em;
+      
+      
     }
+
+    form button:hover{
+      color:  rgb(0, 80, 160);
+      background-color:white;
+      
+    }
+
     #login-img-section{
         grid-area: login-img-section;
         height: 100vh;

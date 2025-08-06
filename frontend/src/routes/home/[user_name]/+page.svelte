@@ -1,6 +1,7 @@
 <script>
   import Modal from './Modal.svelte';
   import { onMount } from 'svelte';
+  import { writable } from 'svelte/store';
 
   let message = "";
   let login = "Login";
@@ -10,8 +11,15 @@
   let modules = [];
   let followups = [];
   let user_name = "";
+  const imgModuleIndex = writable(null);
+  const moduleName = writable(null);
 
-  $: login = logged ? "Logged in" : "Login";
+
+  function moduleHandler(index, name){
+    localStorage.setItem(`imgModuleIndex`, index+1);
+    localStorage.setItem(`moduleName`, name);
+    console.log("MOdule name:", moduleName);
+  }
 
   async function getUsername(){
     const token = await localStorage.getItem("access_token");
@@ -61,6 +69,7 @@
     });
     if (folQuery.ok) {
       followups = await folQuery.json();
+      console.log("FOLLOW:", followups);
     } else {
       message = "Failed to fetch quizzes";
     }
@@ -111,11 +120,13 @@
         grid-area : nav;
         background-color: white; 
         display: grid;
-        align-items: center;
+        align-items: top;
         grid-template-columns: 2fr 8fr;
         grid-template-areas:
         'logo-box menu-box'
         ;
+        max-height: 8vh;
+        
     }
     .logo-box{
         grid-area: logo-box;
@@ -134,22 +145,28 @@
       justify-content: flex-end;
       grid-area: menu-box;
       grid-template-columns: 8fr 2fr;
+      
       grid-template-areas:
         'menu-box-col1 menu-box-col2'
         ;
+      
 
     }
-    .menu-box a{
+    .profile {
       text-decoration: none;
-      font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 2em;
       color:rgb(18, 105, 192);
-      margin-right:0.5em;
+      margin-right:0.5em; 
       
     }
-    
+    .menu-box a{
+      cursor: touch;
+    }
     .menu-box a:hover{
       border-top: 0.1rem solid rgb(18, 105, 192);
+      color:rgb(18, 105, 192);
+      
     }
     main {
         grid-area: main;
@@ -174,7 +191,7 @@
       font-size: 2.5rem;
     }
     main p {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       min-height: 1.5rem;
       text-align: center;
       font-weight: 400;
@@ -205,6 +222,11 @@
       color:rgb(18, 105, 192);
     }
 
+    #my-modules h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2rem;
+
+    }
     #my-modules button .tooltiptext{
       visibility: hidden;
       width: 6em;
@@ -236,7 +258,7 @@
       //padding: 1vh;
       color: rgb(18, 105, 192)
       display: flex;
-      justify-content: space-between;  /* Pushes h2 left, button right */
+      justify-content: space-between;
       align-items: center;
       
       background-color: white;
@@ -262,8 +284,8 @@
     #form-fields input {
       border-radius: 0.2em;
       border: 0.01em solid black;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.75em;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 1.5em;
       letter-spacing: -0.02em;
     }
 
@@ -286,16 +308,18 @@
       background-color: rgb(18, 105, 192);
       display: flex;
       align-items: center;
+      padding: 1em;
     }
 
     #form-button-section button:hover{
       background-color:green;
+      padding: 1em;
     }
 
 
     #form-button-section button p{
       color:white;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-weight: 600;
       //border: 1em solid transparent;
       //height: 50%;
@@ -314,33 +338,40 @@
       height: auto;
     }
     .module-box{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       border: 1px black solid;
       flex: 1 1 calc(33.333% - 1em); 
       max-width: calc(33.333% - 1em); /* prevent growing beyond 3 per line */
       box-sizing: border-box;
       height: 20vh;
       border-radius: 0.51em;
+      justify-content: flex-start;
     }
 
     .module-box img{
       width: 100%;
-      height: 70%;
+      height: 65%;
       display: grid;
       border-bottom: 1px solid black;
     }
 
     .module-box p {
-      font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+      font-family: 'Montserrat', sans-serif;
       text-align: center;
-      font-size: 1.15em;
+      font-size: 1.2em;
       line-height: 1em;
+      font-weight: 800;
     }
 
-    #col-modules h2{
-      font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 600;
-      
+    .module-box a{
+      text-decoration: none;
+      color:rgb(18, 105, 192);
+    }
+
+    .module-box a:hover {
+      color: rgb(20, 128, 236);
     }
     
     #col-quizzes{
@@ -356,22 +387,18 @@
      
     }
     #upcoming-quizzes{
-      //text-align: left;
-      //gap: 1em;
-      //max-width: 100%;
-      //height: auto;
-      background-color: white;
-      //padding: 2em;
-      
-      
+      background-color: white;      
     }
     #upcoming-quizzes h2{
       text-align: left;
-      //margin: 2em 2em 2em 2em;
+      //margin: 0 2em 0em 2em;
       //gap: 1em;
+      font-family: 'Montserrat', sans-serif;      
       max-width: 100%;
-      height: auto;
+      font-size: 2rem;
+      height: 6vh;
       background-color: white;
+      border-bottom: 3px solid #eff0f3;
     }
 
     #followups-container{
@@ -384,7 +411,42 @@
       max-width: 100%;
       height: auto;
     }
-    
+
+    .followup-box {
+      display: grid;
+      grid-template-columns: 2fr 10fr;
+      border-bottom: 1px black solid;
+      grid-template-areas: 'quiz-icon quiz-details';
+      align-items: center;
+      text-decoration: none;
+      color: black;
+    }
+
+    .followup-box:hover {
+      background-color: rgb(20, 128, 236);
+      
+    } 
+
+    .quiz-icon {
+      grid-area: quiz-icon;
+      text-justify: center;
+      color: black;
+      color:rgb(18, 105, 192);
+    }
+
+    .quiz-details {
+      grid-area: quiz-details;
+      display: grid;
+    }
+
+    .quiz-title, .quiz-due-date {
+      margin: 0;
+      font-size: 1.1em;
+      text-align: left;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-weight:600;
+    }
+
     #sidebar1 {
         grid-area : sidebar1;
         background-color: #f6f7fb;
@@ -398,9 +460,9 @@
 
 <section class="container">
   <nav>
-  <div class="logo-box"><img src="/logo.png"></div>
+  <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
   <div class="menu-box">
-      <a href="./pagetogo">{login}</a>
+      <p class="profile">{user_name}</p>
   </div>
   </nav>
   <main>
@@ -417,24 +479,35 @@
     <div id="modules-container">
       {#each modules as module, i}
         <div class="module-box"><img src="/modules/{i+1}.jpg">
-        <p><a href={`/home/${user_name}/modules/${module}`}>{module}</a></p>
+        <p><a href={`/home/${user_name}/modules/${module}`} 
+        on:click={() => moduleHandler(i, module)}>{module}</a></p>
         </div>
       {/each}
     </div> 
     </div>
     <div id="col-quizzes">
     <div id="followups-container">
-      <div id="upcoming-quizzes">
-        <h2>Upcoming Quizzes</h2>
-        </div>
+  <div id="upcoming-quizzes">
+    <h2>Upcoming Quizzes</h2>
+  </div>
 
-      {#each followups.slice(0,3) as followup}
-        <div class="followup-box">
-        <p>{new Date(followup.followup_due_date).toLocaleString()}<br>{followup.module}, {followup.quiz}</p>
-        </div>
-      {/each}
+  {#each followups.slice(0, 3) as followup}
+    <a
+      class="followup-box"
+      href={`/home/${user_name}/modules/${followup.module.module_name}/quizzes/${followup.quiz.quiz_name}/attempt`}
+    >
+      <div class="quiz-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-clock-icon lucide-clipboard-clock"><path d="M16 14v2.2l1.6 1"/><path d="M16 4h2a2 2 0 0 1 2 2v.832"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"/><circle cx="16" cy="16" r="6"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
       </div>
-    </div> 
+
+      <div class="quiz-details">
+        <p class="quiz-title">{followup.module.module_name} — {followup.quiz.quiz_name}</p>
+        <p class="quiz-due-date">Due: {new Date(followup.followup_due_date).toLocaleDateString()}</p>
+      </div>
+    </a>
+  {/each}
+</div>
+
     {#if showModal}
       <Modal bind:showModal>
         <form on:submit={registerModule}>
