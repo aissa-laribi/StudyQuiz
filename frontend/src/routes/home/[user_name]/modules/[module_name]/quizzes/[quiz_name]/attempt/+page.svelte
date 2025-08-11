@@ -75,7 +75,7 @@ async function loadAnswers(question) {
   if (!token) return;
 
   const ansQuery = await fetch(
-    `http://localhost:8000/users/me/modules/${moduleName}/quizzes/${quiz_name}/questions/${encodeURIComponent(question.question_name)}/answers`,
+    `http://localhost:8000/users/me/modules/${moduleName}/quizzes/${quiz_name}/questions/${question.id}/answers`,
     {
       method: 'GET',
       headers: {
@@ -89,7 +89,7 @@ async function loadAnswers(question) {
     const answers = await ansQuery.json();
     answersByQuestionId[question.id] = answers;
   } else {
-    console.error("Failed to fetch answers for", question.question_name);
+    console.error("Failed to fetch answers for", question.id);
   }
 }
 
@@ -394,6 +394,30 @@ onMount(() => {
       padding: 2vh;
       
     }
+
+    #form-button-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin-left: 0;   
+    }
+
+    #form-button-section * {
+      margin-left: 0; 
+      color: white;
+      border-radius : 1em;
+      padding: 0 1em;
+    }
+    #form-button-section button {
+      background-color: rgb(18, 105, 192);
+    }
+
+    #form-button-section button:hover{
+      background-color: rgb(20, 128, 236);
+    }
+
+    
 
     #sidebar1 {
         grid-area : sidebar1;

@@ -220,7 +220,7 @@
     <p>Leverage AI to craft chapter-specific quizzes, enhance retention through spaced repetition, and ensure
     progress with follow-up scheduling .</p>
     <div class="button-container">
-      <button>Signup for free</button>
+      <a href="/login" class="signup-button"><button>Signup for free</button></a>
   </div>
   <div id="feature-grid">
   <div id="feature-grid-inner">

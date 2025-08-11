@@ -65,12 +65,12 @@ async def get_answer(current_user: Annotated[User, Depends(get_current_active_us
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
-@router.get("/users/me/modules/{module_name}/quizzes/{quiz_name}/questions/{question_name}/answers")
-async def get_answers_from_question_name(
+@router.get("/users/me/modules/{module_name}/quizzes/{quiz_name}/questions/{question_id}/answers")
+async def get_answers_from_question_id_me_endpoint(
     current_user: Annotated[User, Depends(get_current_active_user)],
     module_name: str,
     quiz_name: str,
-    question_name: str,
+    question_id: int,
     db: AsyncSession = Depends(get_db)
 ):
     user_id = current_user.id
@@ -81,7 +81,7 @@ async def get_answers_from_question_name(
         .join(Question.quiz)
         .join(Quiz.module)
         .where(Answer.user_id == user_id)
-        .where(Question.question_name == question_name)
+        .where(Question.id == question_id)
         .where(Quiz.quiz_name == quiz_name)
         .where(Module.module_name == module_name)
         .order_by(Answer.id)
