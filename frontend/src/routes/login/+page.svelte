@@ -196,6 +196,46 @@
         grid-area: login-img-section;
         height: 100vh;
     }
+    @media (max-width: 500px) {
+  .container{
+    display: block;
+    background-color: #f6f7fb;
+  }
+  nav {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas: 'logo-box menu-box';
+    
+  }
+
+  .logo-box {
+    grid-area: logo-box;
+    display: block;
+    max-height: min-content;
+    
+  }
+  .logo-box img{
+    display:flex;
+    align-items: left;
+    margin-left: 0;
+  }
+  .login-img-section{
+    display:none;
+  }
+  main {
+    display: ruby-text;
+  }
+  #feature-grid-inner {
+    display: block;
+  }
+  #sidebar1{
+    display: none;
+  }
+  sidebar2{
+    display: none;
+  }
+
+}
 
 
 
@@ -215,7 +255,7 @@
     <div id="login-form-section">
         <p id="login-intro">Welcome Back!</p>
         <h3 class="login-title">Signin to Studyquiz</h3>
-        
+        <p>For guest user, enter Guest with no password</p>
         <form on:submit|preventDefault={handleLogin}>
         <i class="fa fa-envelope icon"></i>
         <input name="user_name" type="input" placeholder="username">

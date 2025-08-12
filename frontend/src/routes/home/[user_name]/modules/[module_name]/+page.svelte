@@ -223,14 +223,14 @@
 
     #spacer{
       grid-area: spacer;
-      width: 100%;
+      //width: 100%;
       height: 30vh;
       overflow: hidden;
       position: relative;  
     }
 
     #spacer img {
-      width: 100%;
+      //width: 100%;
       height: 100%;
       object-fit: cover;           
       object-position: center top;
@@ -242,7 +242,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
+      //width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.3); /* Adjust darkness */
       z-index: 1;
@@ -289,7 +289,7 @@
 
     #my-modules button .tooltiptext{
       visibility: hidden;
-      width: 6em;
+      //width: 6em;
       background-color: rgb(18, 105, 192);
       color: #fff;
       text-align: center;
@@ -313,7 +313,7 @@
     #form-navbar {
       display: flex;
       border-radius: 1em;
-      max-width: 100%;
+      //max-width: 100%;
       height: 30%;
       //padding: 1vh;
       color: rgb(18, 105, 192);
@@ -363,7 +363,7 @@
     #form-button-section button{
       height: 80%;
       border-radius: 2em;
-      width: auto;
+      //width: auto;
       border: 0.1em solid transparent;
       background-color: rgb(18, 105, 192);
       display: flex;
@@ -385,7 +385,7 @@
       //flex-wrap: wrap;
       margin: 0 2em 0 2em;
       gap: 1em;
-      max-width: 100%;
+      //max-width: 100%;
       height: auto;
       border: 1px #d6d9dc solid;
     }
@@ -554,6 +554,74 @@
         grid-area : sidebar2;
         background-color: #f6f7fb;
     }
+@media (max-width: 500px) {
+  .container{
+    display: block;
+  }
+  nav {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas: 'logo-box menu-box';
+    max-height: 8vh;
+  }
+  .logo-box {
+    grid-area: logo-box;
+  }
+
+  .menu-box{
+    grid-area: menu-box;
+    max-height: inherit;
+
+  }
+
+  .profile {
+    align-self: center;
+  }
+
+  .logo-box img{
+    display:flex;
+    align-items: left;
+    margin-left: 0;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns:1fr;
+    grid-template-rows: 1fr 9fr;
+    grid-template-areas:
+    'col-quizzes'
+    'col-modules';
+    gap: 0;
+  }
+  #spacer {
+    display : none;
+  }
+  #col-modules{
+    
+  }
+  #col-quizzes {
+    grid-area: col-quizzes;
+    border-radius: 1em;
+    border-radius: 1em;
+    height: fit-content;
+    padding: 0 1rem;
+    
+    }
+  .header-quiz{
+    display: inline-block;
+  }
+
+  .modal-box {
+    right: 1rem;
+  }
+  #sidebar1{
+    display: none;
+  }
+  sidebar2{
+    display: none;
+  }
+}
+
  
 </style>
 

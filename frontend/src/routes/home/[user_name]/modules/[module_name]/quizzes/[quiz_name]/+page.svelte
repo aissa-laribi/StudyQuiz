@@ -518,7 +518,74 @@ async function quizFromJson() {
         grid-area : sidebar2;
         background-color: #f6f7fb;
     }
- 
+  @media (max-width: 500px) {
+  .container{
+    display: block;
+  }
+  nav {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas: 'logo-box menu-box';
+    max-height: 8vh;
+  }
+  .logo-box {
+    grid-area: logo-box;
+  }
+
+  .menu-box{
+    grid-area: menu-box;
+    max-height: inherit;
+
+  }
+
+  .profile {
+    align-self: center;
+  }
+
+  .logo-box img{
+    display:flex;
+    align-items: left;
+    margin-left: 0;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns:1fr;
+    grid-template-rows: 1fr 9fr;
+    grid-template-areas:
+    'col-quizzes'
+    'col-modules';
+    gap: 0;
+  }
+  #spacer {
+    display : none;
+  }
+  #col-modules{
+    
+  }
+  #col-quizzes {
+    grid-area: col-quizzes;
+    border-radius: 1em;
+    border-radius: 1em;
+    height: fit-content;
+    padding: 0 1rem;
+    
+    }
+  .header-quiz{
+    display: inline-block;
+  }
+
+  .modal-box {
+    right: 1rem;
+  }
+  #sidebar1{
+    display: none;
+  }
+  sidebar2{
+    display: none;
+  }
+}
+
 </style>
 
 <section class="container">

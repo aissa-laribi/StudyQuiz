@@ -427,6 +427,61 @@ onMount(() => {
         grid-area : sidebar2;
         background-color: #f6f7fb;
     }
+  @media (max-width: 500px) {
+    .container{
+    display: inline-block;
+  }
+  nav {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas: 'logo-box menu-box';
+    max-height: 8vh;
+  }
+  .logo-box {
+    grid-area: logo-box;
+  }
+
+  .menu-box{
+    grid-area: menu-box;
+    max-height: inherit;
+
+  }
+
+  .profile {
+    align-self: center;
+  }
+
+  .logo-box img{
+    display:flex;
+    align-items: left;
+    margin-left: 0;
+  }
+
+  main * {
+      margin-left: 0;
+    }
+
+  main {
+    display: block;
+    margin: 0;
+    
+  }
+  #spacer {
+    display: block;
+    margin: 0;
+    height: min-content;
+  }
+  #question-index{
+    display: none;
+  }
+  #question-page{
+    margin: 0;
+    
+  }
+  #question-page form{
+    margin: 0;
+  }
+  }  
  
 </style>
 
