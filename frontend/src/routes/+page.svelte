@@ -10,7 +10,7 @@
     const token = await localStorage.getItem("access_token");
     if(!token) return;
 
-    const userQuery = await fetch(`http://localhost:8000/users/me`, {
+    const userQuery = await fetch(`https://studyquiz-back.onrender.com/users/me`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,

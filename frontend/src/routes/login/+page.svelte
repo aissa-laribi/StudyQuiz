@@ -15,7 +15,7 @@
     const user_name = formData.get('user_name');
     const password = formData.get('password');
 
-    const res = await fetch('http://localhost:8000/users/token', {
+    const res = await fetch('https://studyquiz-back.onrender.com/users/token', {
       method: 'POST',
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({

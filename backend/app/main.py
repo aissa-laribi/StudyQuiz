@@ -13,7 +13,7 @@ app = FastAPI()
 # Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Svelte default dev port
+    allow_origins=["https://studyquiz.co", "https://www.studyquiz.co"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

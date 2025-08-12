@@ -33,7 +33,7 @@
     const token = await localStorage.getItem("access_token");
     if(!token) return;
 
-    const userQuery = await fetch(`http://localhost:8000/users/me`, {
+    const userQuery = await fetch(`https://studyquiz-back.onrender.com/users/me`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -54,7 +54,7 @@
     if(!token) return;
 
     //Load questions
-    const questionQuery = await fetch(`http://localhost:8000/users/me/modules/${moduleName}/quizzes/${quiz_name}/questions/attempts/shuffled-questions` , {
+    const questionQuery = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${moduleName}/quizzes/${quiz_name}/questions/attempts/shuffled-questions` , {
       method : 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -75,7 +75,7 @@ async function loadAnswers(question) {
   if (!token) return;
 
   const ansQuery = await fetch(
-    `http://localhost:8000/users/me/modules/${moduleName}/quizzes/${quiz_name}/questions/${question.id}/answers`,
+    `https://studyquiz-back.onrender.com/users/me/modules/${moduleName}/quizzes/${quiz_name}/questions/${question.id}/answers`,
     {
       method: 'GET',
       headers: {
@@ -124,7 +124,7 @@ async function registerAttempt(event) {
     }))
   };
 
-  const res = await fetch(`http://localhost:8000/users/me/modules/${module_name}/quizzes/${quiz_name}/attempts/`, {
+  const res = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${module_name}/quizzes/${quiz_name}/attempts/`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -152,7 +152,7 @@ async function getQuizAtempt(){
   const token = await localStorage.getItem("access_token");
   if (!token) return;
 
-  const res = await fetch(`http://localhost:8000/users/me/modules/${module_name}/quizzes/${quiz_name}/attempts`, {
+  const res = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${module_name}/quizzes/${quiz_name}/attempts`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -176,7 +176,7 @@ onMount(() => {
       return;
     }
 
-    const res = await fetch("http://localhost:8000/users/me", {
+    const res = await fetch("https://studyquiz-back.onrender.com/users/me", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,

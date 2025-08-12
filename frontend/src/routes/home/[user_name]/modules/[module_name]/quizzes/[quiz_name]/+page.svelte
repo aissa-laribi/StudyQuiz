@@ -51,7 +51,7 @@
       }))
   };
 
-  const res = await fetch(`http://localhost:8000/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/with-answers`, {
+  const res = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/with-answers`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -74,7 +74,7 @@
     const token = await localStorage.getItem("access_token");
     if(!token) return;
 
-    const userQuery = await fetch(`http://localhost:8000/users/me`, {
+    const userQuery = await fetch(`https://studyquiz-back.onrender.com/users/me`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -97,7 +97,7 @@
     const { module_name, quiz_name } = get(page).params;
 
   const questionQuery = await fetch(
-    `http://localhost:8000/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/`,
+    `https://studyquiz-back.onrender.com/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/`,
     {
       method: 'GET',
       headers: {
@@ -129,7 +129,7 @@ async function quizFromJson() {
     //console.log(parsed);
     const token = localStorage.getItem("access_token");
     if (!token) return;
-    const res = await fetch(`http://localhost:8000/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/batch-create`, {
+    const res = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/batch-create`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`,
