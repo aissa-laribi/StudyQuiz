@@ -134,7 +134,7 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
- """   
+"""   
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
