@@ -6,8 +6,8 @@
   import { get } from 'svelte/store';
 
   const { module_name, quiz_name} = get(page).params;
-  console.log("Module:", module_name);
-  console.log("Quiz:", quiz_name);
+  //console.log("Module:", module_name);
+  //console.log("Quiz:", quiz_name);
   let message = "";
   let login = "Login";
   let logged = false;
@@ -27,7 +27,7 @@
 
   $: login = logged ? "Logged in" : "Login";
   
-  console.log(window.location.href);
+  //console.log(window.location.href);
   
   /*async function getUsername(){
     const token = await localStorage.getItem("access_token");
@@ -63,7 +63,7 @@
     });
     if(questionQuery.ok) {
       questions = await questionQuery.json();
-      console.log("Q: ",questions);
+      //console.log("Q: ",questions);
     } else {
       message = "Failed to fetch questions";
     }
@@ -89,7 +89,7 @@ async function loadAnswers(question) {
     const answers = await ansQuery.json();
     answersByQuestionId[question.id] = answers;
   } else {
-    console.error("Failed to fetch answers for", question.id);
+    //console.error("Failed to fetch answers for", question.id);
   }
 }
 
@@ -136,12 +136,12 @@ async function registerAttempt(event) {
   if (res.ok) {
     attempted = true;
     const result = await res.json();
-    console.log("Atempts:", result.repetition);
+    //console.log("Atempts:", result.repetition);
     attempt_score = result.score;
     console.log("Score:", result.score);
     next_due = result.next_due;
-    console.log("Next Due:", result.next_due);
-    console.log("Wrong Answers:", result.wrong_answers);
+    //console.log("Next Due:", result.next_due);
+    //console.log("Wrong Answers:", result.wrong_answers);
     wrongAnswers = result.wrong_answers;
   } else {
     message = "Attempt submission failed.";
@@ -160,7 +160,7 @@ async function getQuizAtempt(){
     }
   });
     if (res.ok) {
-      console.log("Mes", res.json());
+      //console.log("Mes", res.json());
       quiz_attempt = await res.json();
   } else {
     message = "Quiz attempt retrieval failed";

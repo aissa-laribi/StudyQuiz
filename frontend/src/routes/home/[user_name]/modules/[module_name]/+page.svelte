@@ -23,7 +23,7 @@
   $: login = logged ? "Logged in" : "Login";
   
 
-  console.log(window.location.href);
+  //console.log(window.location.href);
   
   async function getUsername(){
     const token = await localStorage.getItem("access_token");
@@ -109,13 +109,13 @@
     if (res.ok) {
       const newQuiz = await res.json(); 
       showModal = false;
-      console.log("Saved quizName:", localStorage.getItem("quizName"));
+      //console.log("Saved quizName:", localStorage.getItem("quizName"));
       newQuizName = "";
       await loadQuizzes();
       let user_name = localStorage.getItem("user_name");
-      console.log(quizName);
+      //console.log(quizName);
       //localStorage.set(`quizName`, newQuiz.quiz_name);
-      console.log("Before Goto",user_name);
+      //console.log("Before Goto",user_name);
       goto(`/home/${user_name}/modules/${moduleName}/quizzes/${newQuiz.quiz_name}`);
       } else {
         message = "Module registration failed.";    

@@ -5,8 +5,8 @@
   import { get } from 'svelte/store';
 
   const { module_name, quiz_name } = get(page).params;
-  console.log("Module:", module_name);
-  console.log("Quiz in add question:", quiz_name);
+  //console.log("Module:", module_name);
+  //console.log("Quiz in add question:", quiz_name);
   let message = "";
   let login = "Login";
   let logged = false;
@@ -24,7 +24,7 @@
   $: login = logged ? "Logged in" : "Login";
   
 
-  console.log(window.location.href);
+  //console.log(window.location.href);
 
   function addAnswerField() {
   if (answers.length < 5) {
@@ -126,7 +126,7 @@
 async function quizFromJson() {
   try {
     const parsed = JSON.parse(quizData);
-    console.log(parsed);
+    //console.log(parsed);
     const token = localStorage.getItem("access_token");
     if (!token) return;
     const res = await fetch(`http://localhost:8000/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/batch-create`, {

@@ -18,7 +18,7 @@
   function moduleHandler(index, name){
     localStorage.setItem(`imgModuleIndex`, index+1);
     localStorage.setItem(`moduleName`, name);
-    console.log("MOdule name:", moduleName);
+    //console.log("MOdule name:", moduleName);
   }
 
   async function getUsername(){
@@ -69,7 +69,7 @@
     });
     if (folQuery.ok) {
       followups = await folQuery.json();
-      console.log("FOLLOW:", followups);
+      //console.log("FOLLOW:", followups);
     } else {
       message = "Failed to fetch quizzes";
     }

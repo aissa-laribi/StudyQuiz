@@ -35,7 +35,7 @@
   } else {
     login = "Login";
   }
-  console.log("Message", user_name);
+  //console.log("Message", user_name);
 </script>
 
 <style>

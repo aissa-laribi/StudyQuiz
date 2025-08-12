@@ -134,7 +134,7 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-    
+ """   
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
@@ -156,10 +156,9 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         return {"User " + str(new_user.user_name) + "successfully added"}
     except IntegrityError:  # Handle unique constraint violations
         await db.rollback()  # Rollback the transaction to clean up the session
-    """
+    
     TODOS:  
             Force the user to enter a secure password on client side and serverside as well
-    """
 
 @router.patch("/users/{user_id}")
 async def update_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
@@ -195,9 +194,9 @@ async def update_user(current_user: Annotated[User, Depends(get_current_active_u
         "email": user.email,
         "role": user.role
     }
-    """
+    
     TODOS: Not return password in bodyresponse if password not updated
-    """
+    
 
 @router.delete("/users/{user_id}")
 async def delete_user(
@@ -232,4 +231,4 @@ async def delete_user(
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
-
+"""
