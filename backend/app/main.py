@@ -9,20 +9,9 @@ print(sys.path)
 
 app = FastAPI()
 
-"""
-# Allow frontend requests
-app.add_middleware(
+app.add_middleware(  
     CORSMiddleware,
     allow_origins=["https://studyquiz.co", "https://www.studyquiz.co"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-"""
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  #Debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
