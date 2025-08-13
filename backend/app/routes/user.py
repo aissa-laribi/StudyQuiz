@@ -14,7 +14,7 @@ import os
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 
-load_dotenv("../.env")
+#load_dotenv("../.env")
 SECRET_KEY= os.getenv("SECRET_KEY")
 ALGORITHM= os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 180
@@ -52,6 +52,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    print("SECRET_KEY:", SECRET_KEY)
+    print("ALGORITHM:", ALGORITHM)
+
     return encoded_jwt
 
 
