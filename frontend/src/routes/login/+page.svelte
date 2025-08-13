@@ -12,14 +12,14 @@
   
   async function handleLogin(event) {
     const formData = new FormData(event.target);
-    const user_name = formData.get('user_name');
+    const username = formData.get('username');
     const password = formData.get('password');
 
     const res = await fetch('https://studyquiz-back.onrender.com/users/token', {
       method: 'POST',
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        username: user_name,
+        username: username,
         password: password,
         grant_type: "password",
         client_id: "string",
@@ -33,8 +33,7 @@
     }
     const token = await res.json();
     localStorage.setItem("access_token", token.access_token);
-    window.location.href = `/home/${formData.get("user_name")}`;
-    
+    window.location.href = `/home/${username}`;    
   }
 </script>
 
@@ -258,7 +257,7 @@
         <p>For guest user, enter Guest with no password</p>
         <form on:submit|preventDefault={handleLogin}>
         <i class="fa fa-envelope icon"></i>
-        <input name="user_name" type="input" placeholder="username">
+        <input name="username" type="input" placeholder="username">
 		    <input name="password" type="password" placeholder="password">
 	    <button>Log in</button>
         </form>
