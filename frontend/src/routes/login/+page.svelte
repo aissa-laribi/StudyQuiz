@@ -195,7 +195,11 @@
         grid-area: login-img-section;
         height: 100vh;
     }
-    @media (max-width: 500px) {
+
+    #new-account {
+    display: none;
+    }
+@media (max-width: 500px) {
   .container{
     display: block;
     background-color: #f6f7fb;
@@ -214,23 +218,36 @@
     
   }
   .logo-box img{
-    display:flex;
-    align-items: left;
-    margin-left: 0;
+      max-width:30vh;
+      margin-left: 1vh;
   }
   .login-img-section{
     display:none;
   }
   main {
-    display: ruby-text;
+    display: flex;
   }
-  #feature-grid-inner {
-    display: block;
+  #login-col1 {
+    display: none;
+    
   }
+  #login-spacer {
+    display: none;
+  }
+  #login-form-section {
+    padding: 1rem;
+    //align-items: center;
+  }
+
+  form input,
+  form button {
+    font-size: 1.2rem;
+  }
+  
   #sidebar1{
     display: none;
   }
-  sidebar2{
+  #sidebar2{
     display: none;
   }
 
@@ -261,7 +278,7 @@
 		    <input name="password" type="password" placeholder="password">
 	    <button>Log in</button>
         </form>
-        <p>Don't have an account? <a href="/signup">Sign up</a></p>
+        <p id="new-account">Don't have an account? <a href="/signup">Sign up</a></p>
     </div>
     </div>  
 </main>
