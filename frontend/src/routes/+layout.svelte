@@ -1,6 +1,6 @@
-<svelte:head>
-  <link rel="stylesheet" href="./shared.css" />
-</svelte:head>
-
+<script>
+	import '../app.css';
+</script>
 
 <slot />
+
