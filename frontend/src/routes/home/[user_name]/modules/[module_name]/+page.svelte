@@ -29,7 +29,7 @@
     const token = await localStorage.getItem("access_token");
     if(!token) return;
 
-    const userQuery = await fetch(`https://studyquiz-back.onrender.com/users/me`, {
+    const userQuery = await fetch(`https://studyquiz.onrender.com/users/me`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -54,7 +54,7 @@
     if(!token) return;
 
     //Load quizzes
-    const quizQuery = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${moduleName}/quizzes/` , {
+    const quizQuery = await fetch(`https://studyquiz.onrender.com/users/me/modules/${moduleName}/quizzes/` , {
       method : 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -73,7 +73,7 @@
     if (!token) return;
 
     // Load followups
-    const folQuery = await fetch(`https://studyquiz-back.onrender.com/users/me/followups/`, {
+    const folQuery = await fetch(`https://studyquiz.onrender.com/users/me/followups/`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -97,7 +97,7 @@
     const token = localStorage.getItem("access_token");
     if (!token || !newQuizName.trim()) return;
 
-    const res = await fetch(`https://studyquiz-back.onrender.com/users/me/modules/${moduleName}/quizzes/`, {
+    const res = await fetch(`https://studyquiz.onrender.com/users/me/modules/${moduleName}/quizzes/`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
