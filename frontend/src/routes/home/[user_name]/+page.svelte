@@ -461,18 +461,18 @@
   }
   nav {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 2fr 2fr;
     grid-template-areas: 'logo-box menu-box';
-    max-height: 8vh;
   }
   .logo-box {
     grid-area: logo-box;
   }
-
+  .logo-box img {
+    max-width:30vh;
+    margin-left: 1vh;
+  }
   .menu-box{
     grid-area: menu-box;
-    max-height: inherit;
-
   }
 
   .profile {

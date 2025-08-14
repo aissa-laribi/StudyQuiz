@@ -354,7 +354,6 @@
   #col1{
     display: block;
     grid-area: feat-col1;
-    background-color: green;
   }
 
   img {
