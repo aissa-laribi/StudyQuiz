@@ -315,12 +315,18 @@
   }
   nav {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 2fr 2fr;
     grid-template-areas: 'logo-box menu-box';
   }
   .logo-box{
-    grid-area: 
-    background-color: red;
+    grid-area: logo-box;
+  }
+  .logo-box img {
+    max-width:30vh;
+    margin-left: 1vh;
+  }
+  .menu-box {
+    grid-area: menu-box;
   }
   #notice{
     display: flex;
@@ -333,15 +339,31 @@
     display: block;
   }
   #feature-grid-inner {
-    display: block;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'feat-col1'
+      'feat-col2'
+      'feat-col3'
+      'feat-col4';
   }
+
+  #col1{
+    display: block;
+    grid-area: feat-col1;
+    background-color: green;
+  }
+
+  img {
+    max-width: 40vh;
+  }
+  
   #sidebar1{
     display: none;
   }
   sidebar2{
     display: none;
   }
-
 }
 </style>
 
