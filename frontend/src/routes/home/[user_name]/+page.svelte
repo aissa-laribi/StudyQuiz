@@ -463,9 +463,11 @@
     display: grid;
     grid-template-columns: 2fr 2fr;
     grid-template-areas: 'logo-box menu-box';
+    max-height: unset;
   }
   .logo-box {
     grid-area: logo-box;
+    align-items: center;
   }
   .logo-box img {
     max-width:30vh;
@@ -482,7 +484,7 @@
   .logo-box img{
     display:flex;
     align-items: left;
-    margin-left: 0;
+    margin-left: 1vh;
   }
 
   main {
@@ -499,7 +501,6 @@
     border-radius: 1em;
     border-radius: 1em;
     height: fit-content;
-    padding: 0 1rem;
     }
   .module-box {
     display: contents;
