@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to Generate Quizzes with ChatGPT | StudyQuiz</title>
+  <meta name="description" content="Step-by-step guide and exact JSON format for generating StudyQuiz quizzes with ChatGPT. Copy the prompt, see an example, and upload your quiz JSON." />
+  <meta property="og:title" content="How to Generate Quizzes with ChatGPT | StudyQuiz" />
+  <meta property="og:description" content="Copy the prompt, follow the rules, and produce valid StudyQuiz JSON. Includes example and schema link." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://www.studyquiz.co/how-to.html" />
+  <meta name="robots" content="index,follow" />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121831;
+      --ink: #e8ecff;
+      --muted: #b5c0ff;
+      --accent: #7aa2ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    * { box-sizing: border-box }
+    html, body { height: 100% }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+      line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 24px; }
+    header { margin-bottom: 18px; }
+    h1 { font-size: clamp(1.6rem, 2.2vw + 1rem, 2.4rem); margin: 0 0 6px; }
+    p.lede { color: var(--muted); margin: 0 0 16px; }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 18px; margin: 14px 0; }
+    h2 { font-size: 1.1rem; margin: 0 0 10px; letter-spacing: 0.2px; }
+    ol, ul { margin: 0 0 10px 1.2rem; }
+    code, pre, textarea { font-family: var(--mono); font-size: 0.95rem; }
+    pre, textarea { background: #0c132b; color: #eaf0ff; border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.08); }
+    pre { overflow: auto }
+    textarea { width: 100%; min-height: 180px; }
+    .row { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    .muted { color: var(--muted); font-size: 0.95rem }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    button { appearance: none; border: 1px solid rgba(255,255,255,0.14); background: #0f1733; color: var(--ink); padding: 10px 14px; border-radius: 12px; cursor: pointer; }
+    button:hover { border-color: var(--accent); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .grid-2 { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 860px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Generate Quizzes with ChatGPT</h1>
+      <p class="lede">Copy the prompt, paste your slides into ChatGPT, and get a <strong>ready-to-upload JSON</strong> for StudyQuiz. No extra formatting required.</p>
+    </header>
+
+    <section class="card">
+      <h2>Quick Steps</h2>
+      <ol>
+        <li>Open ChatGPT and have your <strong>slides/notes</strong> ready.</li>
+        <li>Copy the prompt below and paste it into ChatGPT.</li>
+        <li>Paste your slides right after the prompt.</li>
+        <li>Ensure the reply is <strong>pure JSON</strong> (no markdown fences, no commentary).</li>
+        <li>Copy the JSON into StudyQuiz → <em>Import from ChatGPT</em> → <strong>Upload Quiz</strong>.</li>
+      </ol>
+      <p class="muted">Tip: If ChatGPT includes <code>```json</code> fences or text, delete everything except the JSON object.</p>
+    </section>
+
+    <section class="card">
+      <h2>Copy‑Paste Prompt (strict)</h2>
+      <div class="btns">
+        <button id="copyPrompt" type="button">Copy prompt</button>
+      </div>
+      <textarea id="prompt" readonly>
+You are generating a quiz JSON for StudyQuiz.co.
+
+INSTRUCTIONS (follow exactly):
+- Output VALID JSON only. Do NOT wrap in markdown/code fences. No explanations.
+- Create EXACTLY 20 questions.
+- Each question object has "name" (string) and "answers" (array of 5 objects).
+- In "answers": exactly ONE item has "correct": true; the other four have false.
+- Use plausible distractors (believable but wrong). Keep answers concise.
+- Escape quotes and special characters correctly.
+- Language: match my slides (default English).
+
+CONTEXT (paste your slides/notes below this line):
+<<<PASTE YOUR SLIDES OR BULLETS HERE>>>
+
+FORMAT EXAMPLE (structure only; replace content):
+{
+  "questions": [
+    {
+      "name": "What does CPU stand for?",
+      "answers": [
+        {"name": "Central Processing Unit", "correct": true},
+        {"name": "Computer Power Unit", "correct": false},
+        {"name": "Core Programming Utility", "correct": false},
+        {"name": "Central Performance Utility", "correct": false},
+        {"name": "Compute Processing Utility", "correct": false}
+      ]
+    }
+  ]
+}
+
+VALIDATE AGAINST SCHEMA: https://www.studyquiz.co/spec/quiz.schema.json
+      </textarea>
+      <p class="muted">This prompt tells ChatGPT to output <em>only</em> JSON and to conform to the StudyQuiz format.</p>
+    </section>
+
+    <section class="card">
+      <h2>Exact JSON Structure</h2>
+      <p>StudyQuiz expects a top-level object with a <code>questions</code> array. Each item has a <code>name</code> (string) and an <code>answers</code> array of exactly 5 items with one <code>correct: true</code>.</p>
+      <pre>{
+  "questions": [
+    {
+      "name": "What does CPU stand for?",
+      "answers": [
+        {"name": "Central Processing Unit", "correct": true},
+        {"name": "Computer Power Unit", "correct": false},
+        {"name": "Core Programming Utility", "correct": false},
+        {"name": "Central Performance Utility", "correct": false},
+        {"name": "Compute Processing Utility", "correct": false}
+      ]
+    }
+  ]
+}
+</pre>
+      <p class="muted">Note: No markdown fences, no trailing commas, and booleans are lowercase (<code>true</code>/<code>false</code>).</p>
+    </section>
+
+    <section class="card">
+      <h2>JSON Schema (for validators)</h2>
+      <p>Link: <a href="/spec/quiz.schema.json">/spec/quiz.schema.json</a> (serve this as a raw JSON file). If you don’t have it yet, here’s the minimal schema you can copy into that file:</p>
+      <pre>{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StudyQuiz Quiz",
+  "type": "object",
+  "required": ["questions"],
+  "properties": {
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "answers"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "answers": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "required": ["name", "correct"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "correct": { "type": "boolean" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+</pre>
+    </section>
+
+    <section class="card grid-2">
+      <div>
+        <h2>Common Issues & Quick Fixes</h2>
+        <ul>
+          <li><strong>Markdown fences present</strong> → remove <code>```json</code> lines.</li>
+          <li><strong>More/less than 5 answers</strong> → adjust to exactly 5.</li>
+          <li><strong>Multiple <code>correct: true</code></strong> → set only one to <code>true</code>.</li>
+          <li><strong>Invalid JSON</strong> → check commas, quotes, and braces.</li>
+          <li><strong>Special characters</strong> → ensure they’re properly escaped (e.g., quotes).</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Upload to StudyQuiz</h2>
+        <ol>
+          <li>In StudyQuiz, choose <em>Import from ChatGPT</em>.</li>
+          <li>Paste your JSON in the text area.</li>
+          <li>Click <strong>Upload Quiz</strong>.</li>
+        </ol>
+        <p class="muted">The importer validates the structure and will report any problems to fix.</p>
+      </div>
+    </section>
+
+    <footer class="muted" style="margin-top: 18px;">
+      <p>Tip: For best bot compatibility, this page is served as static HTML so tools like ChatGPT and search engines can read it without JavaScript.</p>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('copyPrompt');
+      const ta = document.getElementById('prompt');
+      if (!btn || !ta) return;
+      btn.addEventListener('click', async () => {
+        try {
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          await navigator.clipboard.writeText(ta.value);
+          btn.textContent = 'Copied!';
+          setTimeout(() => (btn.textContent = 'Copy prompt'), 1600);
+        } catch (_) {
+          // fallback: nothing needed, user can Ctrl/Cmd+C
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
