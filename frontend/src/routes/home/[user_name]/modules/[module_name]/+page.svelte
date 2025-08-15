@@ -579,9 +579,8 @@
   }
 
   .logo-box img{
-    display:flex;
-    align-items: left;
-    margin-left: 0;
+    max-width:30vh;
+    margin-left: 1vh;
   }
 
   main {
@@ -604,9 +603,34 @@
     border-radius: 1em;
     border-radius: 1em;
     height: fit-content;
-    padding: 0 1rem;
     
     }
+  #attempt-button{
+    background-color: #02b428;
+    color: #fff;
+    border-radius: 2em;
+    border: 1px rgba(26, 16, 16, 1) solid;
+    padding: 1em;
+    font-size: .5em;
+    font-weight: 600;
+    font-family: 'Inter';
+    align-items: center;
+    max-height: 80%;
+    max-width: 14vh;
+  }
+  #update-button {
+    background-color: #1269c0;
+    color: #fff;
+    border-radius: 2em;
+    border: 1px rgba(26, 16, 16, 1) solid;
+    padding: 1em;
+    font-size: .5em;
+    font-weight: 600;
+    font-family: Montserrat, sans-serif;
+    align-items: center;
+    max-height: 80%;
+    max-width: 14vh;  
+  }
   .header-quiz{
     display: inline-block;
   }

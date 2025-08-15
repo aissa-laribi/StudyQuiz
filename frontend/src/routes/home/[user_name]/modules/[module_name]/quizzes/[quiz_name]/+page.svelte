@@ -543,9 +543,8 @@ async function quizFromJson() {
   }
 
   .logo-box img{
-    display:flex;
-    align-items: left;
-    margin-left: 0;
+    max-width:30vh;
+    margin-left: 1vh;
   }
 
   main {
@@ -568,7 +567,6 @@ async function quizFromJson() {
     border-radius: 1em;
     border-radius: 1em;
     height: fit-content;
-    padding: 0 1rem;
     
     }
   .header-quiz{
