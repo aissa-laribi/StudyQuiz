@@ -429,7 +429,7 @@ onMount(() => {
     }
   @media (max-width: 500px) {
     .container{
-    display: inline-block;
+    display: block;
   }
   nav {
     display: grid;
@@ -452,9 +452,8 @@ onMount(() => {
   }
 
   .logo-box img{
-    display:flex;
-    align-items: left;
-    margin-left: 0;
+    max-width:30vh;
+    margin-left: 1vh;
   }
 
   main * {
@@ -467,9 +466,7 @@ onMount(() => {
     
   }
   #spacer {
-    display: block;
-    margin: 0;
-    height: min-content;
+    display: none;
   }
   #question-index{
     display: none;
