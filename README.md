@@ -1,35 +1,38 @@
 # StudyQuiz
 
-StudyQuiz is a web application designed for students to create quizzes, take them, and schedule follow-ups based on spaced repetition. This project emphasizes understanding over rote memorization, offering features like question shuffling, progress tracking, and a responsive UI.
+**StudyQuiz** is a web app that turns AI-generated quizzes (e.g., from ChatGPT based on lecture slides) into a **structured learning system**.  
+It uses **spaced repetition** and **progress tracking**, which LLMs alone can’t offer, to help students retain information long-term instead of just cramming and forgetting.  
 
 ---
 
 ## Features
 - **User Management**: Register, log in, reset passwords.
 - **Quiz Management**: Create modules, add quizzes, and track progress.
-- **Question Shuffling**: Display questions in a random order.
+- **Question Shuffling**: Display questions in random order.
 - **Spaced Repetition**: Schedule follow-ups based on performance.
+- **API-First**: Backend built as a clean, reusable API.
+- **Web-Based Interface**: Accessible on desktop and mobile.
+- **AI-Powered Quiz Import**: Generate quizzes from slides via ChatGPT.
 
 ## Planned Enhancements:
-  - 🌐 Web-based user interface (in progress) 
-  - AI-powered quiz generation from slides.
-  - AI-assisted answer suggestions.
+- Embedded LLMs within the website  
+- Domain-specific LLMs (e.g., Medicine, Computer Science, etc.)  
 
 ---
 
 ## Tech Stack
 - **Backend**: FastAPI, PostgreSQL, SQLAlchemy
-- **Frontend**: Svelte, TailwindCSS
-- **Deployment**: Docker (optional), Uvicorn
+- **Frontend**: Svelte
+- **Deployment**: Uvicorn
 
 ---
 ## Roadmap
 - ✅ Backend API for quiz logic
 - ✅ SuperMemo 2 implementation
 - ✅ CLI interaction via FASTAPI
-- 🔲 Frontend development (in progress)
-- 🔲 Hosted version (planned)
-- 🔲 AI integration (future)
+- ✅ Frontend development
+- ✅ Hosted version
+- ✅ AI-powered quiz generation 
 ---
 
 ## Setup Instructions
