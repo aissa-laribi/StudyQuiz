@@ -11,6 +11,7 @@
   let modules = [];
   let followups = [];
   let user_name = "";
+  const apiURL = import.meta.env.VITE_API_URL;
   const imgModuleIndex = writable(null);
   const moduleName = writable(null);
 
@@ -25,7 +26,7 @@
     const token = await localStorage.getItem("access_token");
     if(!token) return;
 
-    const userQuery = await fetch(`https://studyquiz.onrender.com/users/me`, {
+    const userQuery = await fetch(`${apiURL}/users/me`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -45,7 +46,7 @@
     if (!token) return;
 
     // Load modules
-    const modQuery = await fetch(`https://studyquiz.onrender.com/users/me/modules/`, {
+    const modQuery = await fetch(`${apiURL}/users/me/modules/`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -60,7 +61,7 @@
     }
 
     // Load followups
-    const folQuery = await fetch(`https://studyquiz.onrender.com/users/me/followups/`, {
+    const folQuery = await fetch(`${apiURL}/users/me/followups/`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -86,7 +87,7 @@
     const token = localStorage.getItem("access_token");
     if (!token || !newModuleName.trim()) return;
 
-    const res = await fetch("https://studyquiz.onrender.com/users/me/modules/", {
+    const res = await fetch("${apiURL}/users/me/modules/", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,

@@ -3,6 +3,7 @@
   let message = "";
   let login = "Login";
   let logged = false;
+  const apiURL = import.meta.env.VITE_API_URL;
 
   $: if(logged === true){
     login="Logged in";
@@ -15,7 +16,7 @@
     const username = formData.get('username');
     const password = formData.get('password');
 
-    const res = await fetch('https://studyquiz.onrender.com/users/token', {
+    const res = await fetch(`${apiURL}/users/token`, {
       method: 'POST',
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({

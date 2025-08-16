@@ -1,16 +1,18 @@
 <script>
   import { onMount } from 'svelte';
+
   let message = "";
   let users = [];
   let login = "";
   let logged = false;
   let user_name = "";
+  const apiURL = import.meta.env.VITE_API_URL;
 
   async function getUsername(){
     const token = await localStorage.getItem("access_token");
     if(!token) return;
 
-    const userQuery = await fetch(`https://studyquiz.onrender.com/users/me`, {
+    const userQuery = await fetch(`${apiURL}/users/me`, {
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${token}`,
