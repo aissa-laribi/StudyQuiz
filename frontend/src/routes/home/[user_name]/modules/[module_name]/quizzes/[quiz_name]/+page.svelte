@@ -568,8 +568,25 @@ async function quizFromJson() {
     border-radius: 1em;
     border-radius: 1em;
     height: fit-content;
-    
+    display: grid;
+    grid-template-columns: 1fr;
+    background-color: red;
     }
+  .pre1{
+    background-color: #f4f4f4; 
+    border: 1px solid #ccc; 
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1rem; 
+    font-weight: normal;
+  }
+  .pre2 {
+    display: none;
+  }
+  #col-quizzes p {
+    display:none;
+  }
   .header-quiz{
     display: inline-block;
   }
@@ -628,10 +645,10 @@ async function quizFromJson() {
   <li><strong>Get your slides ready</strong></li>
 
   <li><strong>Copy and paste the following prompt<strong><br>
-  <pre style="background:#f4f4f4; padding:0.6em; border-radius:0.4em;">
+  <pre class="pre1" style="background:#f4f4f4; padding:0.6em; border-radius:0.4em;">
 Generate 20 quiz questions from these slides in JSON format for studyquiz.co. 
 Each question must include 5 answer choices, 2 plausible distractors, and only 1 correct answer.
-      </pre>
+    </pre>
   </li>
 
   <li><strong>Copy ChatGPT’s reply</strong>
@@ -645,7 +662,7 @@ Each question must include 5 answer choices, 2 plausible distractors, and only 1
 Example of what the answer should look like:
 </p>
 
-<pre style="background:#f8f8f8; padding:0.75em; border-radius:0.5em; font-size: 0.9em;">
+<pre class="pre2" style="background:#f8f8f8; padding:0.75em; border-radius:0.5em; font-size: 0.9em;">
 {`
   "questions": [
     {
