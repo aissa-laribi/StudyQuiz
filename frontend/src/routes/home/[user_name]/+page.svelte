@@ -87,7 +87,7 @@
     const token = localStorage.getItem("access_token");
     if (!token || !newModuleName.trim()) return;
 
-    const res = await fetch("${apiURL}/users/me/modules/", {
+    const res = await fetch(`${apiURL}/users/me/modules/`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
