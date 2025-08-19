@@ -19,7 +19,6 @@
   const quizName = writable(null);
   const apiURL = import.meta.env.VITE_API_URL;
 
-  
 
   $: login = logged ? "Logged in" : "Login";
   
@@ -231,7 +230,7 @@
     }
 
     #spacer img {
-      //width: 100%;
+      width: 100%;
       height: 100%;
       object-fit: cover;           
       object-position: center top;
