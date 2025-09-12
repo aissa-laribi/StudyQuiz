@@ -5,6 +5,7 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.routes.user import router, get_current_active_user
+from app.routes.attempt import fgd_shuffling
 from typing import Annotated
 router = APIRouter()
 
@@ -86,7 +87,8 @@ async def get_answers_from_question_id_me_endpoint(
         .where(Module.module_name == module_name)
         .order_by(Answer.id)
     )
-    return result.scalars().all()
+    answers = result.scalars().all()  
+    return fgd_shuffling(answers, len(answers))
 
 @router.get("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/")
 async def get_questions(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):

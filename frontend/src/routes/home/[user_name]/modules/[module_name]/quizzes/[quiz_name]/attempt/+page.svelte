@@ -90,9 +90,10 @@ async function loadAnswers(question) {
     const answers = await ansQuery.json();
     answersByQuestionId[question.id] = answers;
   } else {
-    //console.error("Failed to fetch answers for", question.id);
+    console.error("Failed to fetch answers for", question.id);
   }
 }
+
 
 async function loadQuestionsAndAnswers() {
   //await getUsername();
