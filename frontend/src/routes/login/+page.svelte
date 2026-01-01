@@ -3,6 +3,10 @@
   let message = "";
   let login = "Login";
   let logged = false;
+  let loading = false;
+  let failed = false
+  
+
   const apiURL = import.meta.env.VITE_API_URL;
 
   $: if(logged === true){
@@ -12,30 +16,47 @@
   }
   
   async function handleLogin(event) {
-    const formData = new FormData(event.target);
-    const username = formData.get('username');
-    const password = formData.get('password');
+  loading = true;
+  failed = false;
+  message = "";
 
+  const formData = new FormData(event.target);
+  const username = formData.get('username');
+  const password = formData.get('password');
+
+  try {
     const res = await fetch(`${apiURL}/users/token`, {
       method: 'POST',
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        username: username,
-        password: password,
+        username,
+        password,
         grant_type: "password",
         client_id: "string",
         client_secret: "string"
       })
     });
+
     if (!res.ok) {
-        message = "Login failed";
-        logged = false;
-        return;
+      failed = true;
+      message = "Login failed: Incorrect credentials";
+      logged = false;
+      return;
     }
+
     const token = await res.json();
     localStorage.setItem("access_token", token.access_token);
-    window.location.href = `/home/${username}`;    
+    logged = true;
+    window.location.href = `/home/${username}`;
+
+  } catch (e) {
+    failed = true;
+    message = "Network error. Please try again.";
+  } finally {
+    loading = false;
   }
+}
+
 </script>
 
 <style>
@@ -277,7 +298,12 @@
         <i class="fa fa-envelope icon"></i>
         <input name="username" type="input" placeholder="username">
 		    <input name="password" type="password" placeholder="password">
-	    <button>Log in</button>
+      <button disabled={loading}>
+      {loading ? "Logging in…" : "Log in"}
+      </button>
+      {#if failed}
+      <p style="color: red;">{message}</p>
+      {/if}
         </form>
         <p id="new-account">Don't have an account? <a href="/signup">Sign up</a></p>
     </div>
