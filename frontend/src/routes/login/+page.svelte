@@ -27,6 +27,8 @@
   const formData = new FormData(event.target);
   const username = formData.get('username');
   const password = formData.get('password');
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
 
   try {
     const res = await fetch(`${apiURL}/users/token`, {
@@ -38,8 +40,11 @@
         grant_type: "password",
         client_id: "string",
         client_secret: "string"
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       failed = true;
@@ -55,7 +60,13 @@
 
   } catch (e) {
     failed = true;
-    message = "Network error. Please try again.";
+    if (err.name === "AbortError") {
+      message =
+        "The server is waking up (free hosting). " +
+        "Please wait a few seconds and try logging in again.";
+    } else {
+      message = "Network error. Please try again.";
+    }
   } finally {
     loading = false;
   }
@@ -303,8 +314,15 @@
         <input name="username" type="input" placeholder="username">
 		    <input name="password" type="password" placeholder="password">
       <button disabled={loading}>
-      {loading ? "Logging in…" : "Log in"}
+      {loading ? "Waking server…" : "Log in"}
       </button>
+      {#if loading}
+      <p style="font-size: 0.9rem; color: #555;">
+      The server is waking up (free hosting).  
+      The first request may take up to a minute.  
+      If it still doesn’t respond, refreshing the page once can help.
+      </p>
+      {/if}
       {#if failed}
       <p style="color: red;">{message}</p>
       {/if}
