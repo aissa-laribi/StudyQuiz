@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping the backend 
-        run: wget https://studyquiz.onrender.com/health
+        run: wget -q -O /dev/null https://studyquiz.onrender.com/health
