@@ -68,13 +68,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #fff3cd;
-      color: #856404;
+      background-color: #4190e01c;
       padding: 1em;
-      border: 1px solid #ffeeba;
-      border-radius: 0.5em;
       font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-      font-size: 1rem;
       text-align: center;
 }
 
@@ -380,8 +376,8 @@
   </div>
   </nav>
   <div id="notice" role="status" aria-live="polite">
-    <p><strong>Prototype Notice:</strong> This website is a prototype.
-    Account creation is disabled — please use the shared guest login to explore features.</p>
+    <p><strong>Access Notice:</strong> Account registration is currently limited.
+    Please use the guest login to explore the platform.</p>
   </div>
   <main>
   <div id="hero-spacer">
