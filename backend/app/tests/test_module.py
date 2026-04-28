@@ -4,9 +4,10 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 import os
+from sqlalchemy import text
 from app.main import app
 from dotenv import load_dotenv
-from app.models import Base
+from app.models import Base,User,Module
 from app.database import get_db
 from fastapi import Depends
 
@@ -37,30 +38,29 @@ async def async_app_client():
         yield client
 
 # Dispose of the Engine After Tests
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 async def close_engine():
     yield
     await engine.dispose()
 
 @pytest.fixture(scope="function", autouse=True)
 async def reset_test_db():
-    # Drop all tables
+    # Drop Modules table
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DELETE FROM module;"))
         await conn.run_sync(Base.metadata.create_all)
     yield
 
-
+reset_test_db
 
 # Utility Function for Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
-reset_test_db
-
 
 """
+@pytest.mark.order(1)
 @pytest.mark.anyio
 async def test_post(async_app_client):
     data = {
@@ -73,157 +73,177 @@ async def test_post(async_app_client):
 """
 
 
-
+@pytest.mark.order(2)
 @pytest.mark.anyio
 async def test_get_module_no_modules(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    # Login existing user
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Get modules for that user
+    response = await async_app_client.get(f"/users/1/modules/",headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 0
 
-
+@pytest.mark.order(3)
 @pytest.mark.anyio
 async def test_post_module(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
 
-    data = {
+    headers = {"Authorization": f"Bearer {token}"}
 
-        "name": "Module 1",
-    }
-    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
-    created = modules.json()[0]
-    assert created['user_id'] == user_id
-    assert created['module_name'] == 'Module 1'
+    data = {"name": "Module 1",}
+    response = await async_app_client.post("/users/1/modules/", json=data, headers=headers)
+    assert response.status_code == 200
+    modules = await async_app_client.get(f"/users/1/modules/",headers=headers)
+    created = modules.json()
+    assert created[0]['user_id'] == 1
+    assert created[0]['module_name'] == 'Module 1'
 
+@pytest.mark.order(4)
 @pytest.mark.anyio
 async def test_post_existing_module(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
 
-    data = {
+    headers = {"Authorization": f"Bearer {token}"}
 
-        "name": "Module 1",
-    }
-    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
-    created = modules.json()[0]
-    assert created['user_id'] == user_id
-    assert created['module_name'] == 'Module 1'
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    data = {"name": "Module 1",}
+    response = await async_app_client.post("/users/1/modules/", json=data, headers=headers)
+    assert response.status_code == 200
+    modules = await async_app_client.get(f"/users/1/modules/",headers=headers)
+    created = modules.json()
+    assert created[0]['user_id'] == 1
+    modules = await async_app_client.get(f"/users/1/modules/")
     assert len(modules.json()) == 1
 
 
+@pytest.mark.order(5)
 @pytest.mark.anyio
-async def test_patch_module(async_app_client, db: AsyncSession = Depends(get_db)):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+async def test_patch_module(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
 
-    data = {
+    headers = {"Authorization": f"Bearer {token}"}
 
-        "name": "Module 1",
-    }
-    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
-    created = modules.json()[0]
-    assert created['user_id'] == user_id
-    assert created['module_name'] == 'Module 1'
+    # create module
+    response = await async_app_client.post("/users/1/modules/",json={"name": "Module 1",},
+    headers=headers
+    )
+    
+    response = await async_app_client.get("/users/me/modules/",headers=headers)
+    
+    print(response.json())
+    module = response.json()[0]
+    module_id = module["id"]
+    user_id = module["user_id"]
+    print(module_id)
+    # patch module
+    response = await async_app_client.patch(
+        f"/users/{user_id}/modules/{module_id}",
+        json={"module_name": "Updated Module"},
+        headers=headers
+    )
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}",headers=headers)
+    print(response.json())
+    module = Module(user_id=response.json()['user_id'],id=response.json()['id'])
+    module.module_name = response.json()['module_name']
+    print(module.module_name)
+    assert module.module_name == 'Updated Module'
 
-    data = {
-
-        "module_name": "Module 2",
-    }
-
-    result = await async_app_client.get(f"/users/{user_id}/modules/")
-    modules = result.json()[0]
-    module_id = modules['id']    
-    result = await async_app_client.patch(f"/users/{user_id}/modules/{module_id}", json=data)
-    assert result.status_code == 200
-    result = await async_app_client.get(f"/users/{user_id}/modules/")
-    modules = result.json()[0]
-    #assert modules.json()[0]['id'] == 1
-    #assert modules.json()[0]['user_id'] == 1
-    assert modules['module_name'] == 'Module 2'
-
-
+@pytest.mark.order(6)
 @pytest.mark.anyio
 async def test_delete_module(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
 
-    data = {
+    headers = {"Authorization": f"Bearer {token}"}
 
-        "name": "Module 1",
-    }
-    await async_app_client.post(f"/users/{user_id}/modules/", json=data)
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
-    created = modules.json()[0]
-    assert created['user_id'] == user_id
-    assert created['module_name'] == 'Module 1'
+    modules = await async_app_client.get(f"/users/1/modules/",headers=headers)
+    assert modules.status_code == 200
+    for i in modules.json():
+        module_id = i['id']
+        print(module_id)
+        user_id = i['user_id']
+        assert user_id == 1
+        response = await async_app_client.delete(f"/users/1/modules/{module_id}",headers=headers)
+        assert response.status_code == 200
+    modules = await async_app_client.get(f"/users/1/modules/",headers=headers)
+    assert modules.json() == []
+    
 
-    data = {
-
-        "module_name": "Module 2",
-    }
-
-    result = await async_app_client.get(f"/users/{user_id}/modules/")
-    modules = result.json()[0]
-    module_id = modules['id']
-
-    await async_app_client.delete(f"/users/{user_id}/modules/{module_id}")
-    result = await async_app_client.get(f"/users/{user_id}/modules/")
-    modules = result.json()
-    assert modules == []
-
-
+@pytest.mark.order(7)
 @pytest.mark.anyio
-async def test_batch_create_modules(async_app_client, db: AsyncSession = Depends(get_db)):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+async def test_batch_create_modules(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
     data = {
         "data": [
         {
@@ -237,25 +257,35 @@ async def test_batch_create_modules(async_app_client, db: AsyncSession = Depends
         }
         ]
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data)
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    assert response.status_code == 200
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data,headers=headers)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
     modules = modules.json()
+    print(modules)
     assert len(modules) == 3
     assert modules[0]['module_name'] == 'Module 1'
     assert modules[1]['module_name'] == 'Module 2'
     assert modules[2]['module_name'] == 'Module 3'
 
+@pytest.mark.order(8)
 @pytest.mark.anyio
 async def test_get_modules(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
     data = {
         "data": [
         {
@@ -269,43 +299,233 @@ async def test_get_modules(async_app_client):
         }
         ]
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data)
-    modules = await async_app_client.get(f"/users/{user_id}/modules/")
+    assert response.status_code == 200
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data,headers=headers)
+
+    modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
     modules = modules.json()
     assert len(modules) == 3
     assert modules[0]['module_name'] == 'Module 1'
     assert modules[1]['module_name'] == 'Module 2'
     assert modules[2]['module_name'] == 'Module 3'
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
     assert len(response.json()) == 3
     assert response.json()[0]['module_name'] == 'Module 1'
     assert response.json()[1]['module_name'] == 'Module 2'
     assert response.json()[2]['module_name'] == 'Module 3'
 
 
-
 @pytest.mark.anyio
 async def test_get_module(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
-
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
+    
     data = {
 
         "name": "Module 1",
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data,headers=headers)
     assert response.status_code == 200
-    assert response.json() == 1
     module_id = response.json()
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}")
+    print(module_id)
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}",headers=headers)
     assert response.status_code == 200
 
     assert response.json()['module_name'] == "Module 1"
-    
+
+@pytest.mark.anyio
+async def test_batch_delete_modules(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
+    data = {
+        "data": [
+        {
+            "name": "Module 1"
+        },
+        {
+            "name": "Module 2"
+        },
+        {
+            "name": "Module 3"
+        }
+        ]
+    }
+    assert response.status_code == 200
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data,headers=headers)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
+    modules = modules.json() 
+    assert len(modules) == 3
+    modules = await async_app_client.delete(f"/users/{user_id}/modules/batch-delete",headers=headers)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
+    modules = modules.json()
+    assert len(modules) == 0
+
+@pytest.mark.anyio
+async def test_get_module_by_name(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
+    data = {
+        "data": [
+        {
+            "name": "Module 1"
+        },
+        {
+            "name": "Module 2"
+        },
+        {
+            "name": "Module 3"
+        }
+        ]
+    }
+    assert response.status_code == 200
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data,headers=headers)
+    modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
+    modules = modules.json() 
+    assert len(modules) == 3
+    module_name = "Module 1"
+    response = await async_app_client.get(f"/users/me/modules/{module_name}", headers=headers)
+    assert response.json()['module_name'] == "Module 1"
+    module_name = "Module 2"
+    response = await async_app_client.get(f"/users/me/modules/{module_name}", headers=headers)
+    assert response.json()['module_name'] == "Module 2"
+    module_name = "Module 3"
+    response = await async_app_client.get(f"/users/me/modules/{module_name}", headers=headers)
+    assert response.json()['module_name'] == "Module 3"
+
+@pytest.mark.anyio
+async def test_get_module_not_found(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
+    assert response.status_code == 200
+    module_name = "Module 1"
+    response = await async_app_client.get(f"/users/me/modules/{module_name}", headers=headers)
+    assert response.status_code == 404
+    module_id = 1
+    response = await async_app_client.get(f"/users/me/modules/{module_id}", headers=headers)
+    assert response.status_code == 404
+
+@pytest.mark.anyio
+async def test_access_other_user_module_forbidden(async_app_client):
+    #Create a module
+    form_data = (
+        "grant_type=password&username=testuser2"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    data = {"name": "Module 1",}
+    response = await async_app_client.post("/users/me/modules/", json=data, headers=headers)
+    assert response.status_code == 200
+    modules = await async_app_client.get(f"/users/me/modules/",headers=headers)
+    created = modules.json()
+    assert created[0]['user_id'] == 2
+    modules = await async_app_client.get(f"/users/me/modules/")
+    assert len(modules.json()) == 1
+
+    #Other user logging in
+    form_data = (
+        "grant_type=password&username=test_user3"
+        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+    modules = await async_app_client.get(f"/users/2/modules/",headers=headers)
+    assert modules.status_code == 403
+    assert modules.json() == {'detail': 'Not enough permissions'}
+
+@pytest.mark.anyio
+async def test_root_access_other_user_module_authorized(async_app_client):
+    #Create a module
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+    modules = await async_app_client.get(f"/users/2/modules/",headers=headers)
+    assert modules.status_code == 200
+    assert modules.json() != {'detail': 'Not enough permissions'}

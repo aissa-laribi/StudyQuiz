@@ -182,3 +182,10 @@ async def get_quizzes_not_attempted(current_user: Annotated[User, Depends(get_cu
         return quizzes
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
+"""
+TODO:
+    -Patch for user = me
+    -Create quiz = me Double check else keeps {user_id}
+"""
+

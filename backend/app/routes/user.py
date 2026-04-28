@@ -1,15 +1,13 @@
 from sqlalchemy.future import select
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
-from app.schemas import UserCreate, TokenData, Token
+from app.schemas import TokenData, Token
 from app.database import get_db
 from app.models import User
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-from dotenv import load_dotenv
 import os
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -19,12 +17,14 @@ SECRET_KEY= os.getenv("SECRET_KEY")
 ALGORITHM= os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 180
 
-
-
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
 
 # Set up password hashing context
+# Why Passlib over Python Hashlib? 
+# Hashlib support fast algorithm such as SHA and does not salt by default
+# passlib uses hashlib (and other crypto libraries) underneath
+# and adds salting, slow algorithms, and secure password handling 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Utility function to hash passwords
@@ -88,7 +88,7 @@ async def get_current_active_user(
 async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
     user = result.scalars().first()
-    return {"user_name": user.user_name,"email": user.email,"role":user.role}
+    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id}
 
 @router.get("/users")
 async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
@@ -135,7 +135,7 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-"""   
+"""
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
@@ -158,8 +158,8 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     except IntegrityError:  # Handle unique constraint violations
         await db.rollback()  # Rollback the transaction to clean up the session
     
-    TODOS:  
-            Force the user to enter a secure password on client side and serverside as well
+    #TODOS:  
+    #        Force the user to enter a secure password on client side and serverside as well
 
 @router.patch("/users/{user_id}")
 async def update_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
@@ -196,7 +196,7 @@ async def update_user(current_user: Annotated[User, Depends(get_current_active_u
         "role": user.role
     }
     
-    TODOS: Not return password in bodyresponse if password not updated
+    #TODOS: Not return password in bodyresponse if password not updated
     
 
 @router.delete("/users/{user_id}")
@@ -231,5 +231,4 @@ async def delete_user(
         return {"message": "User deleted successfully", "user_id": user_id}
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
-
 """
