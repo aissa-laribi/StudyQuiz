@@ -43,12 +43,9 @@ jobs:
           TEST_DATABASE_URL : postgresql+asyncpg://postgres@localhost/test
         run: |
           pip install pytest pytest-cov
-          pwd
-          ls
-          cd backend/app/tests
-          pytest test_user.py test_module.py \
+          pytest backend/app/tests/test_user.py backend/app/tests/test_module.py \
             --doctest-modules \
             --junitxml=junit/test-results.xml \
-            --cov=app \
+            --cov=backend/app \
             --cov-report=xml \
             --cov-report=html

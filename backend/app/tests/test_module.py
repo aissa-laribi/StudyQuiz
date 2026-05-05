@@ -493,7 +493,7 @@ async def test_access_other_user_module_forbidden(async_app_client):
     #Other user logging in
     form_data = (
         "grant_type=password&username=test_user3"
-        "&password=StrongPwd1234,,,,tewfw4g2"
+        "&password=StrongPwd1234,,,,tewfw4g3"
         "&scope=&client_id=string&client_secret=string"
     )
     response = await async_app_client.post(
