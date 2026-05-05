@@ -22,7 +22,7 @@ engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
 # Create sessionmaker for AsyncSession
 async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def anyio_backend():
     return "asyncio"
 
