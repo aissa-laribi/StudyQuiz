@@ -32,6 +32,7 @@ jobs:
           sudo apt-get install -y postgresql postgresql-client
           sudo systemctl start postgresql.service
           sudo -u postgres createdb test
+          sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
           sudo -u postgres psql -d test -f dbschema.sql
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" VALUES (1,'testuser1', 'user1@gmail.com', '$P1', 'root');"
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" VALUES (2,'testuser2', 'user2@gmail.com', '$P2', 'user');"
@@ -40,8 +41,8 @@ jobs:
           sudo -u postgres psql -d test -c 'SELECT * FROM "user";'
       - name: Test with pytest
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres@localhost/test 
-          TEST_DATABASE_URL : postgresql+asyncpg://postgres@localhost/test
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
+          TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
           PYTHONPATH: backend
         run: |
           pip install pytest pytest-cov
