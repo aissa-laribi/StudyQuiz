@@ -39,7 +39,8 @@ jobs:
           sudo -u postgres psql -d test -c '\dt'
           sudo -u postgres psql -d test -c 'SELECT * FROM "user";'
       - name: Test with pytest
-        env: 
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres@localhost/test 
           TEST_DATABASE_URL : postgresql+asyncpg://postgres@localhost/test
           PYTHONPATH: backend
         run: |
