@@ -38,3 +38,13 @@ jobs:
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" VALUES (3,'test_user3', 'user3@gmail.com', '$P3', 'user');"
           sudo -u postgres psql -d test -c '\dt'
           sudo -u postgres psql -d test -c 'SELECT * FROM "user";'
+      - name: Test with pytest
+        run: |
+          env: TEST_DATABASE : postgresql+asyncpg://postgres@localhost/test
+          pip install pytest pytest-cov
+          pytest app/tests/test_user.py app/tests/test_module.py \
+            --doctest-modules \
+            --junitxml=junit/test-results.xml \
+            --cov=app \
+            --cov-report=xml \
+            --cov-report=html
