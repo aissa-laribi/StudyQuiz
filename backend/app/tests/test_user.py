@@ -3,6 +3,7 @@ from passlib.context import CryptContext
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 import os
 from app.main import app
 from dotenv import load_dotenv
@@ -18,7 +19,7 @@ TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 
 # Async engine + session
-engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
+engine = create_async_engine(TEST_DATABASE_URL,echo=False,poolclass=NullPool,)
 # Create sessionmaker for AsyncSession
 async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
