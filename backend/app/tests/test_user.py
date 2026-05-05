@@ -22,6 +22,10 @@ engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
 # Create sessionmaker for AsyncSession
 async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
 # Override get_db
 async def override_get_db():
     async with async_session() as session:
