@@ -44,7 +44,7 @@ jobs:
         run: |
           pip install pytest pytest-cov
           pwd
-          cd ..
+          ls
           cd backend/app/tests
           pytest test_user.py test_module.py \
             --doctest-modules \
