@@ -1,6 +1,7 @@
 # StudyQuiz
+[![Integration Tests](https://github.com/aissa-laribi/StudyQuiz/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/aissa-laribi/StudyQuiz/actions/workflows/integration-tests.yml)
 
-**StudyQuiz** is a web app that turns AI-generated quizzes (e.g., from ChatGPT based on lecture slides) into a **structured learning system**.  
+**StudyQuiz** is a web app that turns AI-assisted quizzes generated from study materials such as lecture slides into a **structured learning system**.  
 It uses **spaced repetition** and **progress tracking**, which LLMs alone can’t offer, to help students retain information long-term instead of just cramming and forgetting.  
 
 ---
@@ -12,27 +13,29 @@ It uses **spaced repetition** and **progress tracking**, which LLMs alone can’
 - **Spaced Repetition**: Schedule follow-ups based on performance.
 - **API-First**: Backend built as a clean, reusable API.
 - **Web-Based Interface**: Accessible on desktop and mobile.
-- **AI-Powered Quiz Import**: Generate quizzes from slides via ChatGPT.
+- **AI-Assisted Quiz Import**: Import structured quizzes generated from study materials.
 
 ## Planned Enhancements:
-- Embedded LLMs within the website  
-- Domain-specific LLMs (e.g., Medicine, Computer Science, etc.)  
+- Integrated AI inference for quiz generation 
 
 ---
 
 ## Tech Stack
 - **Backend**: FastAPI, PostgreSQL, SQLAlchemy
 - **Frontend**: Svelte
-- **Deployment**: Uvicorn
+- **Testing/CI**: Pytest, GitHub Actions
+- **Deployment**: Render, Uvicorn
 
 ---
 ## Roadmap
 - ✅ Backend API for quiz logic
 - ✅ SuperMemo 2 implementation
-- ✅ CLI interaction via FASTAPI
+- ✅ CLI interaction via FastAPI
 - ✅ Frontend development
 - ✅ Hosted version
-- ✅ AI-powered quiz generation 
+- ✅ AI-assisted quiz generation workflow
+- ✅ Integration test workflow
+- ⏳ Integrated AI inference for quiz generation
 ---
 
 ## Setup Instructions
@@ -60,7 +63,7 @@ It uses **spaced repetition** and **progress tracking**, which LLMs alone can’
 ```
     uvicorn app.main:app --reload
 ```
-### Frontend (Coming Soon)
+### Frontend
 1. Navigate to the frontend directory:
 ```
     cd frontend
