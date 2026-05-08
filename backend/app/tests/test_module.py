@@ -77,8 +77,6 @@ async def test_post(async_app_client):
     assert response.status_code == 200
 """
 
-
-@pytest.mark.order(2)
 @pytest.mark.anyio
 async def test_get_module_no_modules(async_app_client):
     # Login existing user
@@ -101,7 +99,6 @@ async def test_get_module_no_modules(async_app_client):
     assert response.status_code == 200
     assert len(response.json()) == 0
 
-@pytest.mark.order(3)
 @pytest.mark.anyio
 async def test_post_module(async_app_client):
     form_data = (
@@ -127,7 +124,6 @@ async def test_post_module(async_app_client):
     assert created[0]['user_id'] == 1
     assert created[0]['module_name'] == 'Module 1'
 
-@pytest.mark.order(4)
 @pytest.mark.anyio
 async def test_post_existing_module(async_app_client):
     form_data = (
@@ -154,8 +150,6 @@ async def test_post_existing_module(async_app_client):
     modules = await async_app_client.get(f"/users/1/modules/")
     assert len(modules.json()) == 1
 
-
-@pytest.mark.order(5)
 @pytest.mark.anyio
 async def test_patch_module(async_app_client):
     form_data = (
@@ -198,7 +192,6 @@ async def test_patch_module(async_app_client):
     print(module.module_name)
     assert module.module_name == 'Updated Module'
 
-@pytest.mark.order(6)
 @pytest.mark.anyio
 async def test_delete_module(async_app_client):
     form_data = (
@@ -228,8 +221,6 @@ async def test_delete_module(async_app_client):
     modules = await async_app_client.get(f"/users/1/modules/",headers=headers)
     assert modules.json() == []
     
-
-@pytest.mark.order(7)
 @pytest.mark.anyio
 async def test_batch_create_modules(async_app_client):
     form_data = (
@@ -272,7 +263,47 @@ async def test_batch_create_modules(async_app_client):
     assert modules[1]['module_name'] == 'Module 2'
     assert modules[2]['module_name'] == 'Module 3'
 
-@pytest.mark.order(8)
+@pytest.mark.anyio
+async def test_get_my_modules(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
+    data = {
+        "data": [
+        {
+            "name": "Module 1"
+        },
+        {
+            "name": "Module 2"
+        },
+        {
+            "name": "Module 3"
+        }
+        ]
+    }
+    assert response.status_code == 200
+    response = await async_app_client.post(f"/users/{user_id}/modules/batch-create", json=data,headers=headers)
+
+    modules = await async_app_client.get(f"/users/me/modules/",headers=headers)
+    modules = modules.json()
+    assert len(modules) == 3
+    assert modules[0]['module_name'] == 'Module 1'
+    assert modules[1]['module_name'] == 'Module 2'
+    assert modules[2]['module_name'] == 'Module 3'
+
 @pytest.mark.anyio
 async def test_get_modules(async_app_client):
     form_data = (
@@ -345,11 +376,42 @@ async def test_get_module(async_app_client):
     response = await async_app_client.post(f"/users/{user_id}/modules/", json=data,headers=headers)
     assert response.status_code == 200
     module_id = response.json()
-    print(module_id)
     response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}",headers=headers)
     assert response.status_code == 200
-
     assert response.json()['module_name'] == "Module 1"
+
+@pytest.mark.anyio
+async def test_delete_module(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users",headers=headers)
+    user_id = response.json()[0]['id']
+    
+    data = {
+
+        "name": "Module 1",
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data,headers=headers)
+    assert response.status_code == 200
+    module_id = response.json()
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}",headers=headers)
+    assert response.status_code == 200
+    assert response.json()['module_name'] == "Module 1"
+    response = await async_app_client.delete(f"/users/{user_id}/modules/{module_id}",headers=headers)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
+    assert len(response.json()) == 0
 
 @pytest.mark.anyio
 async def test_batch_delete_modules(async_app_client):
@@ -388,6 +450,7 @@ async def test_batch_delete_modules(async_app_client):
     modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
     modules = modules.json() 
     assert len(modules) == 3
+    
     modules = await async_app_client.delete(f"/users/{user_id}/modules/batch-delete",headers=headers)
     modules = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
     modules = modules.json()
@@ -458,7 +521,6 @@ async def test_get_module_not_found(async_app_client):
     headers = {"Authorization": f"Bearer {token}"}
 
     response = await async_app_client.get(f"/users",headers=headers)
-    user_id = response.json()[0]['id']
     assert response.status_code == 200
     module_name = "Module 1"
     response = await async_app_client.get(f"/users/me/modules/{module_name}", headers=headers)
