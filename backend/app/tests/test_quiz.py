@@ -1,7 +1,7 @@
 import pytest
 from passlib.context import CryptContext
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy import text
+from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 import os
@@ -20,7 +20,7 @@ TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 # Async engine + session
 engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
 # Create sessionmaker for AsyncSession
-async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False, echo=False,poolclass=NullPool,)
 
 @pytest.fixture(scope="module")
 def anyio_backend():
