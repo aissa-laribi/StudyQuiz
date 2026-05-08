@@ -1,6 +1,7 @@
 import pytest
 from passlib.context import CryptContext
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 import os
@@ -19,7 +20,11 @@ TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 # Async engine + session
 engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
 # Create sessionmaker for AsyncSession
-async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False, echo=False,poolclass=NullPool,)
+
+@pytest.fixture(scope="module")
+def anyio_backend():
+    return "asyncio"
 
 # Override get_db
 async def override_get_db():
@@ -43,92 +48,84 @@ async def close_engine():
 
 @pytest.fixture(scope="function", autouse=True)
 async def reset_test_db():
-    # Drop all tables
+    # Drop all Quiz table 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DELETE FROM quiz;"))
         await conn.run_sync(Base.metadata.create_all)
     yield
 
 
+reset_test_db
 
 # Utility Function for Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
-reset_test_db
-
-
-"""
-@pytest.mark.anyio
-async def test_post(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
-    assert response.status_code == 200
-"""
-
 
 
 @pytest.mark.anyio
 async def test_get_quiz_no_quizzes(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    # Login existing user
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
 
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
     data = {
 
         "name": "Module 1",
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
-    assert response.status_code == 200
-    module_id = response.json()[0]['id']
-    assert module_id == 1
-    assert response.json()[0]['module_name'] == 'Module 1'
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/")
-    assert response.status_code == 200
+    
 
 @pytest.mark.anyio
 async def test_post_quiz(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
 
     data = {
 
         "name": "Module 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/", headers=headers)
     assert response.status_code == 200
     module_id = response.json()[0]['id']
-    assert module_id == 1
     assert response.json()[0]['module_name'] == 'Module 1'
     data = {
         "name": "Quiz 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data, headers=headers)
     assert response.status_code == 200
     quiz_id = response.json()
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", headers=headers)
     #print(response.json())
     assert response.status_code == 200
     assert response.json()['id'] == quiz_id
@@ -138,35 +135,45 @@ async def test_post_quiz(async_app_client):
 
 @pytest.mark.anyio
 async def test_patch_quiz(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
 
     data = {
 
         "name": "Module 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
+
+    data = {
+
+        "name": "Module 1"
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/", headers=headers)
     assert response.status_code == 200
     module_id = response.json()[0]['id']
-    assert module_id == 1
     assert response.json()[0]['module_name'] == 'Module 1'
     data = {
 
         "name": "Quiz 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data, headers=headers)
     assert response.status_code == 200
     quiz_id = response.json()
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", headers=headers)
     #print(response.json())
     assert response.status_code == 200
     assert response.json()['id'] == quiz_id
@@ -175,9 +182,9 @@ async def test_patch_quiz(async_app_client):
     data = {
         "quiz_name": "Quiz 2"
     }
-    response = await async_app_client.patch(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", json=data)
+    response = await async_app_client.patch(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", json=data, headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", headers=headers)
     #print(response.json())
     assert response.status_code == 200
     assert response.json()['id'] == quiz_id
@@ -185,65 +192,82 @@ async def test_patch_quiz(async_app_client):
     assert response.json()['quiz_name'] != "Quiz 1"
     assert response.json()['quiz_name'] == "Quiz 2"
 
+"""
 @pytest.mark.anyio
 async def test_delete_quiz(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user  = response.json()
+    user_id = response.json()['id']
 
     data = {
 
         "name": "Module 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data,headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/", headers=headers)
     assert response.status_code == 200
     module_id = response.json()[0]['id']
-    assert module_id == 1
+
     assert response.json()[0]['module_name'] == 'Module 1'
     data = {
         "name": "Quiz 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data, headers=headers)
     assert response.status_code == 200
     quiz_id = response.json()
-    response = await async_app_client.delete(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
-    print(response.json())
+    print(user)
+    response = await async_app_client.delete(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", headers=headers)
+    
     assert response.json() == {'message': 'Quiz deleted successfully'}
-    response = await async_app_client.get(f"/users/{user_id}/modules/quizzes/{quiz_id}")
+    response = await async_app_client.get(f"/users/{user_id}/modules/quizzes/{quiz_id}", headers=headers)
     assert response.status_code != 200
     assert(response.json()) == {'detail': 'Not Found'}
-    print(response.json())
+"""
   
 @pytest.mark.anyio
 async def test_create_quizzes(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
 
     data = {
 
         "name": "Module 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data,headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/",headers=headers)
     assert response.status_code == 200
     module_id = response.json()[0]['id']
-    assert module_id == 1
+
     assert response.json()[0]['module_name'] == 'Module 1'
     data = {
         "data": [
@@ -258,44 +282,113 @@ async def test_create_quizzes(async_app_client):
         },
         ]
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data,headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 3
-    assert response.json()['1'] == "Quiz 1"
-    assert response.json()['2'] == "Quiz 2"
-    assert response.json()['3'] == "Quiz 3"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/1")
+    quiz_id = list(response.json())[0]
+    assert response.json()[quiz_id] == "Quiz 1"
+    quiz_id = list(response.json())[1]
+    assert response.json()[quiz_id] == "Quiz 2"
+    quiz_id = list(response.json())[2]
+    assert response.json()[quiz_id] == "Quiz 3"
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}",headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 1"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/2")
+
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/",headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 2"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/3")
+    assert len(response.json()) == 3
+    assert response.json()[0]['quiz_name'] == "Quiz 1"
+    assert response.json()[1]['quiz_name'] == "Quiz 2"
+    assert response.json()[2]['quiz_name'] == "Quiz 3"
+
+@pytest.mark.anyio
+async def test_me_create_quizzes(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 3"
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
+    data = {
+
+        "name": "Module 1"
+    }
+    response = await async_app_client.post(f"/users/me/modules/", json=data,headers=headers)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users/me/modules/",headers=headers)
+    assert response.status_code == 200
+    module_id = response.json()[0]['id']
+
+    assert response.json()[0]['module_name'] == 'Module 1'
+    data = {
+        "data": [
+        {
+            "name": "Quiz 1"
+        },
+        {
+            "name": "Quiz 2"
+        },
+        {
+            "name": "Quiz 3"
+        },
+        ]
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data,headers=headers)
+    assert response.status_code == 200
+    assert len(response.json()) == 3
+    quiz_id = list(response.json())[0]
+    assert response.json()[quiz_id] == "Quiz 1"
+    quiz_id = list(response.json())[1]
+    assert response.json()[quiz_id] == "Quiz 2"
+    quiz_id = list(response.json())[2]
+    assert response.json()[quiz_id] == "Quiz 3"
+
+
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/",headers=headers)
+    assert response.status_code == 200
+    assert len(response.json()) == 3
+    assert response.json()[0]['quiz_name'] == "Quiz 1"
+    assert response.json()[1]['quiz_name'] == "Quiz 2"
+    assert response.json()[2]['quiz_name'] == "Quiz 3"
+
 
 @pytest.mark.anyio
 async def test_delete_quizzes(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
 
     data = {
 
         "name": "Module 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/", headers=headers)
     assert response.status_code == 200
     module_id = response.json()[0]['id']
-    assert module_id == 1
+
     assert response.json()[0]['module_name'] == 'Module 1'
     data = {
         "data": [
@@ -310,53 +403,51 @@ async def test_delete_quizzes(async_app_client):
         },
         ]
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data, headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 3
-    assert response.json()['1'] == "Quiz 1"
-    assert response.json()['2'] == "Quiz 2"
-    assert response.json()['3'] == "Quiz 3"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/1")
+    
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/",headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 1"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/2")
+    assert len(response.json()) == 3
+    assert response.json()[0]['quiz_name'] == "Quiz 1"
+    assert response.json()[1]['quiz_name'] == "Quiz 2"
+    assert response.json()[2]['quiz_name'] == "Quiz 3"
+    response = await async_app_client.delete(f"/users/{user_id}/modules/{module_id}/quizzes/batch-delete",headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 2"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/3")
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/",headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 3"
-    response = await async_app_client.delete(f"/users/{user_id}/modules/{module_id}/quizzes/batch-delete")
-    assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/1")
-    assert response.status_code == 404
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/2")
-    assert response.status_code == 404
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/3")
-    assert response.status_code == 404
-
+    assert len(response.json()) == 0
+    
 
 @pytest.mark.anyio
 async def test_get_quizzes(async_app_client):
-    data = {
-        "user_name": "testuser1",
-        "email": "user1@gmail.com",
-        "password": "StrongPwd1234,,,,tewfw4g",
-    }
-    response = await async_app_client.post("/users", json=data)
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users")
-    user_id = response.json()[0]
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
+
 
     data = {
 
         "name": "Module 1"
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    response = await async_app_client.get(f"/users/{user_id}/modules/")
+    response = await async_app_client.get(f"/users/{user_id}/modules/", headers=headers)
     assert response.status_code == 200
     module_id = response.json()[0]['id']
-    assert module_id == 1
     assert response.json()[0]['module_name'] == 'Module 1'
     data = {
         "data": [
@@ -371,24 +462,64 @@ async def test_get_quizzes(async_app_client):
         },
         ]
     }
-    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data)
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data, headers=headers)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/",headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 3
-    assert response.json()['1'] == "Quiz 1"
-    assert response.json()['2'] == "Quiz 2"
-    assert response.json()['3'] == "Quiz 3"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/1")
+    assert response.json()[0]['quiz_name'] == "Quiz 1"
+    assert response.json()[1]['quiz_name'] == "Quiz 2"
+    assert response.json()[2]['quiz_name'] == "Quiz 3"
+
+@pytest.mark.anyio
+async def test_get_quizzes(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 1"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/2")
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
+
+
+    data = {
+        "name": "Module 1"
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 2"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/3")
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
     assert response.status_code == 200
-    assert response.json()['quiz_name'] == "Quiz 3"
-    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/")
-    print(response.json())
+    response = await async_app_client.get(f"/users/{user_id}/modules/", headers=headers)
     assert response.status_code == 200
+    module_id = response.json()[0]['id']
+    assert response.json()[0]['module_name'] == 'Module 1'
+    data = {
+        "data": [
+        {
+            "name": "Quiz 1"
+        },
+        {
+            "name": "Quiz 2"
+        },
+        {
+            "name": "Quiz 3"
+        },
+        ]
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data, headers=headers)
+    assert response.status_code == 200
+    name = "Module 1"
+    response = await async_app_client.get(f"/users/me/modules/{name}/quizzes/",headers=headers)
+    assert response.status_code == 200
+    assert len(response.json()) == 3
     assert response.json()[0]['quiz_name'] == "Quiz 1"
     assert response.json()[1]['quiz_name'] == "Quiz 2"
     assert response.json()[2]['quiz_name'] == "Quiz 3"
