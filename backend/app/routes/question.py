@@ -81,7 +81,7 @@ async def create_full_quiz_from_names(
 async def create_full_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, data: BatchQuestionsWithAnswersCreate, db: AsyncSession = Depends(get_db)):
     if current_user.role == "root" or current_user.id == user_id:
         results = []
-        for question in data.data:
+        for question in data.questions:
             new_question = Question(question_name=question.name, user_id=user_id, module_id = module_id, quiz_id = quiz_id)
             db.add(new_question)
             await db.flush()
