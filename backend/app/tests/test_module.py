@@ -48,10 +48,13 @@ async def close_engine():
     yield
     await engine.dispose()
 
+#Drop all tables except users
 @pytest.fixture(scope="function", autouse=True)
 async def reset_test_db():
-    # Drop Modules table
     async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM answer;"))
+        await conn.execute(text("DELETE FROM question;"))
+        await conn.execute(text("DELETE FROM quiz;"))
         await conn.execute(text("DELETE FROM module;"))
         await conn.run_sync(Base.metadata.create_all)
     yield
