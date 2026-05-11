@@ -18,9 +18,9 @@ TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 
 # Async engine + session
-engine = create_async_engine(TEST_DATABASE_URL, echo=False, pool_pre_ping=True)
+engine = create_async_engine(TEST_DATABASE_URL,echo=False,poolclass=NullPool,)
 # Create sessionmaker for AsyncSession
-async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False, echo=False,poolclass=NullPool,)
+async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 @pytest.fixture(scope="module")
 def anyio_backend():
@@ -46,11 +46,14 @@ async def close_engine():
     yield
     await engine.dispose()
 
+#Drop all tables except users
 @pytest.fixture(scope="function", autouse=True)
 async def reset_test_db():
-    # Drop all Quiz table 
     async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM answer;"))
+        await conn.execute(text("DELETE FROM question;"))
         await conn.execute(text("DELETE FROM quiz;"))
+        await conn.execute(text("DELETE FROM module;"))
         await conn.run_sync(Base.metadata.create_all)
     yield
 
