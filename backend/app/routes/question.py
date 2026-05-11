@@ -104,7 +104,6 @@ async def create_full_quiz(current_user: Annotated[User, Depends(get_current_act
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
     
-
 @router.post("/users/me/modules/{module_name}/quizzes/{quiz_name}/questions/with-answers")
 async def create_question_answers_from_names(
     current_user: Annotated[User, Depends(get_current_active_user)],
@@ -160,7 +159,6 @@ async def create_question_answers_from_names(
     await db.refresh(new_question)
     return new_question
 
-
 @router.post("/users/me/modules/{module_name}/quizzes/{quiz_name}/questions")
 async def create_question_from_name(
     current_user: Annotated[User, Depends(get_current_active_user)],
@@ -204,7 +202,6 @@ async def create_question_from_name(
     await db.commit()
     await db.refresh(new_question)
     return new_question
-
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}/questions/")
 async def create_question(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, question: QuestionCreate ,db: AsyncSession = Depends(get_db)):
