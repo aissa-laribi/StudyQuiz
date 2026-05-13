@@ -203,6 +203,35 @@
     #spacer{
         grid-area: spacer;
     }
+
+    .welcome-banner {
+  margin: 2rem auto;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 2px solid #0b66c3;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.welcome-banner h1 {
+  margin: 0 0 0.4rem;
+  font-size: 26pt;
+  color: #0b66c3;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.welcome-steps {
+  display: inline-block;
+  text-align: left;
+  margin: 0;
+  padding-left: 1.5rem;
+  font-size: 14pt;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.5;
+  font-family: 'Montserrat', sans-serif;
+}
     #col-modules{
       grid-area: col-modules;
       background-color: white;
@@ -491,14 +520,15 @@
   main {
     display: grid;
     grid-template-columns:1fr;
-    grid-template-rows: 1fr 9fr;
+    grid-template-rows: 1fr 9fr 1fr;
     grid-template-areas:
-    'col-quizzes'
-    'col-modules';
+    'spacer'
+    'col-modules'
+    'col-quizzes';
     gap: 0;
   }
-  #col-quizzes {
-    grid-area: col-quizzes;
+  #col-modules {
+    grid-area: col-modules;
     border-radius: 1em;
     border-radius: 1em;
     height: fit-content;
@@ -527,7 +557,16 @@
   </div>
   </nav>
   <main>
-    <div id="spacer"></div>
+    <div id="spacer">
+    <section class="welcome-banner">
+      <h1>Welcome to StudyQuiz</h1>
+      <ol class="welcome-steps">
+        <li>Choose a demo module below</li>
+        <li>Press Attempt to start a quiz</li>
+        <li>StudyQuiz will schedule your next review</li>
+      </ol>
+</section>
+    </div>
     <div id="col-modules">
     <div id="my-modules">
     <h2>My Modules
@@ -591,7 +630,6 @@
       </Modal>
     {/if}
 
-  
 </main>
   <div id="sidebar1"></div>
   <div id="sidebar2"></div>
