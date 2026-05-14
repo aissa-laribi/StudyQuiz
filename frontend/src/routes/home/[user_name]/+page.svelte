@@ -110,12 +110,13 @@
 <style>
     .container {
         display: grid;
-        height: 100vh;
+        min-height: 100vh;
         grid-template-columns: 1fr 10fr 1fr;
         grid-template-rows: 0.6fr 10fr;
         grid-template-areas:
         'nav nav nav'
         'sidebar1 main sidebar2';
+        align-items: stretch;
         }
     nav {
         grid-area : nav;
