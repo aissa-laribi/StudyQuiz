@@ -14,6 +14,7 @@
   let user_name = "";
   let module_id = 0;
   let moduleImgId = 0;
+  let toastMessage = "";
   const imageIndex = localStorage.getItem(`imgModuleIndex`);
   const moduleName = localStorage.getItem(`moduleName`);
   const quizName = writable(null);
@@ -23,7 +24,6 @@
   $: login = logged ? "Logged in" : "Login";
   
 
-  //console.log(window.location.href);
   
   async function getUsername(){
     const token = await localStorage.getItem("access_token");
@@ -48,6 +48,14 @@
     const url = `/home/${user_name}/modules/${moduleName}/quizzes/${pageName}`;
     goto(url);
   }
+
+function showToast(message) {
+  toastMessage = message;
+
+  setTimeout(() => {
+    toastMessage = "";
+  }, 3000);
+}
 
   async function loadQuizzes() {
     const token = localStorage.getItem("access_token");
@@ -128,12 +136,13 @@
 <style>
     .container {
         display: grid;
-        height: 100vh;
+        min-height: 100vh;
         grid-template-columns: 1fr 10fr 1fr;
-        grid-template-rows: 0.6fr 10fr;
+        grid-template-rows: auto 1fr;
         grid-template-areas:
         'nav nav nav'
         'sidebar1 main sidebar2';
+        align-items: stretch;
         }
     nav {
         grid-area : nav;
@@ -363,7 +372,6 @@
     #form-button-section button{
       height: 80%;
       border-radius: 2em;
-      //width: auto;
       border: 0.1em solid transparent;
       background-color: rgb(18, 105, 192);
       display: flex;
@@ -390,90 +398,126 @@
       border: 1px #d6d9dc solid;
     }
     .module-box{
+      display: grid;
+      grid-template-columns: 8fr 1fr;
+      grid-template-rows: 0fr 1fr 0.1fr;
       border: 1px #d6d9dc solid;
       border-radius: 0.51em;
+      grid-template-areas: 'header-quiz header-quiz'
+      'quiz-info quiz-info'
+      'start-quiz quiz-modifiers';
+      padding-bottom: 0.3rem;
     }
 
-    h3 {
-      font-size: 1.6rem;
-      font-weight: 600;
-      font-family: 'Montserrat', sans-serif;
-    }
+
 
     .header-quiz{
-      display: grid;
-      grid-template-columns: 3fr 1fr 1fr;
+      grid-area: header-quiz;
       margin-left:1em;
       margin-right: 1em;
-      height: 8vh
+      margin-top:-2rem;
+      margin-bottom:-3rem;
     }
 
-    .quiz-title{
-      font-size: 1.2em;
+    .module-box .quiz-title{
+      grid-area: quiz-title;
+      font-size: 2rem;
+      text-align: center;
+    }
+
+    .start-quiz{
+      grid-area: start-quiz;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;  
+    }
+
+    .quiz-info{
+      grid-area: quiz-info;
+      font-size:10pt;
+      display:contents;
+    }
+
+    #start-quiz-btn{
+      background-color: rgb(7, 7, 7);
+      color: white;
+      border-radius: 2em;
+      border: 1px rgba(26, 16, 16, 1) solid;
+      padding: 1em;
+      font-size: 1rem;
       font-weight: 600;
       font-family: 'Montserrat', sans-serif;
-      text-align: left;
-      align-self: center;
-  
+      min-width: 180px;
+      max-width: 320px;
+      align-self:center;
+      cursor: pointer;
       
     }
 
-    #attempt-button{
-      background-color: rgba(2, 180, 40, 1);
-      color: white;
-      border-radius: 2em;
-      border: 1px rgba(26, 16, 16, 1) solid;
-      padding: 1em;
-      font-size: 0.85em;
-      font-weight: 600;
-      font-family: 'Montserrat', sans-serif;
-      align-items: center;
-      max-height: 80%;
-      max-width: 14vh;
+    #start-quiz-btn:hover{
+        background-color: rgba(2, 180, 40, 1);
+        color: black;
     }
 
-    #attempt-button:hover{
+    .quiz-modifiers {
+      grid-area: quiz-modifiers;
+      display: inline-flex;
+    }
+
+    .edit-quiz-btn {
+      width: 2.6rem;
+      height: 2.6rem;
+      padding: 0;
+      border: 0px;
       background-color: white;
-      color: rgba(2, 180, 40, 1);
-    }
+      color: rgb(18, 105, 192);
+      cursor: pointer;
+  }
 
-    #update-button{
+  .edit-quiz-btn:hover {
       background-color: rgb(18, 105, 192);
       color: white;
-      border-radius: 2em;
-      border: 1px rgba(26, 16, 16, 1) solid;
-      padding: 1em;
-      font-size: 0.85em;
-      font-weight: 600;
-      font-family: 'Montserrat', sans-serif;
-      align-items: center;
-      max-height: 80%;
-      max-width: 14vh;
     }
 
-    #update-button:hover{
-      background-color: white;
-      color: rgb(18, 105, 192);;
-      border-radius: 2em;
-      border: 1px rgba(26, 16, 16, 1) solid;
-      padding: 1em;
-      font-size: 0.85em;
-      font-weight: 600;
-      font-family: 'Montserrat', sans-serif;
-      align-items: center;
-      max-height: 80%;
-      max-width: 14vh;
-    }
+  .edit-icon {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: white;
+    padding: 0.9rem 1.2rem;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    z-index: 1000;
+  }
+
+  .delete-quiz-btn {
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    border: 0px;
+    background-color: white;
+    color: rgb(190, 30, 45);
+    cursor: pointer;
+  }
+
+  .delete-quiz-btn:hover {
+    background-color: rgb(190, 30, 45);
+    color: white;
+  }
+
+  .delete-icon {
+    width: 1.45rem;
+    height: 1.45rem;
+  }  
 
 
-    .module-box a {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      text-align: left;
-      font-size: 1.15em;
-      line-height: 1em;
-      text-decoration: none;
-      color: black;
-    }
 
     
     #col-quizzes{
@@ -534,15 +578,43 @@
     .quiz-details {
       grid-area: quiz-details;
       display: grid;
+      min-width: 0;
     }
 
-    .quiz-title, .quiz-due-date {
+    #followups-container .quiz-title, .quiz-due-date {
       margin: 0;
-      font-size: 1.1em;
-      text-align: left;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-weight:600;
+      text-align: left;
     }
+
+    #followups-container .quiz-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+#followups-container .module-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+#followups-container .quiz-due-date {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
 
 
     
@@ -605,32 +677,8 @@
     height: fit-content;
     
     }
-  #attempt-button{
-    background-color: #02b428;
-    color: #fff;
-    border-radius: 2em;
-    border: 1px rgba(26, 16, 16, 1) solid;
-    padding: 1em;
-    font-size: .5em;
-    font-weight: 600;
-    font-family: 'Inter';
-    align-items: center;
-    max-height: 80%;
-    max-width: 14vh;
-  }
-  #update-button {
-    background-color: #1269c0;
-    color: #fff;
-    border-radius: 2em;
-    border: 1px rgba(26, 16, 16, 1) solid;
-    padding: 1em;
-    font-size: .5em;
-    font-weight: 600;
-    font-family: Montserrat, sans-serif;
-    align-items: center;
-    max-height: 80%;
-    max-width: 14vh;  
-  }
+
+
   .header-quiz{
     display: inline-block;
   }
@@ -675,11 +723,62 @@
       <div id="modules-container">
         {#each quizzes as quiz, i}
         <div class="module-box">
-            <h3 class="header-quiz"><p class="quiz-title">{quiz.quiz_name}</p>
-            <button id="attempt-button" onclick={() => goto(`/home/${user_name}/modules/${moduleName}/quizzes/${encodeURIComponent(quiz.quiz_name)}/attempt`)}>Attempt</button>
-
-            <button id="update-button" onclick={() => goToPage(quiz.quiz_name)}>Update</button></h3>
-            <p>Created: {new Date(quiz.created_at).toLocaleString()} - <strong>Last score: {quiz.last_score}%</strong> <br> Attempts: {quiz.repetitions} - <strong>Next Due Date: {new Date(quiz.next_due).toLocaleString()}</strong> - Updated: {new Date(quiz.next_due).toLocaleString()}</p>
+            <div class="header-quiz"><h3 class="quiz-title">{quiz.quiz_name}</h3></div>
+            <div class="quiz-info">
+              <p>Last score: {quiz.last_score}% <br> Next review: {new Date(quiz.next_due).toLocaleDateString()}</p>
+            </div>
+            <div class="start-quiz">
+              <button id="start-quiz-btn" onclick={() => goto(`/home/${user_name}/modules/${moduleName}/quizzes/${encodeURIComponent(quiz.quiz_name)}/attempt`)}>Start quiz</button>
+            </div>
+            <div class="quiz-modifiers">
+            <button type="button" class="edit-quiz-btn" aria-label="Edit quiz" onclick={() => showToast("Editing is not available in guest mode.")}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="edit-icon">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+              {#if toastMessage}
+                <div class="toast">
+                {toastMessage}
+                </div>
+              {/if}
+            </button>
+            <button type="button" class="delete-quiz-btn" aria-label="Delete quiz" onclick={() => showToast("Deleting is not available in guest mode.")}>
+              <svg
+  class="delete-icon"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="M3 6h18" />
+  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+  <path d="M10 11v6" />
+  <path d="M14 11v6" />
+</svg>
+              {#if toastMessage}
+                <div class="toast">
+                {toastMessage}
+                </div>
+              {/if}
+            </button>
+          </div>
         </div>
       {/each}
       </div> 
@@ -699,7 +798,8 @@
       </div>
 
       <div class="quiz-details">
-        <p class="quiz-title">{followup.module.module_name} — {followup.quiz.quiz_name}</p>
+        <p class="quiz-title">{followup.quiz.quiz_name}</p>
+        <p class="module-name">{followup.module.module_name}</p>
         <p class="quiz-due-date">Due: {new Date(followup.followup_due_date).toLocaleDateString()}</p>
       </div>
     </a>
