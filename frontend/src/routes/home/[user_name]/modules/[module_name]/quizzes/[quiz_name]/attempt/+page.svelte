@@ -11,6 +11,7 @@
   let message = "";
   let login = "Login";
   let logged = false;
+  let currentQuestion = 0;
   let questions = [];
   let answers = [];
   let user_name = "";
@@ -27,8 +28,6 @@
   const apiURL = import.meta.env.VITE_API_URL;
 
   $: login = logged ? "Logged in" : "Login";
-  
-  //console.log(window.location.href);
   
   /*async function getUsername(){
     const token = await localStorage.getItem("access_token");
@@ -195,10 +194,6 @@ onMount(() => {
     await loadQuestionsAndAnswers();
   })();
 });
-
-  
-  
-
 </script>
 
 
@@ -269,12 +264,12 @@ onMount(() => {
         grid-area: main;
         background-color: #f6f7fb;
         display: grid;
-        height: 100vh; 
+        //height: 100vh; 
         //vertical-align: baseline;
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 3fr;
-        grid-template-rows: 2fr 9fr;
+        grid-template-rows: 1fr 9fr;
         gap: 2rem;
         padding-bottom: 10vh;
         grid-template-areas:
@@ -283,9 +278,6 @@ onMount(() => {
         ;
     }
 
-    main * {
-      margin-left: 4vh;
-    }
     main h1 {
       font-family: 'Montserrat', sans-serif;
       text-align: center;
@@ -355,20 +347,6 @@ onMount(() => {
       font-size: 1.2vh;
     }
 
-    .question-check-box.answered {
-      background-color: #e0f0ff;
-      color: white;
-      font-size: 0.9vh;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    .question-box-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0.5vh;
-    }
-
   .question-index-number {
     font-family: 'Montserrat', sans-serif;
     font-size: 1.4vh;
@@ -380,46 +358,117 @@ onMount(() => {
   .question-check-box.answered {
     background-color: rgb(18, 105, 192);
     text-align: center;
+    color: white
   }
 
   .question-check-box.unanswered {
-    background-color: #ccc;
+    background-color: #e9e9e9;
   }
+  .question-check-box.current {
+    outline: 0.4vh solid black;
+    outline-offset: 0.15vh;
+  }
+
+  .question-check-box p {
+    margin : 0;
+  }
+
+.current-question{
+  font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+}
+.question-box {
+  display: grid;
+  justify-content: center;
+  
+}  
+
+.answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.answer-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.answer-option:hover {
+  background-color:  #e9e9e9;
+  width: 100%;
+}
+
+.answer-option input {
+  margin: 0;
+}
+
+.answer-option span {
+  line-height: 1.4;
+}
+
+
+.questions-iter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+
+  margin-top: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+
+  width: 100%;
+  max-width: 32rem;
+}
+
+.questions-iter button {
+  padding: 0.9rem 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid #bbb;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.questions-iter button:hover{
+  background-color: #0f0f0f;
+  color: white;
+}
+
     #question-page{
       grid-area: question-page;
-      border-radius: 1em;
-      border-radius: 1em;
-      height: 80vh;
-      background-color: white;
-      overflow-y: auto;
-      max-height: 85vh;
-      padding: 2vh;
-      
-    }
+      padding: 2rem 2.5rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);  
+    }    
+#form-button-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-left: 0;   
+}
 
-    #form-button-section {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      margin-left: 0;   
-    }
-
-    #form-button-section * {
-      margin-left: 0; 
-      color: white;
-      border-radius : 1em;
-      padding: 0 1em;
-    }
-    #form-button-section button {
-      background-color: rgb(18, 105, 192);
-    }
+#form-button-section * {
+  margin-left: 0; 
+  color: white;
+  border-radius : 1em;
+  padding: 0 1em;
+}
+    
+#form-button-section button {
+  background-color: rgb(18, 105, 192);
+}
 
     #form-button-section button:hover{
       background-color: rgb(20, 128, 236);
     }
-
-    
 
     #sidebar1 {
         grid-area : sidebar1;
@@ -480,6 +529,7 @@ onMount(() => {
   #question-page form{
     margin: 0;
   }
+
   }  
  
 </style>
@@ -496,35 +546,76 @@ onMount(() => {
     <h3>{moduleName} - {quiz_name}</h3>
   </div>
   <div id="question-index">
-  <p>Page</p>
+  <p>Questions</p>
   <div id="question-index-content">
-  {#each questions as question, i}
-  <div class="question-check-box {selectedAnswers[question.id] ? 'answered' : 'unanswered'}">
-  {#if selectedAnswers[question.id]}ANSWER SAVED{/if}
+    {#each questions as question, i}
+
+  <div
+  class="question-check-box"
+  class:answered={selectedAnswers[question.id]}
+  class:unanswered={!selectedAnswers[question.id]}
+  class:current={currentQuestion === i}
+>
+  <p>{i + 1}</p>
 </div>
-
-{/each}
-
+  {/each}
   </div>
   </div>
+  
   <div id="question-page">
   {#if !attempted}
   <form  onsubmit={registerAttempt}>
   {#each questions as question, i}
   <div>
-    <p>Question {i + 1}: {question.question_name}</p>
-    {#each answersByQuestionId[question.id] || [] as answer, j}
-      <input type="radio" id={`q${question.id}-a${j}`} name={`question-${question.id}`} value={answer.id}
-        bind:group={selectedAnswers[question.id]} />
-      <label for={`q${question.id}-a${j}`}>{answer.answer_name}</label><br>
-    {/each}
-  </div>
+    {#if i == currentQuestion}
+    <p class="current-question">Question {i+1} of {questions.length}</p>
+    <div class="question-box">
+    <h2>{question.question_name}</h2>
+      <div class="answers-list">
+        {#each answersByQuestionId[question.id] || [] as answer, j}
+          <label class="answer-option" for={`q${question.id}-a${j}`}>
+            <input
+              type="radio"
+              id={`q${question.id}-a${j}`}
+              name={`question-${question.id}`}
+              value={answer.id}
+              bind:group={selectedAnswers[question.id]}
+            />
+            <span>{answer.answer_name}</span>
+          </label>
+        {/each}
+      </div>
+    </div>  
+      <br>
+      <div class="questions-iter">
+        {#if i > 0}
+          <div id="prev-question-btn">
+            <button type="submit" onclick = {currentQuestion--}>
+              <p>Previous</p>
+            </button> 
+          </div> 
+        {/if} 
+        <div id="next-question-btn">
+          <button type="submit" onclick = {currentQuestion++}>
+            <p>Next</p>
+          </button>   
+        </div>
+      </div>   
+    {/if}
+    </div>
 {/each}
+  {#if currentQuestion == questions.length}
+   <div id="prev-question-btn">
+    <button type="submit" onclick = {currentQuestion--}>
+      <p>Previous</p>
+    </button>
+    </div> 
   <div id="form-button-section">
     <button type="submit">
       <p>Submit</p>
     </button> 
   </div>
+  {/if}
   </form>
   {/if}
   {#if attempted}
