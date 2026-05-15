@@ -5,7 +5,7 @@
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
 
-  const { module_name, quiz_name} = get(page).params;
+  const {user_name: me, module_name, quiz_name} = get(page).params;
   //console.log("Module:", module_name);
   //console.log("Quiz:", quiz_name);
   let message = "";
@@ -14,7 +14,7 @@
   let currentQuestion = 0;
   let questions = [];
   let answers = [];
-  let user_name = "";
+  let user_name = me;
   let module_id = 0;
   let answersByQuestionId = {};
   let newQuizName = "";
@@ -168,6 +168,16 @@ async function getQuizAtempt(){
   }
 }
 
+function tryAgain() {
+  attempted = false;
+  currentQuestion = 0;
+  selectedAnswers = {};
+  wrongAnswers = {};
+  attempt_score = 0;
+  next_due = null;
+  initializeSelectedAnswers();
+}
+
 onMount(() => {
   (async () => {
     const token = localStorage.getItem("access_token");
@@ -319,7 +329,7 @@ onMount(() => {
       justify-content: center;     
       align-items: flex-start;     
       flex-direction: column;
-      padding-top: 2vh;
+      padding-bottom: 3vh;
       height: fit-content;
       background-color: white;
       
@@ -329,10 +339,13 @@ onMount(() => {
       margin: 0 auto;
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-start;
+      justify-content: center;
       height: auto;
     }
 
+    #question-index p {
+      text-align: center;
+    }
 
     .question-check-box {
       width: 7vh;
@@ -345,6 +358,7 @@ onMount(() => {
       font-weight: bold;
       border-radius: 0.5vh;
       font-size: 1.2vh;
+      cursor: pointer;
     }
 
   .question-index-number {
@@ -446,33 +460,58 @@ onMount(() => {
       background: white;
       border-radius: 1rem;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);  
-    }    
-#form-button-section {
-  display: flex;
+}
+.quiz-submission {
+  display: grid;
   justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-left: 0;   
 }
 
-#form-button-section * {
-  margin-left: 0; 
-  color: white;
-  border-radius : 1em;
-  padding: 0 1em;
+.result-actions {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
-    
-#form-button-section button {
+
+  .result-actions button {
+  min-width: 9rem;
+  min-height: 3.5rem;
+}
+
+#try-again-btn button {
   background-color: rgb(18, 105, 192);
+  color: white;
+  border-color: rgb(18, 105, 192);
 }
 
-    #form-button-section button:hover{
-      background-color: rgb(20, 128, 236);
-    }
+#try-again-btn button:hover {
+  background-color: rgb(13, 86, 160);
+}
+
+#back-to-module-btn button {
+  background-color: white;
+  color: #222;
+}
+
+#back-to-module-btn button:hover {
+  background-color: #e9e9e9;
+}
+
+.mistake-card {
+  border: 1px solid #ddd;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  background-color: #fafafa;
+}
+
+.mistake-card p {
+  margin: 0.35rem 0;
+}
+
+
 
     #sidebar1 {
-        grid-area : sidebar1;
-        background-color: #f6f7fb;
+      grid-area : sidebar1;
+      background-color: #f6f7fb;
     }
     #sidebar2 {
         grid-area : sidebar2;
@@ -555,9 +594,9 @@ onMount(() => {
   class:answered={selectedAnswers[question.id]}
   class:unanswered={!selectedAnswers[question.id]}
   class:current={currentQuestion === i}
->
-  <p>{i + 1}</p>
-</div>
+  onclick= {currentQuestion = i}>
+    <p>{i + 1}</p>
+  </div>
   {/each}
   </div>
   </div>
@@ -605,27 +644,58 @@ onMount(() => {
     </div>
 {/each}
   {#if currentQuestion == questions.length}
-   <div id="prev-question-btn">
-    <button type="submit" onclick = {currentQuestion--}>
-      <p>Previous</p>
-    </button>
-    </div> 
-  <div id="form-button-section">
-    <button type="submit">
-      <p>Submit</p>
-    </button> 
-  </div>
+  <div class="quiz-submission">
+    <h2>Ready to submit?</h2>
+    <p>You answered {Object.values(selectedAnswers).filter(answerId => answerId !== null).length} of {questions.length} questions.<br>
+    You can go back and review your answers before submitting.</p>
+    <div class="questions-iter">
+      <div id="prev-question-btn">
+        <button type="submit" onclick = {currentQuestion--}>
+          <p>Previous</p>
+        </button> 
+      </div>
+      <div id="form-button-section">
+        <button type="submit">
+          <p>Submit</p>
+        </button> 
+      </div>
+    </div>
+  </div>  
   {/if}
   </form>
   {/if}
   {#if attempted}
   <h2>{quiz_name} - Results</h2>
-  <p> Score: {attempt_score} % | Next due date: {next_due}</p>
-  <p>Wrong answers:</p>
+  <p><strong> Score: {attempt_score}%</p>
+  <p>Next review: {new Date(next_due).toLocaleDateString()}</p>
+  <div class="questions-iter result-actions">
+  <div id="try-again-btn">
+    <button type="button" onclick={tryAgain}>
+      <p>Try again</p>
+    </button>
+  </div>
+
+  <div id="back-to-module-btn">
+    <button
+      type="button"
+      onclick={() => goto(`/home/${user_name}/modules/${moduleName}`)}
+    >
+      <p>Back to module</p>
+    </button>
+  </div>
+</div>
+  {#if Object.entries(wrongAnswers).length === 0}
+  <p>Great work — no mistakes to review.</p>
+{:else}
+  <p>Review your mistakes</p>
+
   {#each Object.entries(wrongAnswers) as ans}
-    <p>Question: {ans[0]}</p> 
-    <p>Selected Answer: {ans[1]}</p>
+    <div class="mistake-card">
+      <p><strong>Question:</strong> {ans[0]}</p>
+      <p><strong>Your answer:</strong> {ans[1]}</p>
+    </div>
   {/each}
+{/if}
   {/if}
   </main>
   <div id="sidebar1"></div>
