@@ -50,7 +50,7 @@
         grid-template-areas:
         'nav nav nav'
         'notice notice notice'
-        'sidebar1 main sidebar2';
+        'main main main';
         }
     nav {
         grid-area : nav;
@@ -69,7 +69,6 @@
       align-items: center;
       justify-content: center;
       background-color: #4190e01c;
-      padding: 1em;
       font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
       text-align: center;
 }
@@ -107,20 +106,19 @@
     }
     main {
         grid-area: main;
-        background-color: #f6f7fb;
-        display: flex;
+        background-color: white;
+        display: grid;
         height: 100vh; 
         vertical-align: baseline;
         justify-content: center;
         vertical-align: baseline;
-        //grid-template-columns: 1fr;
-        grid-template-rows: 0.5fr 0.5fr 2fr;
+        grid-template-columns: 1fr;
+        grid-template-rows: 0.5fr 2fr 2fr;
         row-gap: 20px;
         grid-template-areas:
         'hero-spacer'
         'hero'
-        'feature-grid'
-        ;
+        'feature-grid';
     }
     main h1 {
       font-family: 'Montserrat', sans-serif;
@@ -160,6 +158,7 @@
       //font: inherit;
       font-size: 2em;
       justify-content: center;
+      cursor:pointer;
     }
 
     main #hero button:hover {
@@ -178,13 +177,13 @@
     
     #feature-grid {
       grid-area: feature-grid;
-      background-color: #fdd19eff;
+      background-color: #f6f7fb;
       padding : 1.25em;
 
 
     }
     #feature-grid-inner {
-      background-color: #0c1642;
+      background-color: #f6f7fb;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
       grid-template-rows: 1fr;
@@ -212,7 +211,7 @@
     }
     #sidebar2 {
         grid-area : sidebar2;
-        background-color: #f6f7fb;
+        background-color:white;
     }
 
     main h1 {
@@ -271,23 +270,35 @@
     
     #feature-grid {
       grid-area: feature-grid;
-      background-color: #fdd19eff;
+      background-color: #f6f7fb
       padding : 1.25em;
 
 
     }
     #feature-grid-inner {
-      background-color: #0c1642;
+      background-color: #f6f7fb;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
       grid-template-rows: 1fr;
       grid-template-areas:
       'feat-col1 feat-col2 feat-col3 feat-col4';
       text-align: center;
-      color : white;
+      color : black;
       font-family: 'Montserrat', sans-serif;
       font-size: 1.5em;
       border-radius: 1em;
+      gap:1rem;
+    }
+
+    .feat-col {
+      border: 0.1rem solid black;
+      border-radius: 2rem;
+      background-color: white;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .feat-col img {
+      width: 50%;
     }
 
     #feature-grid #col1 {
@@ -354,10 +365,6 @@
     display: block;
     grid-area: feat-col1;
   }
-
-  img {
-    max-width: 40vh;
-  }
   
   #sidebar1{
     display: none;
@@ -376,25 +383,40 @@
   </div>
   </nav>
   <div id="notice" role="status" aria-live="polite">
-    <p><strong>Access Notice:</strong> Account registration is currently limited.
-    Please use the guest login to explore the platform.</p>
+    <p>Registration is limited for now but you can explore StudyQuiz as a guest.</p>
   </div>
   <main>
   <div id="hero-spacer">
   </div>
   <div id="hero">
-    <h1>Study smarter Learn faster No need to memorise</h1>
-    <p>Leverage AI to craft chapter-specific quizzes, enhance retention through spaced repetition, and ensure
-    progress with follow-up scheduling .</p>
+    <h1>Turn your study material into quizzes. Review at the right time.</h1>
+    <p>Create quizzes from your study material with AI, test your knowledge, and let StudyQuiz schedule your next review.</p>
     <div class="button-container">
-      <a href="/login" class="signup-button"><button>Login As a Guest</button></a>
-  </div>
+      <a href="/login" class="signup-button"><button>Try the demo</button></a>
+    </div>
+    <p>No sign-up required</p>
   <div id="feature-grid">
   <div id="feature-grid-inner">
-  <div id="col1"><h3>Spaced Repetition</h3><img src="spaced-repetition.png"></div>
-  <div id="col2"><h3>Shuffled Questions</h3><img src="shuffling.png"></div>
-  <div id="col3"><h3>Followup Schedule</h3><img src="followups-schedule.png"></div>
-  <div id="col4"><h3>Web & API</h3><img src="web-api.png"></div>
+    <div class="feat-col">
+      <h3>AI-generated quizzes</h3>
+      <p>Turn study material into quiz questions with AI support.</p>
+      <img src="spaced-repetition.png">
+    </div>
+    <div class="feat-col">
+      <h3>Manual quiz builder</h3>
+      <p>Create and edit your own quizzes when you want full control.</p>
+      <img src="shuffling.png">
+    </div>
+    <div class="feat-col">
+      <h3>Spaced repetition</h3>
+      <p>Review at the right time when StudyQuiz schedules it.</p>
+      <img src="followups-schedule.png">
+    </div>
+    <div class="feat-col">
+      <h3>Progress and mistakes</h3>
+      <p>Track scores, due reviews, and answers to revisit.</p>
+      <img src="web-api.png">
+    </div>
   </div>
   </div>
   
