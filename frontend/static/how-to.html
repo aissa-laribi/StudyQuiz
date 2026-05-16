@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>How to Generate Quizzes with ChatGPT | StudyQuiz</title>
-  <meta name="description" content="Step-by-step guide and exact JSON format for generating StudyQuiz quizzes with ChatGPT. Copy the prompt, see an example, and upload your quiz JSON." />
-  <meta property="og:title" content="How to Generate Quizzes with ChatGPT | StudyQuiz" />
-  <meta property="og:description" content="Copy the prompt, follow the rules, and produce valid StudyQuiz JSON. Includes example and schema link." />
+  <title>StudyQuiz Quiz Format for AI Tools</title>
+  <meta name="description" content="Generate StudyQuiz-compatible quizzes with AI tools. Copy the prompt, follow the JSON format, and upload quiz questions into StudyQuiz." />
+  <meta property="og:title" content="StudyQuiz Quiz Format for AI Tools" />
+  <meta property="og:description" content="Generate StudyQuiz-compatible quizzes with AI tools. Copy the prompt, follow the JSON format, and upload quiz questions into StudyQuiz." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://www.studyquiz.co/how-to.html" />
   <meta name="robots" content="index,follow" />
@@ -51,20 +51,19 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Generate Quizzes with ChatGPT</h1>
-      <p class="lede">Copy the prompt, paste your slides into ChatGPT, and get a <strong>ready-to-upload JSON</strong> for StudyQuiz. No extra formatting required.</p>
+      <h1>Generate StudyQuiz-compatible quizzes with AI</h1>
+      <p class="lede">Copy the prompt, upload or paste your study material into an AI tool, and get a <strong>ready-to-upload JSON</strong> for StudyQuiz.</p>
     </header>
 
     <section class="card">
       <h2>Quick Steps</h2>
-      <ol>
-        <li>Open ChatGPT and have your <strong>slides/notes</strong> ready.</li>
-        <li>Copy the prompt below and paste it into ChatGPT.</li>
-        <li>Paste your slides right after the prompt.</li>
-        <li>Ensure the reply is <strong>pure JSON</strong> (no markdown fences, no commentary).</li>
-        <li>Copy the JSON into StudyQuiz → <em>Import from ChatGPT</em> → <strong>Upload Quiz</strong>.</li>
-      </ol>
-      <p class="muted">Tip: If ChatGPT includes <code>```json</code> fences or text, delete everything except the JSON object.</p>
+        <ol>
+          <li>Open an AI tool such as ChatGPT, Gemini, Claude, or another tool that can generate JSON.</li>
+          <li>Copy the prompt below and paste it into the AI tool.</li>
+          <li>Upload your slides/notes, or paste your study material after the prompt.</li>
+          <li>Ensure the reply is <strong>pure JSON</strong> (no markdown fences, no commentary).</li>
+          <li>Copy the JSON into StudyQuiz → <em>Import Quiz</em> → <strong>Upload Quiz</strong>.</li>
+        </ol>
     </section>
 
     <section class="card">
@@ -73,40 +72,19 @@
         <button id="copyPrompt" type="button">Copy prompt</button>
       </div>
       <textarea id="prompt" readonly>
-You are generating a quiz JSON for StudyQuiz.co.
+Use the StudyQuiz quiz JSON format from https://www.studyquiz.co/how-to.html.
 
-INSTRUCTIONS (follow exactly):
-- Output VALID JSON only. Do NOT wrap in markdown/code fences. No explanations.
-- Create EXACTLY 20 questions.
-- Each question object has "name" (string) and "answers" (array of 5 objects).
-- In "answers": exactly ONE item has "correct": true; the other four have false.
-- Use plausible distractors (believable but wrong). Keep answers concise.
-- Escape quotes and special characters correctly.
-- Language: match my slides (default English).
-
-CONTEXT (paste your slides/notes below this line):
-<<<PASTE YOUR SLIDES OR BULLETS HERE>>>
-
-FORMAT EXAMPLE (structure only; replace content):
-{
-  "questions": [
-    {
-      "name": "What does CPU stand for?",
-      "answers": [
-        {"name": "Central Processing Unit", "correct": true},
-        {"name": "Computer Power Unit", "correct": false},
-        {"name": "Core Programming Utility", "correct": false},
-        {"name": "Central Performance Utility", "correct": false},
-        {"name": "Compute Processing Utility", "correct": false}
-      ]
-    }
-  ]
-}
-
-VALIDATE AGAINST SCHEMA: https://www.studyquiz.co/spec/quiz.schema.json
+Generate a quiz from the study material I provide.
+Return valid JSON only.
+Do not include markdown fences, explanations, or extra text.
+Create 10 questions by default, fewer if the material is short, and up to 15 if the material is dense.
+Each question must have exactly 5 answer choices and exactly 1 correct answer.
+Use plausible distractors that are believable but wrong.
+Keep answers concise.
+Use the same language as the study material unless I ask otherwise.
       </textarea>
-      <p class="muted">This prompt tells ChatGPT to output <em>only</em> JSON and to conform to the StudyQuiz format.</p>
-    </section>
+        <p class="muted">This prompt tells the AI tool to output <em>only</em> JSON and follow the StudyQuiz format.</p>
+      </section>
 
     <section class="card">
       <h2>Exact JSON Structure</h2>
@@ -129,47 +107,7 @@ VALIDATE AGAINST SCHEMA: https://www.studyquiz.co/spec/quiz.schema.json
       <p class="muted">Note: No markdown fences, no trailing commas, and booleans are lowercase (<code>true</code>/<code>false</code>).</p>
     </section>
 
-    <section class="card">
-      <h2>JSON Schema (for validators)</h2>
-      <p>Link: <a href="/spec/quiz.schema.json">/spec/quiz.schema.json</a> (serve this as a raw JSON file). If you don’t have it yet, here’s the minimal schema you can copy into that file:</p>
-      <pre>{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "StudyQuiz Quiz",
-  "type": "object",
-  "required": ["questions"],
-  "properties": {
-    "questions": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": ["name", "answers"],
-        "properties": {
-          "name": { "type": "string", "minLength": 1 },
-          "answers": {
-            "type": "array",
-            "minItems": 5,
-            "maxItems": 5,
-            "items": {
-              "type": "object",
-              "required": ["name", "correct"],
-              "properties": {
-                "name": { "type": "string", "minLength": 1 },
-                "correct": { "type": "boolean" }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      }
-    }
-  },
-  "additionalProperties": false
-}
-</pre>
-    </section>
-
+   
     <section class="card grid-2">
       <div>
         <h2>Common Issues & Quick Fixes</h2>
@@ -184,7 +122,7 @@ VALIDATE AGAINST SCHEMA: https://www.studyquiz.co/spec/quiz.schema.json
       <div>
         <h2>Upload to StudyQuiz</h2>
         <ol>
-          <li>In StudyQuiz, choose <em>Import from ChatGPT</em>.</li>
+          <li>In StudyQuiz, choose <em>Import Quiz</em>.</li>
           <li>Paste your JSON in the text area.</li>
           <li>Click <strong>Upload Quiz</strong>.</li>
         </ol>
@@ -193,7 +131,7 @@ VALIDATE AGAINST SCHEMA: https://www.studyquiz.co/spec/quiz.schema.json
     </section>
 
     <footer class="muted" style="margin-top: 18px;">
-      <p>Tip: For best bot compatibility, this page is served as static HTML so tools like ChatGPT and search engines can read it without JavaScript.</p>
+      <p>Tip: For best bot compatibility, this page is served as static HTML so AI tools, agents, and search engines can read it without JavaScript.</p>
     </footer>
   </div>
 
