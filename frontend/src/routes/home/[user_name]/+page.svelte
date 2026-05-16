@@ -561,10 +561,11 @@
     <div id="spacer">
     <section class="welcome-banner">
       <h1>Welcome to StudyQuiz</h1>
+      <p>Try the demo learning flow:</p>
       <ol class="welcome-steps">
-        <li>Choose a demo module below</li>
-        <li>Press Attempt to start a quiz</li>
-        <li>StudyQuiz will schedule your next review</li>
+        <li>Choose a sample module below</li>
+        <li>Take a quiz</li>
+        <li>See how StudyQuiz schedules your next review</li>
       </ol>
 </section>
     </div>
