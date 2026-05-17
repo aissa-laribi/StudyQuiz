@@ -495,6 +495,18 @@ onMount(() => {
   background-color: #e9e9e9;
 }
 
+.create-quiz-card {
+  border: 1px solid #ddd;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  background-color: #fafafa;
+}
+
+.create-quiz-card h2{
+  text-justify : center;
+}
+
 .mistake-card {
   border: 1px solid #ddd;
   border-radius: 0.75rem;
@@ -665,9 +677,8 @@ onMount(() => {
   </form>
   {/if}
   {#if attempted}
-  <h2>{quiz_name} - Results</h2>
   <p><strong> Score: {attempt_score}%</p>
-  <p>Next review: {new Date(next_due).toLocaleDateString()}</p>
+  <p><strong>Next review: {new Date(next_due).toLocaleDateString()}</strong></p>
   <div class="questions-iter result-actions">
   <div id="try-again-btn">
     <button type="button" onclick={tryAgain}>
@@ -683,6 +694,10 @@ onMount(() => {
       <p>Back to module</p>
     </button>
   </div>
+</div>
+<div class="create-quiz-card">
+    <h2>Want to create your own quiz with AI?</h2>
+    <p>Go back to this module, click + to create a new quiz, then import AI-generated questions.</p>
 </div>
   {#if Object.entries(wrongAnswers).length === 0}
   <p>Great work — no mistakes to review.</p>
