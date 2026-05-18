@@ -16,17 +16,52 @@
   let followups = [];
   let user_name = "";
   let module_id = 0;
+  let quizData = "";
   let moduleImgId = 0;
   const imageIndex = localStorage.getItem(`imgModuleIndex`);
   let answers = [{ name: "", correct: false }];
   const apiURL = import.meta.env.VITE_API_URL;
+  const shortPrompt =
+  "Generate a StudyQuiz-compatible quiz from my study material.";
 
+  const aiPrompt = `Generate a StudyQuiz-compatible quiz from my study material.
 
+  Return valid JSON only.
+  Do not include markdown fences, explanations, title, description, or extra text.
+
+  The JSON must use this exact structure:
+
+  {
+    "questions": [
+      {
+        "name": "Question text here",
+        "answers": [
+          {"name": "Answer 1", "correct": true},
+          {"name": "Answer 2", "correct": false},
+          {"name": "Answer 3", "correct": false},
+          {"name": "Answer 4", "correct": false},
+          {"name": "Answer 5", "correct": false}
+        ]
+      }
+    ]
+  }
+
+  Rules:
+  - Create 10 questions by default.
+  - Use fewer if the material is short, up to 15 if dense.
+  - Each question must use "name" and "answers".
+  - Each answer must use "name" and "correct".
+  - Each question must have exactly 5 answers.
+  - Exactly one answer per question must have "correct": true.
+  - Use plausible but wrong distractors.
+  - Keep answers concise.
+  - Use the same language as the study material.`;
+
+  let copied = false;
+  let showFullPrompt = false;
+  
   $: login = logged ? "Logged in" : "Login";
   
-
-  //console.log(window.location.href);
-
   function addAnswerField() {
   if (answers.length < 5) {
     answers = [...answers, { name: "", correct: false }];
@@ -115,14 +150,23 @@
     message = "Failed to fetch questions";
   }
 }
-
+  async function copyPrompt() {
+  try {
+    await navigator.clipboard.writeText(aiPrompt);
+    copied = true;
+    setTimeout(() => {
+      copied = false;
+    }, 1500);
+  } catch (err) {
+    console.error("Failed to copy prompt:", err);
+  }
+}
 
   onMount(() => {
     getUsername();
     loadQuestions();
   });
 
-  let quizData = '';
 
 async function quizFromJson() {
   try {
@@ -510,15 +554,74 @@ async function quizFromJson() {
       max-width: 100%;
       height: auto;
     }
-    
-    #sidebar1 {
-        grid-area : sidebar1;
-        background-color: #f6f7fb;
-    }
-    #sidebar2 {
-        grid-area : sidebar2;
-        background-color: #f6f7fb;
-    }
+
+.prompt-box {
+  position: relative;
+  background: #f4f4f4;
+  padding: 1rem;
+  border-radius: 0.4rem;
+  margin-top: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.prompt-box.compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prompt-box pre {
+  margin: 0;
+  background: transparent;
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.copy-prompt-btn {
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toggle-prompt-btn {
+  border: 0;
+  background: transparent;
+  color: rgb(18, 105, 192);
+  cursor: pointer;
+  padding: 0.3rem 0;
+  font-weight: 600;
+}
+
+.toggle-prompt-btn:hover {
+  text-decoration: underline;
+}
+
+#upload-quiz-btn {
+  padding: 0.9rem 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid #bbb;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+#upload-quiz-btn:hover{
+  background-color: #0f0f0f;
+  color: white;
+} 
+  
+  #sidebar1 {
+    grid-area : sidebar1;
+    background-color: #f6f7fb;
+  }
+  #sidebar2 {
+    grid-area : sidebar2;
+    background-color: #f6f7fb;
+  }
   @media (max-width: 500px) {
   .container{
     display: block;
@@ -627,6 +730,10 @@ async function quizFromJson() {
       <span class="tooltiptext">Add a New Question</span>
       </button>
       </h2>
+                  {#if questions.length == 0}
+          <p>No questions added yet.</p>
+          <p>Add questions manually using the + button, or import a full quiz with AI on the right.</p>
+      {/if}
       </div>
       <div id="modules-container">
       {#each questions as question}
@@ -640,45 +747,38 @@ async function quizFromJson() {
     <div id="followups-container">
       <div id="upcoming-quizzes">
         
-<h2>Import Quiz from ChatGPT</h2>
+<h2>Import Quiz </h2>
 <ol>
-  <li><strong>Get your slides ready</strong></li>
+  <li>
+  <strong>Copy and paste this prompt into the AI tool:</strong>
 
-  <li><strong>Copy and paste the following prompt<strong><br>
-  <pre class="pre1" style="background:#f4f4f4; padding:0.6em; border-radius:0.4em;">
-Generate 20 quiz questions from these slides in JSON format for studyquiz.co. 
-Each question must include 5 answer choices, 2 plausible distractors, and only 1 correct answer.
-    </pre>
-  </li>
+  <div class="prompt-box compact">
+    <pre>{shortPrompt}</pre>
 
-  <li><strong>Copy ChatGPT’s reply</strong>
-  </li>
+    <button type="button" class="copy-prompt-btn" onclick={copyPrompt}>
+      {copied ? "✓ Copied" : "Copy"}
+    </button>
+  </div>
 
-  <li><strong>Paste it below and click “Upload Quiz”</strong>
-  </li>
+  <button
+    type="button"
+    class="toggle-prompt-btn"
+    onclick={() => showFullPrompt = !showFullPrompt}
+  >
+    {showFullPrompt ? "Hide full prompt" : "Show full prompt"}
+  </button>
+
+  {#if showFullPrompt}
+    <div class="prompt-box full">
+      <pre>{aiPrompt}</pre>
+    </div>
+  {/if}
+</li>
+
+  <li>Upload your slides/notes, or paste your study material after the prompt.</li>
+  <li>Copy the JSON response.</li>
+  <li>Paste it below and click Upload Quiz.</li>
 </ol>
-
-<p style="font-size: 0.9em; color: #666;">
-Example of what the answer should look like:
-</p>
-
-<pre class="pre2" style="background:#f8f8f8; padding:0.75em; border-radius:0.5em; font-size: 0.9em;">
-{`
-  "questions": [
-    {
-      "name": "What does CPU stand for?",
-      "answers": [
-        {"name": "Central Processing Unit", "correct": true},
-        {"name": "Computer Power Unit", "correct": false},
-        {"name": "Core Programming Utility", "correct": false},
-        ...
-      ]
-    }
-  ]
-`}
-</pre>
-
-
 <textarea
   bind:value={quizData}
   rows="10"
@@ -686,10 +786,7 @@ Example of what the answer should look like:
   placeholder='Paste your JSON here...'
 ></textarea>
 
-<button
-  style="margin-top: 0.5em; background-color: green; color: white; padding: 0.5em 1em;"
-  onclick={quizFromJson}
->
+<button id="upload-quiz-btn" onclick={quizFromJson}>
   Upload Quiz
 </button>
 
