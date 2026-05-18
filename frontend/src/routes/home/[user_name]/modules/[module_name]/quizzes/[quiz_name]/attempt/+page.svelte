@@ -647,7 +647,7 @@ onMount(() => {
           </div> 
         {/if} 
         <div id="next-question-btn">
-          <button type="submit" onclick = {currentQuestion++}>
+          <button type="button" onclick = {currentQuestion++}>
             <p>Next</p>
           </button>   
         </div>
@@ -662,7 +662,7 @@ onMount(() => {
     You can go back and review your answers before submitting.</p>
     <div class="questions-iter">
       <div id="prev-question-btn">
-        <button type="submit" onclick = {currentQuestion--}>
+        <button type="button" onclick = {currentQuestion--}>
           <p>Previous</p>
         </button> 
       </div>
