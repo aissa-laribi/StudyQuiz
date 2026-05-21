@@ -725,7 +725,11 @@ function showToast(message) {
         <div class="module-box">
             <div class="header-quiz"><h3 class="quiz-title">{quiz.quiz_name}</h3></div>
             <div class="quiz-info">
-              <p>Last score: {quiz.last_score}% <br> Next review: {new Date(quiz.next_due).toLocaleDateString()}</p>
+              {#if new Date(quiz.next_due).toLocaleDateString().slice(6)!=1970}
+                <p>Last score: {quiz.last_score}% <br> Next review: {new Date(quiz.next_due).toLocaleDateString()}</p>
+              {:else}
+                <p>Last score: None <br> Next review: Not attempted yet</p>
+              {/if}
             </div>
             <div class="start-quiz">
               <button id="start-quiz-btn" onclick={() => goto(`/home/${user_name}/modules/${moduleName}/quizzes/${encodeURIComponent(quiz.quiz_name)}/attempt`)}>Start quiz</button>
