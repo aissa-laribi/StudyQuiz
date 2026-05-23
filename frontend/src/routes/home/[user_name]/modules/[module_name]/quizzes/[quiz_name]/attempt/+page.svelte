@@ -279,10 +279,11 @@ onMount(() => {
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 3fr;
-        grid-template-rows: 1fr 9fr;
-        gap: 2rem;
+        grid-template-rows: 0.1fr 1fr 9fr;
+        gap: 0 2rem;
         padding-bottom: 10vh;
         grid-template-areas:
+        'breadcrumbs breadcrumbs'
         'spacer spacer'
         'question-index question-page'
         ;
@@ -320,6 +321,34 @@ onMount(() => {
       color: black;
       border-bottom: 1px #b3b3b3ff solid;
       
+    }
+
+    #breadcrumbs {
+      grid-area: breadcrumbs;
+    }
+
+    #breadcrumbs a{
+      text-decoration: none;
+      color: #3174ec;
+      font-weight: 700;
+    }
+
+    #breadcrumbs ul{
+      padding: 0px 5px;
+      list-style: none;
+      
+    }
+
+    #breadcrumbs ul li {
+      display: inline;
+      font-size: 14pt;
+      
+    }
+
+    #breadcrumbs ul li+li:before {
+      padding: 8px;
+      color: #3174ec;
+      content: ">>>";
     }  
     
     #question-index{
@@ -593,14 +622,20 @@ onMount(() => {
   </div>
   </nav>
   <main>
+  <div id="breadcrumbs">
+      <ul>
+        <li><a href="/home/{user_name}">Home</a></li>
+        <li><a href="/home/{user_name}/modules/{module_name}">{module_name}</a></li>
+      <li>{quiz_name}</li>
+    </ul>
+  </div> 
   <div id="spacer">
     <h3>{moduleName} - {quiz_name}</h3>
   </div>
   <div id="question-index">
-  <p>Questions</p>
+    <p>Questions</p>
   <div id="question-index-content">
     {#each questions as question, i}
-
   <div
   class="question-check-box"
   class:answered={selectedAnswers[question.id]}
@@ -612,7 +647,6 @@ onMount(() => {
   {/each}
   </div>
   </div>
-  
   <div id="question-page">
   {#if !attempted}
   <form  onsubmit={registerAttempt}>

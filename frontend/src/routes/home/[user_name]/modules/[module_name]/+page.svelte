@@ -207,11 +207,12 @@ function showToast(message) {
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 2fr 1fr;
-        grid-template-rows: 2fr 9fr;
-        gap: 2rem;
+        grid-template-rows: 2fr 1fr 9fr;
+        gap: 0.5rem 2rem ;
         
         grid-template-areas:
         'spacer spacer'
+        'breadcrumbs breadcrumbs'
         'col-modules col-quizzes'
         ;
     }
@@ -266,7 +267,30 @@ function showToast(message) {
       //left: 12%;
       transform: translate(5%, -50%);
       z-index: 2;
-    }  
+    }
+
+    #breadcrumbs a{
+      text-decoration: none;
+      color: #3174ec;
+      font-weight: 700;
+    }
+
+    #breadcrumbs ul{
+      padding: 0px 5px;
+      list-style: none;  
+    }
+
+    #breadcrumbs ul li {
+      display: inline;
+      font-size: 18pt;
+      
+    }
+
+    #breadcrumbs ul li+li:before {
+      padding: 8px;
+      color: #3174ec;
+      content: ">>>";
+    }
     
     #col-modules{
       grid-area: col-modules;
@@ -284,32 +308,39 @@ function showToast(message) {
 
     #my-modules {
       border-bottom: 3px solid #eff0f3;
-      margin: 2em;
+      margin: 2em; 
+    
     }
-
     #my-modules button {
       border: 0px;
       background-color: white;
-    }
-    #my-modules button :hover{
-      color:rgb(18, 105, 192);
-      cursor: touch;
+      display: inline-flex;
+      align-items: center;
     }
 
     #my-modules button .tooltiptext{
-      visibility: hidden;
-      //width: 6em;
-      background-color: rgb(18, 105, 192);
-      color: #fff;
       text-align: center;
       border-radius: 0.25em;
-      padding: 5px 0;
-      position: absolute;
-      margin: 0 1em 1em 1em;
+      margin-left: 0.5rem
     }
 
-    #my-modules button:hover .tooltiptext{
-      visibility: visible;
+
+    #new-module-button {
+      cursor: pointer;
+      border-radius: 1rem;
+      padding: 0.5rem 0.5rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14pt;
+      font-weight: 500;
+    }
+    
+    
+    #new-module-button:hover {
+      background-color: rgb(18, 105, 192);
+      color: white;
+      cursor: pointer;
+      border-radius: 1rem;
+      padding: 0.5rem 0.5rem;
     }
     
     #module-name {
@@ -709,6 +740,12 @@ function showToast(message) {
     <div class="overlay"></div>
       <img src="/modules/{imageIndex}.jpg" alt="Module Banner">
       <h3>{moduleName}</h3>
+    </div>
+    <div id="breadcrumbs">
+      <ul>
+        <li><a href="/home/{user_name}">Home</a></li>
+        <li>{moduleName}</li>
+      </ul>
     </div>
     <div id="col-modules">
       <div id="my-modules">
