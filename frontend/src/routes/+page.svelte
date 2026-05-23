@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import{ goto } from '$app/navigation';
 
   let message = "";
   let users = [];
@@ -33,11 +34,6 @@
     getUsername();
   });
 
-  if(user_name.length > 0){
-    login= user_name;
-  } else {
-    login = "Login";
-  }
   //console.log("Message", user_name);
 </script>
 
@@ -94,15 +90,18 @@
     .menu-box a{
       text-decoration: none;
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 2em;
+      font-size: 2rem;
       color:rgb(18, 105, 192);
       margin-right:0.5em;
-      cursor: touch;
+      cursor: pointer;
+      border-radius: 2rem;
+      padding: 0.4rem 0.8rem;
       
     }
     
     .menu-box a:hover{
-      border-top: 0.1rem solid rgb(18, 105, 192);
+      background-color: rgb(20, 128, 236);
+      color:white;
     }
     main {
         grid-area: main;
@@ -379,7 +378,13 @@
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
   <div class="menu-box">
-      <a href="./login">{login}</a>
+      <a class="login-link" href="./login">
+      {#if user_name.length == 0}
+        Login
+      {:else}
+        {goto(`/home/${user_name}`)}
+      {/if}
+      </a>
   </div>
   </nav>
   <div id="notice" role="status" aria-live="polite">

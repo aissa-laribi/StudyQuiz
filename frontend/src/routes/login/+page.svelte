@@ -126,29 +126,14 @@
         ;
 
     }
-    .menu-box a{
-      text-decoration: none;
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 2em;
-      color:rgb(18, 105, 192);
-      margin-right:0.5em;
-      
-    }
-    
-    .menu-box a:hover{
-      border-top: 0.1rem solid rgb(18, 105, 192);
-    }
     main {
         grid-area: main;
         background-color: #f6f7fb;
         display: grid;
         height: 100%; 
-        //vertical-align: baseline;
-        //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 3fr;
         grid-template-rows: 1fr;
-        //row-gap: 20px;
         grid-template-areas:
         ' login-col1 login-col2'
         ;
@@ -225,6 +210,7 @@
     form button:hover{
       color:  rgb(0, 80, 160);
       background-color:white;
+      cursor: pointer;
       
     }
 
