@@ -206,18 +206,25 @@
     }
 
     .welcome-banner {
-  margin: 2rem auto;
-  padding: 0.75rem 1rem;
-  background: white;
-  border: 2px solid #0b66c3;
-  border-radius: 12px;
-  text-align: center;
-}
+      margin: 2rem auto;
+      padding: 0.75rem 1rem;
+      background: white;
+      border: 2px solid #0b66c3;
+      border-radius: 12px;
+      text-align: center;
+    }
 
 .welcome-banner h1 {
   margin: 0 0 0.4rem;
   font-size: 26pt;
   color: #0b66c3;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.welcome-banner h2 {
+  margin: 0 0 0.4rem;
+  font-size: 20pt;
   font-weight: 700;
   font-family: 'Montserrat', sans-serif;
 }
@@ -248,9 +255,27 @@
     #my-modules button {
       border: 0px;
       background-color: white;
+      display: inline-flex;
+      align-items: center;
     }
-    #my-modules button :hover{
-      color:rgb(18, 105, 192);
+
+    #new-module-button {
+      cursor: pointer;
+      border-radius: 1rem;
+      padding: 0.5rem 0.5rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14pt;
+      font-weight: 500;
+    }
+    
+    
+    #new-module-button:hover {
+      background-color: rgb(18, 105, 192);
+      color: white;
+      
+      cursor: pointer;
+      border-radius: 1rem;
+      padding: 0.5rem 0.5rem;
     }
 
     #my-modules h2 {
@@ -259,19 +284,13 @@
 
     }
     #my-modules button .tooltiptext{
-      visibility: hidden;
-      width: 6em;
-      background-color: rgb(18, 105, 192);
-      color: #fff;
       text-align: center;
       border-radius: 0.25em;
-      padding: 5px 0;
-      position: absolute;
-      margin: 0 1em 1em 1em;
+      margin-left: 0.5rem
     }
 
     #my-modules button:hover .tooltiptext{
-      visibility: visible;
+
     }
     
     #module-name {
@@ -345,6 +364,7 @@
     #form-button-section button:hover{
       background-color:green;
       padding: 1em;
+      cursor: pointer;
     }
 
 
@@ -561,7 +581,7 @@
     <div id="spacer">
     <section class="welcome-banner">
       <h1>Welcome to StudyQuiz</h1>
-      <p>Try the demo learning flow:</p>
+      <h2>Try the demo learning flow:</h2>
       <ol class="welcome-steps">
         <li>Choose a sample module below</li>
         <li>Take a quiz</li>

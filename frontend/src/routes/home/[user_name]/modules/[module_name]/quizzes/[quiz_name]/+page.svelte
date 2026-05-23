@@ -5,8 +5,6 @@
   import { get } from 'svelte/store';
 
   const { module_name, quiz_name } = get(page).params;
-  //console.log("Module:", module_name);
-  //console.log("Quiz in add question:", quiz_name);
   let message = "";
   let login = "Login";
   let logged = false;
@@ -275,11 +273,11 @@ async function quizFromJson() {
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 2fr;
-        grid-template-rows: 2fr 9fr;
-        gap: 2rem;
-        
+        grid-template-rows: 0.1fr 1fr 9fr;
+        gap: 0.2rem 2rem;  
         grid-template-areas:
         'spacer spacer'
+        'breadcrumbs breadcrumbs'
         'col-modules col-quizzes'
         ;
     }
@@ -334,6 +332,35 @@ async function quizFromJson() {
       //left: 12%;
       transform: translate(5%, -50%);
       z-index: 2;
+    }
+
+    #breadcrumbs {
+      grid-area: breadcrumbs;
+      margin-left: 1.5rem;
+    }
+
+    #breadcrumbs a{
+      text-decoration: none;
+      color: #3174ec;
+      font-weight: 700;
+    }
+
+    #breadcrumbs ul{
+      padding: 0px 5px;
+      list-style: none;
+      
+    }
+
+    #breadcrumbs ul li {
+      display: inline;
+      font-size: 18pt;
+      
+    }
+
+    #breadcrumbs ul li+li:before {
+      padding: 8px;
+      color: #3174ec;
+      content: ">>>";
     }  
     
     #col-modules{
@@ -348,30 +375,42 @@ async function quizFromJson() {
       margin: 2em; 
     
     }
+    #my-modules {
+      border-bottom: 3px solid #eff0f3;
+      margin: 2em; 
+    
+    }
     #my-modules button {
       border: 0px;
       background-color: white;
-    }
-    #my-modules button :hover{
-      color:rgb(18, 105, 192);
+      display: inline-flex;
+      align-items: center;
     }
 
     #my-modules button .tooltiptext{
-      visibility: hidden;
-      width: 6em;
-      background-color: rgb(18, 105, 192);
-      color: #fff;
       text-align: center;
       border-radius: 0.25em;
-      padding: 5px 0;
-      position: absolute;
-      margin: 0 1em 1em 1em;
+      margin-left: 0.5rem
     }
 
-    #my-modules button:hover .tooltiptext{
-      visibility: visible;
+
+    #new-module-button {
+      cursor: pointer;
+      border-radius: 1rem;
+      padding: 0.5rem 0.5rem;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13pt;
+      font-weight: 500;
     }
     
+    
+    #new-module-button:hover {
+      background-color: rgb(18, 105, 192);
+      color: white;
+      cursor: pointer;
+      border-radius: 1rem;
+    }
+
     #module-name {
       font-size: 2em;
     }
@@ -474,7 +513,6 @@ async function quizFromJson() {
       gap: 1em;
       max-width: 100%;
       height: auto;
-      border: 1px #d6d9dc solid;
     }
 
     #modules-container button{
@@ -716,12 +754,17 @@ async function quizFromJson() {
   </nav>
   <main>
     <div id="spacer">
-    
     <div class="overlay"></div>
       <img src="/modules/{imageIndex}.jpg" alt="Module Banner">
       <h3>{module_name} - {quiz_name}</h3>
     </div>
-    
+    <div id="breadcrumbs">
+      <ul>
+        <li><a href="/home/{user_name}">Home</a></li>
+        <li><a href="/home/{user_name}/modules/{module_name}">{module_name}</a></li>
+        <li>{quiz_name}</li>
+      </ul>
+    </div> 
     <div id="col-modules">
       <div id="my-modules">
       <h2>Questions
@@ -736,12 +779,12 @@ async function quizFromJson() {
       {/if}
       </div>
       <div id="modules-container">
-      {#each questions as question}
-        <div class="module-box">
+        {#each questions as question}
+          <div class="module-box">
             <p>{question.question_name}</p>
-        </div>
-      {/each}
-      </div> 
+          </div>
+        {/each}
+      </div>
     </div>
     <div id="col-quizzes">
     <div id="followups-container">
