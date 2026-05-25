@@ -173,16 +173,13 @@ async def get_quizzes(current_user: Annotated[User, Depends(get_current_active_u
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
-@router.get("/users/{user_id}/quizzes/new")
-async def get_quizzes_not_attempted(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
+@router.get("/users/me/quizzes/new")
+async def get_quizzes_not_attempted(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
+    user_id = current_user.id
 
-        result = await db.execute(select(Quiz).where(Quiz.user_id == user_id, Quiz.next_due == None))
-        quizzes = result.scalars().all()
-        return quizzes
-    else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
-
+    result = await db.execute(select(Quiz).where(Quiz.user_id == user_id, Quiz.next_due == None))
+    quizzes = result.scalars().all()
+    return quizzes
 """
 TODO:
     -Patch for user = me
