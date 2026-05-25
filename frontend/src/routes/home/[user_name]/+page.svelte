@@ -10,7 +10,13 @@
   let showModal = false;
   let modules = [];
   let followups = [];
+  let notAttempted = []
+  let user = Object;
   let user_name = "";
+  let user_id = 0;
+  let module_name = "";
+  let quiz_name = "";
+  
   const apiURL = import.meta.env.VITE_API_URL;
   const imgModuleIndex = writable(null);
   const moduleName = writable(null);
@@ -19,11 +25,10 @@
   function moduleHandler(index, name){
     localStorage.setItem(`imgModuleIndex`, index+1);
     localStorage.setItem(`moduleName`, name);
-    //console.log("MOdule name:", moduleName);
   }
 
   async function getUsername(){
-    const token = await localStorage.getItem("access_token");
+    const token = localStorage.getItem("access_token");
     if(!token) return;
 
     const userQuery = await fetch(`${apiURL}/users/me`, {
@@ -36,11 +41,14 @@
 
     if(userQuery.ok){
       const data = await userQuery.json();
+      user = data;
       user_name = data['user_name'];
+      user_id = data['id'];
     } else {
       message = "Failed to retrieve username";
     }
   }
+
   async function loadModulesAndFollowups() {
     const token = localStorage.getItem("access_token");
     if (!token) return;
@@ -70,15 +78,72 @@
     });
     if (folQuery.ok) {
       followups = await folQuery.json();
-      //console.log("FOLLOW:", followups);
     } else {
       message = "Failed to fetch quizzes";
+    }
+  }
+
+  async function getNotAttempted(){
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    // Load not attempted
+    const q = await fetch(`${apiURL}/users/me/quizzes/new`, {
+      method: 'GET',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+        }
+    });
+    if (q.ok) {
+      notAttempted = await q.json();
+    } else {
+      message = "Failed to fetch quizzes";
+    }
+  }
+
+  async function getModuleName(id){
+    const token = localStorage.getItem("access_token");
+    if (!token || !id || !user_id) return "Unknown module";
+    const q = await fetch(`${apiURL}/users/${user_id}/modules/${id}`, {
+      method: 'GET',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+        }
+    });
+
+    if (q.ok) {
+      const data = await q.json();
+      return data.module_name;
+    } else {
+        return "Unkown module";
+    }
+  }
+
+  async function getQuizname(module_id,id){
+    const token = localStorage.getItem("access_token");
+    if (!token || !module_id || !id || !user_id) return "Unknown quiz";
+    const q = await fetch(`${apiURL}/users/${user_id}/modules/${module_id}/quizzes/${id}`, {
+      method: 'GET',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+        }
+    });
+
+    if (q.ok) {
+      const data = await q.json();
+      return data.quiz_name;
+    } else {
+        return "Unkown quiz";
     }
   }
 
   onMount(() => {
     getUsername();
     loadModulesAndFollowups();
+    getNotAttempted();
   });
 
   async function registerModule(event) {
@@ -110,7 +175,6 @@
 <style>
     .container {
         display: grid;
-        min-height: 100vh;
         grid-template-columns: 1fr 10fr 1fr;
         grid-template-rows: 0.6fr 10fr;
         grid-template-areas:
@@ -174,17 +238,17 @@
         grid-area: main;
         background-color: #f6f7fb;
         display: grid;
-        height: 100vh; 
         //vertical-align: baseline;
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 2fr 1fr;
-        grid-template-rows: 1fr 9fr;
+        grid-template-rows: auto auto;
         gap: 2rem;
         grid-template-areas:
         'spacer spacer'
         'col-modules col-quizzes'
         ;
+        padding-bottom: 3rem;
     }
     main h1 {
       font-family: 'Montserrat', sans-serif;
@@ -250,8 +314,8 @@
     #my-modules {
       border-bottom: 3px solid #eff0f3;
       margin: 2em; 
-    
     }
+
     #my-modules button {
       border: 0px;
       background-color: white;
@@ -430,6 +494,8 @@
       border-radius: 1em;
       border-radius: 1em;
       height: fit-content;
+      display: grid;
+      gap: 3rem;
     }
     #col-quizzes h2{
       //font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
@@ -497,6 +563,34 @@
       font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-weight:600;
     }
+
+    #not-attempted-quizzes{
+      background-color: white;      
+    }
+    #not-attempted-quizzes h2{
+      text-align: left;
+      //margin: 0 2em 0em 2em;
+      //gap: 1em;
+      font-family: 'Montserrat', sans-serif;      
+      max-width: 100%;
+      font-size: 2rem;
+      height: 6vh;
+      background-color: white;
+      border-bottom: 3px solid #eff0f3;
+    }
+
+    #not-attempted-container{
+      background-color: white;
+      padding: 1em;
+      //display:flex;
+      //flex-wrap: wrap;
+      //margin: 2em 2em 2em 2em;
+      gap: 1em;
+      max-width: 100%;
+      height: auto;
+    }
+
+
 
     #sidebar1 {
         grid-area : sidebar1;
@@ -614,12 +708,9 @@
   </div>
 
   {#each followups.slice(0, 3) as followup}
-    <a
-      class="followup-box"
-      href={`/home/${user_name}/modules/${followup.module.module_name}/quizzes/${followup.quiz.quiz_name}/attempt`}
-    >
+    <a class="followup-box" href={`/home/${user_name}/modules/${followup.module.module_name}/quizzes/${followup.quiz.quiz_name}/attempt`}>
       <div class="quiz-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-clock-icon lucide-clipboard-clock"><path d="M16 14v2.2l1.6 1"/><path d="M16 4h2a2 2 0 0 1 2 2v.832"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"/><circle cx="16" cy="16" r="6"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-clock-icon lucide-clipboard-clock"><path d="M16 14v2.2l1.6 1"/><path d="M16 4h2a2 2 0 0 1 2 2v.832"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"/><circle cx="16" cy="16" r="6"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
       </div>
 
       <div class="quiz-details">
@@ -628,7 +719,56 @@
       </div>
     </a>
   {/each}
+  </div>
+  {#if notAttempted.length > 0}
+  <div id="not-attempted-container">
+  <div id="not-attempted-quizzes">
+    <h2>Not Attempted Quizzes</h2>
+  </div>
+  {#each notAttempted.slice(0, 3) as n}
+  {#await getModuleName(n.module_id)}
+    <div class="followup-box">
+      <p>Loading module...</p>
+    </div>
+  {:then moduleName}
+    {#await getQuizname(n.module_id, n.id)}
+      <div class="followup-box">
+        <p>{moduleName} — Loading quiz...</p>
+      </div>
+    {:then quizName}
+      <a
+        class="followup-box"
+        href={`/home/me/modules/${moduleName}/quizzes/${quizName}/attempt`}
+      >
+        <div class="quiz-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 14v2.2l1.6 1"/>
+            <path d="M16 4h2a2 2 0 0 1 2 2v.832"/>
+            <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"/>
+            <circle cx="16" cy="16" r="6"/>
+            <rect x="8" y="2" width="8" height="4" rx="1"/>
+          </svg>
+        </div>
+
+        <div class="quiz-details">
+          <p class="quiz-title">{moduleName} — {quizName}</p>
+        </div>
+      </a>
+    {:catch}
+      <div class="followup-box">
+        <p>{moduleName} — Unknown quiz</p>
+      </div>
+    {/await}
+  {:catch}
+    <div class="followup-box">
+      <p>Unknown module — Unknown quiz</p>
+    </div>
+  {/await}
+{/each}
+  </div>
+  {/if}
 </div>
+  
 
     {#if showModal}
       <Modal bind:showModal>
