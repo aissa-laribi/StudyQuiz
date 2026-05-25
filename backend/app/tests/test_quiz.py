@@ -580,7 +580,7 @@ async def test_get_quizzes_not_attempted(async_app_client):
     }
     response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data, headers=headers)
     assert response.status_code == 200
-    name = "Module 1"
+
     response = await async_app_client.get(f"/users/me/quizzes/new",headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 3
@@ -626,33 +626,6 @@ async def test_get_quizzes_not_attempted(async_app_client):
 
     #Now attempt quiz 1
     quiz_id = response.json()[0]['id']
-    quiz_data = {
-    "questions": [
-        {
-            "name": "Capital of Ireland?",
-            "answers": [
-                {"name": "Dublin", "correct": True},
-                {"name": "Bamako", "correct": False},
-            ],
-        },
-        {
-            "name": "Capital of UK?",
-            "answers": [
-                {"name": "London", "correct": True},
-                {"name": "Berlin", "correct": False},
-            ],
-        },
-        {
-            "name": "Capital of France?",
-            "answers": [
-                {"name": "Paris", "correct": True},
-                {"name": "Lyon", "correct": False},
-            ],
-        },
-    ]
-}
-    response = await async_app_client.patch(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", json=data, headers=headers)
-    assert response.status_code == 200
     data = {
     "questions": [
         {
