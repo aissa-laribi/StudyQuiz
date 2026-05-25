@@ -3,6 +3,7 @@ from app.models import User,Module, Quiz, Attempt, Followup
 from app.schemas import QuizCreate, BatchQuizCreate, BatchQuizDelete
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.routes.question import delete_all_questions
 from app.routes.user import router, get_current_active_user
@@ -79,25 +80,61 @@ async def create_quiz(current_user: Annotated[User, Depends(get_current_active_u
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
+@router.patch("/users/me/modules/{module_id}/quizzes/{quiz_id}")
+async def update_quiz_me(current_user: Annotated[User, Depends(get_current_active_user)], module_id: int, quiz_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
+    return await update_quiz(
+        current_user=current_user,
+        user_id=current_user.id,
+        module_id=module_id,
+        quiz_id=quiz_id,
+        new_data=new_data,
+        db=db
+    )
+
 @router.patch("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
-async def update_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
-        result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == module_id).where(Quiz.id == quiz_id))
-        quiz = result.scalars().first()
+async def update_quiz(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    user_id: int,
+    module_id: int,
+    quiz_id: int,
+    new_data: dict,
+    db: AsyncSession = Depends(get_db)
+):
+    if current_user.role != "root" and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
 
-        if not quiz:
-            raise HTTPException(status_code=404, detail="Quiz not found")
+    result = await db.execute(
+        select(Quiz)
+        .where(Quiz.user_id == user_id)
+        .where(Quiz.module_id == module_id)
+        .where(Quiz.id == quiz_id)
+    )
 
-        for key, value in new_data.items():
-            setattr(quiz, key, value)
+    quiz = result.scalars().first()
 
-        # Commit the changes
-        db.add(quiz)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+
+    quiz.quiz_name = new_data['quiz_name']
+
+    try:
         await db.commit()
         await db.refresh(quiz)
-        return quiz.id
-    else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="A quiz with this name already exists in this module"
+        )
+
+    return {
+        "id": quiz.id,
+        "quiz_name": quiz.quiz_name,
+        "module_id": quiz.module_id
+    }
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/batch-delete")
 async def delete_quizzes(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, db: AsyncSession = Depends(get_db)):
@@ -182,7 +219,6 @@ async def get_quizzes_not_attempted(current_user: Annotated[User, Depends(get_cu
     return quizzes
 """
 TODO:
-    -Patch for user = me
     -Create quiz = me Double check else keeps {user_id}
 """
 

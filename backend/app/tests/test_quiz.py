@@ -136,6 +136,65 @@ async def test_post_quiz(async_app_client):
     assert response.json()['id'] == quiz_id
     assert response.json()['module_id'] == module_id
     assert response.json()['quiz_name'] == "Quiz 1"
+@pytest.mark.anyio
+async def test_patch_quiz_me(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    response = await async_app_client.post(
+        "/users/token",
+        data=form_data,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    data = {
+
+        "name": "Module 1"
+    }
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    data = {
+
+        "name": "Module 1"
+    }
+
+    response = await async_app_client.get(f"/users/me", headers=headers)
+    user_id = response.json()['id']
+
+    response = await async_app_client.post(f"/users/{user_id}/modules/", json=data, headers=headers)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users/me/modules/", headers=headers)
+    assert response.status_code == 200
+    module_id = response.json()[0]['id']
+    assert response.json()[0]['module_name'] == 'Module 1'
+    data = {
+
+        "name": "Quiz 1"
+    }
+    response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/", json=data, headers=headers)
+    assert response.status_code == 200
+    quiz_id = response.json()
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", headers=headers)
+    assert response.status_code == 200
+    assert response.json()['id'] == quiz_id
+    assert response.json()['module_id'] == module_id
+    assert response.json()['quiz_name'] == "Quiz 1"
+    data = {
+        "quiz_name": "Quiz 2"
+    }
+    response = await async_app_client.patch(f"/users/me/modules/{module_id}/quizzes/{quiz_id}", json=data, headers=headers)
+    assert response.status_code == 200
+    response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", headers=headers)
+    #print(response.json())
+    assert response.status_code == 200
+    assert response.json()['id'] == quiz_id
+    assert response.json()['module_id'] == module_id
+    assert response.json()['quiz_name'] != "Quiz 1"
+    assert response.json()['quiz_name'] == "Quiz 2"
 
 
 @pytest.mark.anyio
@@ -521,7 +580,7 @@ async def test_get_quizzes_not_attempted(async_app_client):
     }
     response = await async_app_client.post(f"/users/{user_id}/modules/{module_id}/quizzes/batch-create/", json=data, headers=headers)
     assert response.status_code == 200
-    name = "Module 1"
+
     response = await async_app_client.get(f"/users/me/quizzes/new",headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 3
@@ -567,33 +626,6 @@ async def test_get_quizzes_not_attempted(async_app_client):
 
     #Now attempt quiz 1
     quiz_id = response.json()[0]['id']
-    quiz_data = {
-    "questions": [
-        {
-            "name": "Capital of Ireland?",
-            "answers": [
-                {"name": "Dublin", "correct": True},
-                {"name": "Bamako", "correct": False},
-            ],
-        },
-        {
-            "name": "Capital of UK?",
-            "answers": [
-                {"name": "London", "correct": True},
-                {"name": "Berlin", "correct": False},
-            ],
-        },
-        {
-            "name": "Capital of France?",
-            "answers": [
-                {"name": "Paris", "correct": True},
-                {"name": "Lyon", "correct": False},
-            ],
-        },
-    ]
-}
-    response = await async_app_client.patch(f"/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}", json=data, headers=headers)
-    assert response.status_code == 200
     data = {
     "questions": [
         {
