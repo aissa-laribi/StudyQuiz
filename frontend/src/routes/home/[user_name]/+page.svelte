@@ -16,6 +16,7 @@
   let user_id = 0;
   let module_name = "";
   let quiz_name = "";
+  let toggledProfile = false;
   
   const apiURL = import.meta.env.VITE_API_URL;
   const imgModuleIndex = writable(null);
@@ -25,6 +26,12 @@
   function moduleHandler(index, name){
     localStorage.setItem(`imgModuleIndex`, index+1);
     localStorage.setItem(`moduleName`, name);
+  }
+
+  function logout(){
+    localStorage.removeItem("token");
+    localStorage.removeItem("user_name")
+    window.location.href = "/";
   }
 
   async function getUsername(){
@@ -218,22 +225,62 @@
       
 
     }
-    .profile {
-      text-decoration: none;
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 2em;
-      color:rgb(18, 105, 192);
-      margin-right:0.5em; 
-      
-    }
+
     .menu-box a{
       cursor: touch;
     }
     .menu-box a:hover{
       border-top: 0.1rem solid rgb(18, 105, 192);
       color:rgb(18, 105, 192);
+    }
+
+    .user-menu {
+      gap: 0.01rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    .user-menu:hover{
+      background-color: #f6f7fb;
+    }
+
+    .user-menu button {
+      text-decoration: none;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 1.5em;
+      color:rgb(18, 105, 192);
+      margin-top: 1rem;
+      margin-right:2rem;
+      border: 0px;
+      cursor: pointer;
+      background-color: transparent;
+    }
+
+    .user-menu button:hover{
+      background-color: rgb(18, 105, 192);
+      color: white;
       
     }
+
+
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #f6f7fb;
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      box-sizing: border-box;
+    }
+
+    .dropdown button{
+      background-color: #f6f7fb;
+      font-size: 1em;
+      margin: 0;
+      color: rgb(18, 105, 192);
+    }
+
     main {
         grid-area: main;
         background-color: #f6f7fb;
@@ -667,8 +714,18 @@
 <section class="container">
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
-  <div class="menu-box">
-      <p class="profile">{user_name}</p>
+  <div class="menu-box" on:mouseenter={() => toggledProfile = true}
+  on:mouseleave={() => toggledProfile = false}>
+    <div class="user-menu">
+      <button>
+        {user_name} ▼
+      </button>
+    {#if toggledProfile}
+      <div class="dropdown">
+        <button on:click={logout}>Logout</button>
+      </div>
+    {/if}
+</div>
   </div>
   </nav>
   <main>
