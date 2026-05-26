@@ -256,7 +256,7 @@ async def test_patch_quiz(async_app_client):
     assert response.json()['quiz_name'] != "Quiz 1"
     assert response.json()['quiz_name'] == "Quiz 2"
 
-"""
+
 @pytest.mark.anyio
 async def test_delete_quiz(async_app_client):
     form_data = (
@@ -301,7 +301,7 @@ async def test_delete_quiz(async_app_client):
     response = await async_app_client.get(f"/users/{user_id}/modules/quizzes/{quiz_id}", headers=headers)
     assert response.status_code != 200
     assert(response.json()) == {'detail': 'Not Found'}
-"""
+
   
 @pytest.mark.anyio
 async def test_create_quizzes(async_app_client):
@@ -424,7 +424,6 @@ async def test_me_create_quizzes(async_app_client):
     assert response.json()[1]['quiz_name'] == "Quiz 2"
     assert response.json()[2]['quiz_name'] == "Quiz 3"
 
-
 @pytest.mark.anyio
 async def test_delete_quizzes(async_app_client):
     form_data = (
@@ -482,8 +481,7 @@ async def test_delete_quizzes(async_app_client):
     response = await async_app_client.get(f"/users/{user_id}/modules/{module_id}/quizzes/",headers=headers)
     assert response.status_code == 200
     assert len(response.json()) == 0
-    
-
+  
 @pytest.mark.anyio
 async def test_get_quizzes(async_app_client):
     form_data = (
