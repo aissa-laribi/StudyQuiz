@@ -29,8 +29,8 @@
   }
 
   function logout(){
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_name")
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_name");
     window.location.href = "/";
   }
 
@@ -151,6 +151,7 @@
     getUsername();
     loadModulesAndFollowups();
     getNotAttempted();
+    
   });
 
   async function registerModule(event) {
