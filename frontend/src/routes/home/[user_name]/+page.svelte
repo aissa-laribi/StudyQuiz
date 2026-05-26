@@ -31,8 +31,8 @@
   }
 
   function logout(){
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_name")
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_name");
     window.location.href = "/";
 =======
 >>>>>>> 6fc7a09 (Add Not Attempted Quizzes UI)
@@ -216,7 +216,7 @@
     getUsername();
     loadModulesAndFollowups();
     getNotAttempted();
-    getNotAttempted();
+    
   });
 
   async function registerModule(event) {
