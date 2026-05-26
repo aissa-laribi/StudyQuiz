@@ -170,7 +170,7 @@ async def delete_quiz(current_user: Annotated[User, Depends(get_current_active_u
         attempts = result_attempts.scalars().all()
         for attempt in attempts:
             await db.delete(attempt)
-        await delete_all_questions(user_id,module_id,quiz_id,db)
+        await delete_all_questions(current_user,user_id,module_id,quiz_id,db)
         await db.delete(quiz)
         await db.commit()
     
