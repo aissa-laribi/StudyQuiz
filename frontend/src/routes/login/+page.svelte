@@ -1,17 +1,15 @@
 <script>
-  
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+
   let message = "";
   let login = "Login";
   let logged = false;
   let loading = false;
-  let failed = false
+  let failed = false;
   
 
   const apiURL = import.meta.env.VITE_API_URL;
-
-  //Backend warmup
-  fetch(`${apiURL}/`).catch(() => {});
-
 
   $: if(logged === true){
     login="Logged in";
@@ -20,57 +18,65 @@
   }
   
   async function handleLogin(event) {
-  loading = true;
-  failed = false;
-  message = "";
+    event.preventDefault();
 
-  const formData = new FormData(event.target);
-  const username = formData.get('username');
-  const password = formData.get('password');
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+    loading = true;
+    failed = false;
+    message = "";
 
-  try {
-    const res = await fetch(`${apiURL}/users/token`, {
-      method: 'POST',
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        username,
-        password,
-        grant_type: "password",
-        client_id: "string",
-        client_secret: "string"
-      }),
-      signal: controller.signal
-    });
+    const formData = new FormData(event.target);
+    const username = formData.get('username');
+    const password = formData.get('password');
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
-    clearTimeout(timeoutId);
+    try {
+      const res = await fetch(`${apiURL}/users/token`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          username,
+          password,
+          grant_type: "password",
+          client_id: "string",
+          client_secret: "string"
+        }),
+        signal: controller.signal
+      });
 
-    if (!res.ok) {
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        failed = true;
+        message = "Login failed: Incorrect credentials";
+        logged = false;
+        return;
+      }
+
+      const token = await res.json();
+      localStorage.setItem("access_token", token.access_token);
+      
+      logged = true;
+      goto(`/home/${username}`);
+      
+
+    } catch (e) {
       failed = true;
-      message = "Login failed: Incorrect credentials";
-      logged = false;
-      return;
+      if (e.name === "AbortError") {
+        message = message = "Preparing your workspace. This may take a few seconds.";
+      } else {
+        message = "Network error. Please try again.";
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      loading = false;
     }
-
-    const token = await res.json();
-    localStorage.setItem("access_token", token.access_token);
-    logged = true;
-    window.location.href = `/home/${username}`;
-
-  } catch (e) {
-    failed = true;
-    if (err.name === "AbortError") {
-      message =
-        "The server is waking up (free hosting). " +
-        "Please wait a few seconds and try logging in again.";
-    } else {
-      message = "Network error. Please try again.";
-    }
-  } finally {
-    loading = false;
   }
-}
+
+  onMount(() => {
+    fetch(`${apiURL}/`).catch(() => {});
+  });
 
 </script>
 
