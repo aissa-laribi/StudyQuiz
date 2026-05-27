@@ -10,7 +10,7 @@
   const apiURL = import.meta.env.VITE_API_URL;
 
   //Backend warmup
-  fetch(`${apiURL}/health`).catch(() => {});
+  fetch(`${apiURL}/`).catch(() => {});
 
 
   $: if(logged === true){

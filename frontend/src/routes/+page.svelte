@@ -8,7 +8,7 @@
   let logged = false;
   let user_name = "";
   const apiURL = import.meta.env.VITE_API_URL;
-  fetch(`${apiURL}/health`).catch(() => {});
+  fetch(`${apiURL}/`).catch(() => {});
 
   async function getUsername(){
     const token = await localStorage.getItem("access_token");
