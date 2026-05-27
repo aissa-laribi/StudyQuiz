@@ -2,16 +2,11 @@
   import { onMount } from 'svelte';
   import{ goto } from '$app/navigation';
 
-  let message = "";
-  let users = [];
-  let login = "";
-  let logged = false;
   let user_name = "";
   const apiURL = import.meta.env.VITE_API_URL;
-  fetch(`${apiURL}/`).catch(() => {});
 
   async function getUsername(){
-    const token = await localStorage.getItem("access_token");
+    const token = localStorage.getItem("access_token");
     if(!token) return;
 
     const userQuery = await fetch(`${apiURL}/users/me`, {
@@ -25,16 +20,15 @@
     if(userQuery.ok){
       const data = await userQuery.json();
       user_name = data['user_name'];
+      goto(`/home/${user_name}`);
     } else {
-      message = "Failed to retrieve username";
+      localStorage.removeItem("access_token");
     }
   }
 
   onMount(async () => {
-    getUsername();
+    await getUsername();
   });
-
-  //console.log("Message", user_name);
 </script>
 
 <style>
