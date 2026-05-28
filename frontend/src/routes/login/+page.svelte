@@ -247,6 +247,7 @@
     height: 110px;
     margin: 1rem auto;
   }
+  
 @media (max-width: 500px) {
   .container{
     display: block;
