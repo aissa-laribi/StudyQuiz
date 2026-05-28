@@ -1,6 +1,10 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import lottie from "lottie-web";
+  import animationData from "$lib/login-waiting.json";
+
+  let animationContainer;
 
   let message = "";
   let login = "Login";
@@ -76,6 +80,15 @@
 
   onMount(() => {
     fetch(`${apiURL}/`).catch(() => {});
+    const animation = lottie.loadAnimation({
+      container: animationContainer,
+      renderer: "svg",
+      loop: true,
+      autoplay: true,
+      animationData
+    });
+
+    return () => animation.destroy();
   });
 
 </script>
@@ -228,6 +241,12 @@
     #new-account {
     display: none;
     }
+
+  .loading-animation {
+    width: 150px;
+    height: 110px;
+    margin: 1rem auto;
+  }
 @media (max-width: 500px) {
   .container{
     display: block;
@@ -309,11 +328,8 @@
       {loading ? "Waking server…" : "Log in"}
       </button>
       {#if loading}
-      <p style="font-size: 0.9rem; color: #555;">
-      The server is waking up (free hosting).  
-      The first request may take up to a minute.  
-      If it still doesn’t respond, refreshing the page once can help.
-      </p>
+      <div class="loading-animation" bind:this={animationContainer}></div>
+      <p>Preparing your workspace. This may take a few seconds.</p>
       {/if}
       {#if failed}
       <p style="color: red;">{message}</p>
