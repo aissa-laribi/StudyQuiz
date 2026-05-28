@@ -330,7 +330,7 @@
         <input name="username" type="input" placeholder="username">
 		    <input name="password" type="password" placeholder="password">
       <button disabled={loading}>
-      {loading ? "Waking server…" : "Log in"}
+      {loading ? "…" : "Log in"}
       </button>
       <div class:hide-loading={!loading}>
         <div class="loading-animation" bind:this={animationContainer}></div>
