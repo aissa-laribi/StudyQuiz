@@ -243,9 +243,13 @@
     }
 
   .loading-animation {
-    width: 150px;
-    height: 110px;
+    width: 220px;
+    height: 160px;
     margin: 1rem auto;
+  }
+
+  .hide-loading {
+    display: none;
   }
   
 @media (max-width: 500px) {
@@ -328,10 +332,10 @@
       <button disabled={loading}>
       {loading ? "Waking server…" : "Log in"}
       </button>
-      {#if loading}
-      <div class="loading-animation" bind:this={animationContainer}></div>
-      <p>Preparing your workspace. This may take a few seconds.</p>
-      {/if}
+      <div class:hide-loading={!loading}>
+        <div class="loading-animation" bind:this={animationContainer}></div>
+        <p>Preparing your workspace. This may take a few seconds.</p>
+      </div>
       {#if failed}
       <p style="color: red;">{message}</p>
       {/if}
