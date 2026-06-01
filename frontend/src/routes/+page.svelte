@@ -5,6 +5,12 @@
   let user_name = "";
   const apiURL = import.meta.env.VITE_API_URL;
 
+  async function turnOnAI(){
+    const query = await fetch(`${apiURL}/ai`, {
+      method: 'GET',
+    });
+  }
+
   async function getUsername(){
     const token = localStorage.getItem("access_token");
     if(!token) return;
@@ -27,6 +33,7 @@
   }
 
   onMount(async () => {
+    await turnOnAI();
     await getUsername();
   });
 </script>

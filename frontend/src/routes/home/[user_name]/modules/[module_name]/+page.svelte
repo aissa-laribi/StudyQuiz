@@ -12,6 +12,7 @@
   let quizzes = [];
   let followups = [];
   let user_name = "";
+  let user_id = 0;
   let module_id = 0;
   let moduleImgId = 0;
   let toastMessage = "";
@@ -39,23 +40,45 @@
 
     if(userQuery.ok){
       const data = await userQuery.json();
+      user_id = data['id'];
       user_name = data['user_name'];
     } else {
       message = "Failed to retrieve username";
     }
   }
+
   function goToPage(pageName){
-    const url = `/home/${user_name}/modules/${moduleName}/quizzes/${pageName}`;
+    const url = `/home/me/modules/${moduleName}/quizzes/${pageName}`;
     goto(url);
   }
 
-function showToast(message) {
-  toastMessage = message;
+  function showToast(message) {
+    toastMessage = message;
 
-  setTimeout(() => {
-    toastMessage = "";
-  }, 3000);
-}
+    setTimeout(() => {
+      toastMessage = "";
+    }, 3000);
+  }
+
+  async function deleteQuiz(module_id,quiz_id){
+    const token = await localStorage.getItem("access_token");
+    if(!token) return;
+  
+    const delQuery = await fetch(`${apiURL}/users/${user_id}/modules/${module_id}/quizzes/${quiz_id}`, {
+      method: 'DELETE',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if(delQuery.ok) {
+      message = "Quiz successfully deleted";
+      loadQuizzes();
+    } else {
+      message="Failed to delete the quiz";
+    }
+  }
 
   async function loadQuizzes() {
     const token = localStorage.getItem("access_token");
@@ -124,7 +147,7 @@ function showToast(message) {
       //console.log(quizName);
       //localStorage.set(`quizName`, newQuiz.quiz_name);
       //console.log("Before Goto",user_name);
-      goto(`/home/${user_name}/modules/${moduleName}/quizzes/${newQuiz.quiz_name}`);
+      goto(`/home/me/modules/${moduleName}/quizzes/${newQuiz.quiz_name}`);
       } else {
         message = "Module registration failed.";    
       }
@@ -772,7 +795,15 @@ function showToast(message) {
               <button id="start-quiz-btn" onclick={() => goto(`/home/${user_name}/modules/${moduleName}/quizzes/${encodeURIComponent(quiz.quiz_name)}/attempt`)}>Start quiz</button>
             </div>
             <div class="quiz-modifiers">
-            <button type="button" class="edit-quiz-btn" aria-label="Edit quiz" onclick={() => showToast("Editing is not available in guest mode.")}>
+            <button type="button" class="edit-quiz-btn" aria-label="Edit quiz" 
+            onclick={() => {if (user_name === "Guest" || user_name === "Undefined") {
+                              showToast("Editing is not available in guest mode.");
+                            } else {
+                              goToPage(quiz.quiz_name+`?from=edit-quiz`);
+                            }
+                          }
+                        }
+                      >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -786,14 +817,21 @@ function showToast(message) {
                 class="edit-icon">
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
+              </svg>     
               {#if toastMessage}
                 <div class="toast">
                 {toastMessage}
                 </div>
               {/if}
             </button>
-            <button type="button" class="delete-quiz-btn" aria-label="Delete quiz" onclick={() => showToast("Deleting is not available in guest mode.")}>
+            <button type="button" class="delete-quiz-btn" aria-label="Delete quiz" onclick={() => 
+            {if (user_name === "Guest" || user_name === "Undefined") {
+                              showToast("Deleting is not available in guest mode.");
+                            } else {
+                              deleteQuiz(quiz.module_id, quiz.id);
+                            }
+                          }
+            }>
               <svg
   class="delete-icon"
   xmlns="http://www.w3.org/2000/svg"
