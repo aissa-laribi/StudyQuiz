@@ -100,7 +100,7 @@ async def update_quiz(
     new_data: dict,
     db: AsyncSession = Depends(get_db)
 ):
-    if current_user.role != "root" and current_user.id != user_id:
+    if current_user.role != "root" and current_user.id != user_id or current_user.role == "guest":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
@@ -138,7 +138,7 @@ async def update_quiz(
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/batch-delete")
 async def delete_quizzes(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
+    if current_user.role == "root" or current_user.id == user_id and current_user.role != "guest":
         deleted_ids = []
         result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == module_id))
         quizzes = result.scalars().all()
@@ -156,7 +156,7 @@ async def delete_quizzes(current_user: Annotated[User, Depends(get_current_activ
 
 @router.delete("/users/{user_id}/modules/{module_id}/quizzes/{quiz_id}")
 async def delete_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz_id: int, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
+    if current_user.role == "root" or current_user.id == user_id and current_user.role != "guest":
         result = await db.execute(select(Quiz).where(Quiz.user_id == user_id).where(Quiz.module_id == module_id).where(Quiz.id == quiz_id))
         quiz = result.scalars().first()
 
