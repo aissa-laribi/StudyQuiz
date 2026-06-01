@@ -141,8 +141,6 @@ async function registerAttempt(event) {
     attempt_score = result.score;
     console.log("Score:", result.score);
     next_due = result.next_due;
-    //console.log("Next Due:", result.next_due);
-    //console.log("Wrong Answers:", result.wrong_answers);
     wrongAnswers = result.wrong_answers;
   } else {
     message = "Attempt submission failed.";

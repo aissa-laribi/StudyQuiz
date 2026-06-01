@@ -8,17 +8,26 @@
   let message = "";
   let login = "Login";
   let logged = false;
+  let questionOpen = false;
+  let questionNameOpen = "";
+  let questionEdited = "";
+  let answerEdited = "";
+  let editing = false;
+  let correctAnswer = false;
   let newQuestionName = "";
   let showModal = false;
   let questions = [];
   let followups = [];
   let user_name = "";
+  let answersByQuestionId = {};
   let module_id = 0;
   let quizData = "";
   let moduleImgId = 0;
   const imageIndex = localStorage.getItem(`imgModuleIndex`);
   let answers = [{ name: "", correct: false }];
   const apiURL = import.meta.env.VITE_API_URL;
+  const from = get(page).url.searchParams.get("from");
+
   const shortPrompt =
   "Generate a StudyQuiz-compatible quiz from my study material.";
 
@@ -169,7 +178,6 @@
 async function quizFromJson() {
   try {
     const parsed = JSON.parse(quizData);
-    //console.log(parsed);
     const token = localStorage.getItem("access_token");
     if (!token) return;
     const res = await fetch(`${apiURL}/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/batch-create`, {
@@ -194,6 +202,122 @@ async function quizFromJson() {
     console.error("Invalid JSON", err);
   }
 }
+
+  
+async function loadAnswers(question) {
+  const token = localStorage.getItem("access_token");
+  if (!token) return;
+
+  const ansQuery = await fetch(
+    `${apiURL}/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/${question.id}/answers`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  if (ansQuery.ok) {
+    const answers = await ansQuery.json();
+
+    answersByQuestionId = {
+      ...answersByQuestionId,
+      [question.id]: answers
+    };
+  } else {
+    console.error("Failed to fetch answers for", question.id);
+  }
+}
+async function loadQuestionsAndAnswers() {
+  //await getUsername();
+  await loadQuestions(); // loads `questions` array
+  for (const q of questions) {
+    await loadAnswers(q);
+  }
+}
+
+async function deleteQuestion(user_id, module_id,quiz_id,question_id){
+  const token = localStorage.getItem("access_token");
+  if (!token) return;
+
+
+  const delQuery = await fetch(
+    `${apiURL}/users/${user_id}/modules/${module_id}/quizzes/${quiz_id}/questions/${question_id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  if(!delQuery.ok) console.log("Failed to delete", question_id);
+  loadQuestionsAndAnswers();
+}
+
+async function updateQuestion(user_id, module_id,quiz_id,question_id){
+  const newQuestion = document.getElementById('updated-question').value;
+  const token = localStorage.getItem("access_token");
+  if (!token) return;
+
+  const editQuery = await fetch(
+    `${apiURL}/users/${user_id}/modules/${module_id}/quizzes/${quiz_id}/questions/${question_id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "question_name": newQuestion,
+      })
+    }
+  );
+
+  if(!editQuery.ok) console.log("Failed to update QUESTION ", question_id);
+  loadQuestionsAndAnswers();
+  editing = false;
+  questionEdited = "";
+
+}
+
+async function isCorrect(){
+  correctAnswer = true;
+}
+
+async function updateAnswer(user_id, module_id, quiz_id, question_id,answer_id,correct_answer){
+  const newAnswer = document.getElementById('updated-answer').value;
+  console.log(newAnswer);
+  const token = localStorage.getItem("access_token");
+  if (!token) return;
+
+  const editQuery = await fetch(
+    `${apiURL}/users/${user_id}/modules/${module_id}/quizzes/${quiz_id}/questions/${question_id}/answers/${answer_id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "answer_name": newAnswer,
+        "answer_correct": correctAnswer,
+      })
+    }
+  );
+
+  if(!editQuery.ok) console.log("Failed to update QUESTION ", question_id);
+  loadQuestionsAndAnswers();
+  editing = false;
+  answerEdited = "";
+  correctAnswer = false;
+}
+
+onMount(async () => {
+    await loadQuestionsAndAnswers();
+  });
 
 </script>
 
@@ -278,8 +402,8 @@ async function quizFromJson() {
         grid-template-areas:
         'spacer spacer'
         'breadcrumbs breadcrumbs'
+        'edit-questions edit-questions'
         'col-modules col-quizzes'
-        ;
     }
     main h1 {
       font-family: 'Montserrat', sans-serif;
@@ -651,6 +775,86 @@ async function quizFromJson() {
   background-color: #0f0f0f;
   color: white;
 } 
+
+  .edit-questions {
+    grid-area: edit-questions;
+    width: fit-content;
+    display:grid;
+  }
+
+
+  #questions-table td button{
+    border: 1px black solid;
+    width:100%;
+    height: 5rem;
+    text-align: left;
+    font-size: 16pt;
+    background-color: #f3f3f3;
+    border-radius: 0.3rem;
+    
+  }
+
+  .question-button{
+    display:grid;
+    grid-template-areas: 'question-button-description question-button-triangle';
+    grid-template-columns: 99fr 1fr;
+  }
+
+  #questions-table td button:hover{
+    cursor:pointer;
+    color:white;
+    background-color:black;
+  }
+  .question-button-description{
+    grid-area : question-button-description;
+    text-align: left;
+  }
+  .question-button-triangle{
+    grid-area : question-button-triangle;
+  }
+
+  .action-button {
+    padding: 0.9rem 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid #bbb;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+  .action-button:hover{
+    background-color: #0f0f0f;
+    color: white;
+  }
+
+  .editing-form{
+    display:grid;
+    grid-template-columns: 99fr 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .editing-form textarea{
+    border-radius: 0.4rem;
+  }
+
+  .table-answers{
+  }
+
+  .table-answers tr{
+    
+  }
+
+
+  .table-answers th {
+    width:100%;
+    font-size: 18pt;
+  }
+
+  .table-answers td {
+    border: 1px black solid;
+    font-size: 16pt;
+    text-align: center;
+    align-content: center;
+  }
   
   #sidebar1 {
     grid-area : sidebar1;
@@ -765,6 +969,7 @@ async function quizFromJson() {
         <li>{quiz_name}</li>
       </ul>
     </div> 
+    {#if from != "edit-quiz"}
     <div id="col-modules">
       <div id="my-modules">
       <h2>Questions
@@ -773,69 +978,160 @@ async function quizFromJson() {
       <span class="tooltiptext">Add a New Question</span>
       </button>
       </h2>
-                  {#if questions.length == 0}
+        {#if questions.length == 0}
           <p>No questions added yet.</p>
           <p>Add questions manually using the + button, or import a full quiz with AI on the right.</p>
-      {/if}
+        {/if}
       </div>
-      <div id="modules-container">
-        {#each questions as question}
-          <div class="module-box">
-            <p>{question.question_name}</p>
-          </div>
-        {/each}
-      </div>
-    </div>
-    <div id="col-quizzes">
-    <div id="followups-container">
-      <div id="upcoming-quizzes">
-        
-<h2>Import Quiz </h2>
-<ol>
-  <li>
-  <strong>Copy and paste this prompt into the AI tool:</strong>
-
-  <div class="prompt-box compact">
-    <pre>{shortPrompt}</pre>
-
-    <button type="button" class="copy-prompt-btn" onclick={copyPrompt}>
-      {copied ? "✓ Copied" : "Copy"}
-    </button>
-  </div>
-
-  <button
-    type="button"
-    class="toggle-prompt-btn"
-    onclick={() => showFullPrompt = !showFullPrompt}
-  >
-    {showFullPrompt ? "Hide full prompt" : "Show full prompt"}
-  </button>
-
-  {#if showFullPrompt}
-    <div class="prompt-box full">
-      <pre>{aiPrompt}</pre>
-    </div>
-  {/if}
-</li>
-
-  <li>Upload your slides/notes, or paste your study material after the prompt.</li>
-  <li>Copy the JSON response.</li>
-  <li>Paste it below and click Upload Quiz.</li>
-</ol>
-<textarea
-  bind:value={quizData}
-  rows="10"
-  style="width: 100%; margin-top: 1em; font-family: monospace;"
-  placeholder='Paste your JSON here...'
-></textarea>
-
-<button id="upload-quiz-btn" onclick={quizFromJson}>
-  Upload Quiz
-</button>
-
+        <div id="modules-container">
+          {#each questions as question}
+            <div class="module-box">
+              <p>{question.question_name}</p>
+            </div>
+          {/each}
         </div>
       </div>
+      <div id="col-quizzes">
+        <div id="followups-container">
+        <div id="upcoming-quizzes">
+        
+        <h2>Import Quiz </h2>
+        <ol>
+        <li>
+        <strong>Copy and paste this prompt into the AI tool:</strong>
+
+        <div class="prompt-box compact">
+        <pre>{shortPrompt}</pre>
+
+        <button type="button" class="copy-prompt-btn" onclick={copyPrompt}>
+        {copied ? "✓ Copied" : "Copy"}
+        </button>
+        </div>
+
+        <button type="button" class="toggle-prompt-btn" onclick={() => showFullPrompt = !showFullPrompt}>
+          {showFullPrompt ? "Hide full prompt" : "Show full prompt"}
+        </button>
+
+        {#if showFullPrompt}
+        <div class="prompt-box full">
+          <pre>{aiPrompt}</pre>
+        </div>
+        {/if}
+        </li>
+
+        <li>Upload your slides/notes, or paste your study material after the prompt.</li>
+        <li>Copy the JSON response.</li>
+        <li>Paste it below and click Upload Quiz.</li>
+        </ol>
+        <textarea bind:value={quizData} rows="10" style="width: 100%; margin-top: 1em; font-family: monospace;"placeholder='Paste your JSON here...'></textarea>
+
+        <button id="upload-quiz-btn" onclick={quizFromJson}>Upload Quiz</button>
+
+      </div>
     </div>
+  </div>
+  {/if}
+  {#if from == "edit-quiz"}
+  <div class="edit-questions">
+    <table id="questions-table">
+      <thead>
+      </thead>
+      <tbody>
+        {#each questions as question}
+        <tr>
+          {#if !editing && !answerEdited}
+          <td><button onclick={() => {questionOpen = !questionOpen; questionOpen ? questionNameOpen = question.question_name : questionNameOpen = "";}}>
+            <div class="question-button">
+              <p class ="question-button-description">{question.question_name}</p> 
+              <p class ="question-button-triangle">{questionOpen && questionNameOpen == question.question_name ? "▲" : "▼"}</p> 
+            </div>
+            </button>
+          </td>
+          {/if}
+          {#if editing && question.question_name == questionEdited && !questionOpen}
+          <div class="editing-section">
+            <form class="editing-form" method="patch">
+            <textarea id="updated-question">{question.question_name}</textarea>
+            <button class="action-button" onclick={() => updateQuestion(question.user_id, question.module_id, question.quiz_id, question.id)}>Update</button>
+            <button class="action-button" onclick={() => {editing = false; questionEdited = "";}}>Cancel</button>
+            </form>
+          </div>
+          {/if}
+          {#if !editing && !questionOpen}
+          <th></th>
+          <th><button class="action-button" onclick={() => { editing = true; questionEdited = question.question_name;}}>
+          Edit Question
+          </button></th>
+          <th><button class="action-button" onclick={() => deleteQuestion(question.user_id, question.module_id, question.quiz_id, question.id)}>Delete Question</button></th>
+          {/if}
+        </tr>
+        <div class="table-answers">
+        {#if questionOpen == true && questionNameOpen == question.question_name} 
+        {#if !editing}
+        <tr>
+          {#if !answerEdited}
+            <th>Answer</th>
+            <th>Correct Answer</th>
+            <th></th>
+            <th></th>
+          {/if}
+        </tr>
+        {#each answersByQuestionId[question.id] as ans}
+        {#if answerEdited.length == 0}
+          <tr>
+          <td>{ans.answer_name}</td>
+          <td>{#if ans.answer_correct == true}✔{/if}</td>
+          <td><button class="action-button" onclick={() => answerEdited = ans.answer_name}> 
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="edit-icon">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg></button></td>
+          </tr>
+          {:else if ans.answer_name == answerEdited}
+          {#if answerEdited}
+            <th>{questionNameOpen}</th>
+            {#if ans.answer_correct == true}
+            <th>Correct Answer</th>
+            {:else}
+            <th>Incorrect Answer</th>
+            {/if}
+          {/if}
+            <div class="editing-section">
+              <form class="editing-form" method="patch">
+                <textarea id="updated-answer">{ans.answer_name}</textarea>
+                <button class="action-button" onclick={() => updateAnswer(question.user_id, question.module_id, question.quiz_id, question.id,ans.id,ans.correct_answer)}>Update</button>
+                <button class="action-button" onclick={() => {{editing = false; answerEdited = ""; correctAnswer = false;}}}>Cancel</button>
+            </form>
+          </div>
+          {/if}
+          {/each}
+          {/if}
+          {#if editing}
+          <div class="editing-section">
+            <form class="editing-form" method="patch">
+            <textarea id="updated-answer">{ans.answer}</textarea>
+            <button class="action-button" onclick={() => updateQuestion(question.user_id, question.module_id, question.quiz_id, question.id)}>Update</button>
+            <button class="action-button" onclick={() => {editing = true; questionEdited = "";}}>Cancel</button>
+            </form>
+          </div>
+          {/if}
+        {/if}
+        </div>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+  {/if}
     {#if showModal}
       <Modal bind:showModal>
   <form onsubmit={registerQuestion}>
