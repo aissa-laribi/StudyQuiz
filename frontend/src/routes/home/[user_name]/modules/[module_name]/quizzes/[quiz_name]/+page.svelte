@@ -23,10 +23,20 @@
   let module_id = 0;
   let quizData = "";
   let moduleImgId = 0;
-  const imageIndex = localStorage.getItem(`imgModuleIndex`);
+  let imageIndex;
   let answers = [{ name: "", correct: false }];
   const apiURL = import.meta.env.VITE_API_URL;
   const from = get(page).url.searchParams.get("from");
+  
+  if (typeof localStorage !== 'undefined') {
+    imageIndex = localStorage.getItem(`imgModuleIndex`);
+} else if (typeof sessionStorage !== 'undefined') {
+  // Fallback to sessionStorage if localStorage is not supported
+    imageIndex = sessionStorage.getItem(`imgModuleIndex`);
+} else {
+  // If neither localStorage nor sessionStorage is supported
+    console.log('Web Storage is not supported in this environment.');
+}
 
   const shortPrompt =
   "Generate a StudyQuiz-compatible quiz from my study material.";
