@@ -16,10 +16,22 @@
   let module_id = 0;
   let moduleImgId = 0;
   let toastMessage = "";
-  const imageIndex = localStorage.getItem(`imgModuleIndex`);
-  const moduleName = localStorage.getItem(`moduleName`);
+  let imageIndex;
+  let moduleName;
   const quizName = writable(null);
   const apiURL = import.meta.env.VITE_API_URL;
+
+  if (typeof localStorage !== 'undefined') {
+    imageIndex = localStorage.getItem(`imgModuleIndex`);
+    moduleName = localStorage.getItem(`moduleName`);
+  } else if (typeof sessionStorage !== 'undefined') {
+  // Fallback to sessionStorage if localStorage is not supported
+    imageIndex = sessionStorage.getItem(`imgModuleIndex`);
+    moduleName = sessionStorage.getItem(`moduleName`);
+  } else {
+  // If neither localStorage nor sessionStorage is supported
+    console.log('Web Storage is not supported in this environment.');
+  }
 
 
   $: login = logged ? "Logged in" : "Login";
