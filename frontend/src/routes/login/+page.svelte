@@ -49,7 +49,7 @@
         signal: controller.signal
       });
 
-      clearTimeout(timeoutId);
+      if(res.ok) clearTimeout(timeoutId);
 
       if (!res.ok) {
         failed = true;
