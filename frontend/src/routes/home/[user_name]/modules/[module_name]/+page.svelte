@@ -159,7 +159,7 @@
       //console.log(quizName);
       //localStorage.set(`quizName`, newQuiz.quiz_name);
       //console.log("Before Goto",user_name);
-      goto(`/home/me/modules/${moduleName}/quizzes/${newQuiz.quiz_name}`);
+      goto(`/home/me/modules/${moduleName}/quizzes/new/${newQuiz.quiz_name}`);
       } else {
         message = "Module registration failed.";    
       }
@@ -811,7 +811,7 @@
             onclick={() => {if (user_name === "Guest" || user_name === "Undefined") {
                               showToast("Editing is not available in guest mode.");
                             } else {
-                              goToPage(quiz.quiz_name+`?from=edit-quiz`);
+                              goToPage(`edit/`+quiz.quiz_name);
                             }
                           }
                         }
