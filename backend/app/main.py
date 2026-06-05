@@ -1,7 +1,5 @@
 from fastapi import FastAPI
-import requests
 from app.routes import user, module, quiz, question, answer, followup, attempt,ai
-import sys
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
