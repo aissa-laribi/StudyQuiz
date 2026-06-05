@@ -4,6 +4,8 @@
 **StudyQuiz** is a web app that turns AI-assisted quizzes generated from study materials such as lecture slides into a **structured learning system**.  
 It uses **spaced repetition** and **progress tracking**, which LLMs alone can’t offer, to help students retain information long-term instead of just cramming and forgetting.  
 
+🌐 Live version: https://studyquiz.co
+
 ---
 
 ## Features
@@ -13,9 +15,9 @@ It uses **spaced repetition** and **progress tracking**, which LLMs alone can’
 - **Spaced Repetition**: Schedule follow-ups based on performance.
 - **API-First**: Backend built as a clean, reusable API.
 - **Web-Based Interface**: Accessible on desktop and mobile.
-- **AI-Assisted Quiz Import**: Import structured quizzes generated from study materials.
+- **AI-assisted quiz import workflow**: Import structured quizzes generated from study materials.
 
-## Planned Enhancements:
+## Planned Enhancements
 - Integrated AI inference for quiz generation 
 
 ---
@@ -33,7 +35,7 @@ It uses **spaced repetition** and **progress tracking**, which LLMs alone can’
 - ✅ CLI interaction via FastAPI
 - ✅ Frontend development
 - ✅ Hosted version
-- ✅ AI-assisted quiz generation workflow
+- ✅ AI-assisted quiz import workflow
 - ✅ Integration test workflow
 - ⏳ Integrated AI inference for quiz generation
 ---
@@ -77,12 +79,30 @@ It uses **spaced repetition** and **progress tracking**, which LLMs alone can’
     npm run dev
 ```
 
-### License
-This project is licensed under the **Mozilla Public License 2.0**. Certain features (e.g., AI-powered tools) may be proprietary in the future.
+## License
 
+The code in this repository is licensed under the **Mozilla Public License 2.0 (MPL-2.0)** unless stated otherwise.
 
+StudyQuiz may include or integrate with separate commercial, hosted, AI-powered, billing, infrastructure, or deployment features in the future. These features are not automatically included in the MPL-licensed codebase unless they are explicitly added to this repository under the MPL-2.0 license.
 
+See the `LICENSE` file for details.
 
+---
 
+## Contributing
 
+StudyQuiz welcomes selected open-source contributions within clearly defined boundaries.
 
+Not every open issue is available for external contribution. Issues that are open to contributors will be labelled with one of the following:
+
+- `open-to-contributors`
+- `good first issue`
+- `help wanted`
+
+If an issue does not have one of these labels, please assume it is not currently open for contributors.
+
+Please comment on an issue before starting work so that the scope can be confirmed.
+
+Contributors whose pull requests are accepted and merged may be acknowledged in the project contributors list.
+
+For detailed contribution rules, see `CONTRIBUTING.md`.
