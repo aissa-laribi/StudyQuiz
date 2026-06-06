@@ -8,7 +8,7 @@ import tempfile
 
 
 
-load_dotenv("env")
+load_dotenv(".env")
 router = APIRouter()
 
 @router.get("/ai")
@@ -23,9 +23,17 @@ async def receive_from_sq(file: Annotated[bytes, File()]):
     
     files = {'file': open(fp.name, 'rb')}
     x = requests.post(os.getenv("AI_SYSTEM"), files=files)
-    if(x.status_code == 200):
-        fp.close()    
-        data = x.json()
-        return data
+    if x.status_code == 200:
+        fp.close()
+
+        try:
+            data = x.json()
+            return data
+        except Exception as e:
+            print("ERROR:", repr(e))
+            raise HTTPException(
+                status_code=502,
+                detail="AI provider rejected the request. This may be a network or provider permission issue."
+            )
     else:
         raise HTTPException(419,detail="Unprocessable Query")

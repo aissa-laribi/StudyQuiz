@@ -21,12 +21,11 @@
 {/each}
 <style>
 	.box {
-		margin-bottom: 10px;
-		padding: 40px;
-		border: 1px solid #dee2e6;
+		border: 1px solid #000000;
     border-radius: 0 0 .5rem .5rem;
     border-top: 0;
     background-color: white;
+    height: 60vh
 	}
   ul {
     display: flex;
@@ -41,7 +40,7 @@
 	}
 
   span {
-    border: 1px solid transparent;
+    border: 1px solid #5d5e5f;
     border-top-left-radius: 0.25rem;
     border-top-right-radius: 0.25rem;
     display: block;
@@ -50,12 +49,12 @@
   }
 
   span:hover {
-    border-color: #e9ecef #e9ecef #dee2e6;
+    background-color: #000000;
+    color: white;
   }
 
   li.active > span {
-    color: #495057;
     background-color: #fff;
-    border-color: #dee2e6 #dee2e6 #fff;
+    border-color: #5d5e5f #5d5e5f #fff;
   }
 </style>
