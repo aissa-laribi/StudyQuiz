@@ -16,10 +16,22 @@
   let module_id = 0;
   let moduleImgId = 0;
   let toastMessage = "";
-  const imageIndex = localStorage.getItem(`imgModuleIndex`);
-  const moduleName = localStorage.getItem(`moduleName`);
+  let imageIndex;
+  let moduleName;
   const quizName = writable(null);
   const apiURL = import.meta.env.VITE_API_URL;
+
+  if (typeof localStorage !== 'undefined') {
+    imageIndex = localStorage.getItem(`imgModuleIndex`);
+    moduleName = localStorage.getItem(`moduleName`);
+  } else if (typeof sessionStorage !== 'undefined') {
+  // Fallback to sessionStorage if localStorage is not supported
+    imageIndex = sessionStorage.getItem(`imgModuleIndex`);
+    moduleName = sessionStorage.getItem(`moduleName`);
+  } else {
+  // If neither localStorage nor sessionStorage is supported
+    console.log('Web Storage is not supported in this environment.');
+  }
 
 
   $: login = logged ? "Logged in" : "Login";
@@ -147,7 +159,7 @@
       //console.log(quizName);
       //localStorage.set(`quizName`, newQuiz.quiz_name);
       //console.log("Before Goto",user_name);
-      goto(`/home/me/modules/${moduleName}/quizzes/${newQuiz.quiz_name}`);
+      goto(`/home/me/modules/${moduleName}/quizzes/new/${newQuiz.quiz_name}`);
       } else {
         message = "Module registration failed.";    
       }
@@ -799,7 +811,7 @@
             onclick={() => {if (user_name === "Guest" || user_name === "Undefined") {
                               showToast("Editing is not available in guest mode.");
                             } else {
-                              goToPage(quiz.quiz_name+`?from=edit-quiz`);
+                              goToPage(`edit/`+quiz.quiz_name);
                             }
                           }
                         }

@@ -6,8 +6,15 @@
   const apiURL = import.meta.env.VITE_API_URL;
 
   async function turnOnAI(){
+    const token = localStorage.getItem("access_token");
+    if(!token) return;
+
     const query = await fetch(`${apiURL}/ai`, {
       method: 'GET',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
     });
   }
 

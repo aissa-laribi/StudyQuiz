@@ -3,6 +3,9 @@
   import Modal from './Modal.svelte';
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
+  import Tabs from './Tabs.svelte'; 
+  import Tab1 from "./Tab1.svelte";
+	import Tab2 from "./Tab2.svelte";
 
   const { module_name, quiz_name } = get(page).params;
   let message = "";
@@ -23,13 +26,31 @@
   let module_id = 0;
   let quizData = "";
   let moduleImgId = 0;
-  const imageIndex = localStorage.getItem(`imgModuleIndex`);
+  let imageIndex;
   let answers = [{ name: "", correct: false }];
   const apiURL = import.meta.env.VITE_API_URL;
-  const from = get(page).url.searchParams.get("from");
 
-  const shortPrompt =
-  "Generate a StudyQuiz-compatible quiz from my study material.";
+  let items = [{
+                label:"AI-Assisted Quiz Creation",
+                value: 1,
+                component: Tab1
+              },
+              {
+                label:"Manual Quiz Creation",
+                value: 2,
+                component: Tab2
+              }
+            ];
+  
+  if (typeof localStorage !== 'undefined') {
+    imageIndex = localStorage.getItem(`imgModuleIndex`);
+  } else if (typeof sessionStorage !== 'undefined') {
+  // Fallback to sessionStorage if localStorage is not supported
+    imageIndex = sessionStorage.getItem(`imgModuleIndex`);
+  } else {
+  // If neither localStorage nor sessionStorage is supported
+    console.log('Web Storage is not supported in this environment.');
+  }
 
   const aiPrompt = `Generate a StudyQuiz-compatible quiz from my study material.
 
@@ -64,8 +85,6 @@
   - Keep answers concise.
   - Use the same language as the study material.`;
 
-  let copied = false;
-  let showFullPrompt = false;
   
   $: login = logged ? "Logged in" : "Login";
   
@@ -157,51 +176,12 @@
     message = "Failed to fetch questions";
   }
 }
-  async function copyPrompt() {
-  try {
-    await navigator.clipboard.writeText(aiPrompt);
-    copied = true;
-    setTimeout(() => {
-      copied = false;
-    }, 1500);
-  } catch (err) {
-    console.error("Failed to copy prompt:", err);
-  }
-}
 
   onMount(() => {
     getUsername();
     loadQuestions();
   });
 
-
-async function quizFromJson() {
-  try {
-    const parsed = JSON.parse(quizData);
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-    const res = await fetch(`${apiURL}/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/batch-create`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: quizData
-  });
-
-  if (res.ok) {
-    showModal = false;
-    loadQuestions();
-    newQuestionName = "";
-    answers = [{ name: "", correct: false }];
-  } else {
-    message = "Error saving question.";
-  }
-
-  } catch (err) {
-    console.error("Invalid JSON", err);
-  }
-}
 
   
 async function loadAnswers(question) {
@@ -281,10 +261,6 @@ async function updateQuestion(user_id, module_id,quiz_id,question_id){
   editing = false;
   questionEdited = "";
 
-}
-
-async function isCorrect(){
-  correctAnswer = true;
 }
 
 async function updateAnswer(user_id, module_id, quiz_id, question_id,answer_id,correct_answer){
@@ -397,7 +373,7 @@ onMount(async () => {
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 2fr;
-        grid-template-rows: 0.1fr 1fr 9fr;
+        grid-template-rows: 1fr 1fr 1fr 100fr;
         gap: 0.2rem 2rem;  
         grid-template-areas:
         'spacer spacer'
@@ -486,58 +462,6 @@ onMount(async () => {
       color: #3174ec;
       content: ">>>";
     }  
-    
-    #col-modules{
-      grid-area: col-modules;
-      background-color: white;
-      border-radius: 1em;
-      height: fit-content;
-    }
-
-    #my-modules {
-      border-bottom: 3px solid #eff0f3;
-      margin: 2em; 
-    
-    }
-    #my-modules {
-      border-bottom: 3px solid #eff0f3;
-      margin: 2em; 
-    
-    }
-    #my-modules button {
-      border: 0px;
-      background-color: white;
-      display: inline-flex;
-      align-items: center;
-    }
-
-    #my-modules button .tooltiptext{
-      text-align: center;
-      border-radius: 0.25em;
-      margin-left: 0.5rem
-    }
-
-
-    #new-module-button {
-      cursor: pointer;
-      border-radius: 1rem;
-      padding: 0.5rem 0.5rem;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 13pt;
-      font-weight: 500;
-    }
-    
-    
-    #new-module-button:hover {
-      background-color: rgb(18, 105, 192);
-      color: white;
-      cursor: pointer;
-      border-radius: 1rem;
-    }
-
-    #module-name {
-      font-size: 2em;
-    }
 
     #form-navbar {
       display: flex;
@@ -598,21 +522,6 @@ onMount(async () => {
       //align-items: center;
     }
 
-    #form-button-section button{
-      //height: 80%;
-      border-radius: 2em;
-      //width: auto;
-      border: 0.1em solid transparent;
-      background-color: rgb(18, 105, 192);
-      //display: flex;
-      //align-items: center;
-      width: 40%;
-      color: white;
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1.4rem;
-      font-weight: 600;
-      
-    }
 
     #form-button-section button:hover{
       background-color:green;
@@ -630,155 +539,8 @@ onMount(async () => {
       font-size: 1.5rem;
     }
 
-    #modules-container{
-      //display:inline-flex;
-      //flex-wrap: wrap;
-      margin: 0 2em 0 2em;
-      gap: 1em;
-      max-width: 100%;
-      height: auto;
-    }
-
-    #modules-container button{
-      display: none;
-    }
-    .module-box{
-      border: 1px #d6d9dc solid;
-      border-radius: 0.51em;
-      
-    }
-
-    .module-box p {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      text-align: left;
-      font-size: 1.15em;
-      line-height: 1em;
-
-    }
-
-    #col-modules h2{
-      font-family: 'Montserrat', sans-serif;
-      font-size: 2rem;
-      font-weight: 600;
-      
-    }
-    
-    #col-quizzes{
-      grid-area: col-quizzes;
-      border-radius: 1em;
-      border-radius: 1em;
-      height: fit-content;
-    }
-    #col-quizzes h2{
-      //font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
-      //font-size: 1.5rem;
-      //font-weight: 600;
-     
-    }
-    #upcoming-quizzes{
-      //text-align: left;
-      //gap: 1em;
-      //max-width: 100%;
-      //height: auto;
-      background-color: white;
-      //padding: 2em;
-      
-      
-    }
-    #upcoming-quizzes h2{
-      text-align: left;
-      //margin: 2em 2em 2em 2em;
-      //gap: 1em;
-      font-family: 'Montserrat', sans-serif;
-      //max-width: 100%;
-      //height: auto;
-      background-color: white;
-      font-size: 2.1rem;
-    }
-
-    #upcoming-quizzes {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1.2rem;
-      color: black;
-    }
-
-    ol li strong{
-
-    }
-
-    #followups-container{
-      background-color: white;
-      padding: 1em;
-      //display:flex;
-      //flex-wrap: wrap;
-      //margin: 2em 2em 2em 2em;
-      gap: 1em;
-      max-width: 100%;
-      height: auto;
-    }
-
-.prompt-box {
-  position: relative;
-  background: #f4f4f4;
-  padding: 1rem;
-  border-radius: 0.4rem;
-  margin-top: 0.6rem;
-  margin-bottom: 0.5rem;
-}
-
-.prompt-box.compact {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.prompt-box pre {
-  margin: 0;
-  background: transparent;
-  font-family: monospace;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-}
-
-.copy-prompt-btn {
-  border: 1px solid #ccc;
-  background: white;
-  border-radius: 0.35rem;
-  padding: 0.45rem 0.75rem;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.toggle-prompt-btn {
-  border: 0;
-  background: transparent;
-  color: rgb(18, 105, 192);
-  cursor: pointer;
-  padding: 0.3rem 0;
-  font-weight: 600;
-}
-
-.toggle-prompt-btn:hover {
-  text-decoration: underline;
-}
-
-#upload-quiz-btn {
-  padding: 0.9rem 2rem;
-  border-radius: 0.5rem;
-  border: 1px solid #bbb;
-  font-size: 1.1rem;
-  cursor: pointer;
-}
-
-#upload-quiz-btn:hover{
-  background-color: #0f0f0f;
-  color: white;
-} 
-
   .edit-questions {
     grid-area: edit-questions;
-    width: fit-content;
     display:grid;
   }
 
@@ -835,14 +597,6 @@ onMount(async () => {
   .editing-form textarea{
     border-radius: 0.4rem;
   }
-
-  .table-answers{
-  }
-
-  .table-answers tr{
-    
-  }
-
 
   .table-answers th {
     width:100%;
@@ -905,44 +659,8 @@ onMount(async () => {
   #spacer {
     display : none;
   }
-  #col-modules{
-    
-  }
-  #col-quizzes {
-    grid-area: col-quizzes;
-    border-radius: 1em;
-    border-radius: 1em;
-    height: fit-content;
-    display: grid;
-    grid-template-columns: 1fr;
-    background-color: red;
-    }
-  .pre1{
-    background-color: #f4f4f4; 
-    border: 1px solid #ccc; 
-    white-space: pre-wrap;
-    word-break: break-all;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 1rem; 
-    font-weight: normal;
-  }
-  .pre2 {
-    display: none;
-  }
-  #col-quizzes p {
-    display:none;
-  }
-  .header-quiz{
-    display: inline-block;
-  }
 
-  .modal-box {
-    right: 1rem;
-  }
   #sidebar1{
-    display: none;
-  }
-  sidebar2{
     display: none;
   }
 }
@@ -969,169 +687,10 @@ onMount(async () => {
         <li>{quiz_name}</li>
       </ul>
     </div> 
-    {#if from != "edit-quiz"}
-    <div id="col-modules">
-      <div id="my-modules">
-      <h2>Questions
-      <button id="new-module-button" onclick={() => (showModal = true)}>
-      <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 20 20"  fill="none"  stroke="currentColor"  stroke-width="1"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-      <span class="tooltiptext">Add a New Question</span>
-      </button>
-      </h2>
-        {#if questions.length == 0}
-          <p>No questions added yet.</p>
-          <p>Add questions manually using the + button, or import a full quiz with AI on the right.</p>
-        {/if}
-      </div>
-        <div id="modules-container">
-          {#each questions as question}
-            <div class="module-box">
-              <p>{question.question_name}</p>
-            </div>
-          {/each}
-        </div>
-      </div>
-      <div id="col-quizzes">
-        <div id="followups-container">
-        <div id="upcoming-quizzes">
-        
-        <h2>Import Quiz </h2>
-        <ol>
-        <li>
-        <strong>Copy and paste this prompt into the AI tool:</strong>
-
-        <div class="prompt-box compact">
-        <pre>{shortPrompt}</pre>
-
-        <button type="button" class="copy-prompt-btn" onclick={copyPrompt}>
-        {copied ? "✓ Copied" : "Copy"}
-        </button>
-        </div>
-
-        <button type="button" class="toggle-prompt-btn" onclick={() => showFullPrompt = !showFullPrompt}>
-          {showFullPrompt ? "Hide full prompt" : "Show full prompt"}
-        </button>
-
-        {#if showFullPrompt}
-        <div class="prompt-box full">
-          <pre>{aiPrompt}</pre>
-        </div>
-        {/if}
-        </li>
-
-        <li>Upload your slides/notes, or paste your study material after the prompt.</li>
-        <li>Copy the JSON response.</li>
-        <li>Paste it below and click Upload Quiz.</li>
-        </ol>
-        <textarea bind:value={quizData} rows="10" style="width: 100%; margin-top: 1em; font-family: monospace;"placeholder='Paste your JSON here...'></textarea>
-
-        <button id="upload-quiz-btn" onclick={quizFromJson}>Upload Quiz</button>
-
-      </div>
-    </div>
-  </div>
-  {/if}
-  {#if from == "edit-quiz"}
   <div class="edit-questions">
-    <table id="questions-table">
-      <thead>
-      </thead>
-      <tbody>
-        {#each questions as question}
-        <tr>
-          {#if !editing && !answerEdited}
-          <td><button onclick={() => {questionOpen = !questionOpen; questionOpen ? questionNameOpen = question.question_name : questionNameOpen = "";}}>
-            <div class="question-button">
-              <p class ="question-button-description">{question.question_name}</p> 
-              <p class ="question-button-triangle">{questionOpen && questionNameOpen == question.question_name ? "▲" : "▼"}</p> 
-            </div>
-            </button>
-          </td>
-          {/if}
-          {#if editing && question.question_name == questionEdited && !questionOpen}
-          <div class="editing-section">
-            <form class="editing-form" method="patch">
-            <textarea id="updated-question">{question.question_name}</textarea>
-            <button class="action-button" onclick={() => updateQuestion(question.user_id, question.module_id, question.quiz_id, question.id)}>Update</button>
-            <button class="action-button" onclick={() => {editing = false; questionEdited = "";}}>Cancel</button>
-            </form>
-          </div>
-          {/if}
-          {#if !editing && !questionOpen}
-          <th></th>
-          <th><button class="action-button" onclick={() => { editing = true; questionEdited = question.question_name;}}>
-          Edit Question
-          </button></th>
-          <th><button class="action-button" onclick={() => deleteQuestion(question.user_id, question.module_id, question.quiz_id, question.id)}>Delete Question</button></th>
-          {/if}
-        </tr>
-        <div class="table-answers">
-        {#if questionOpen == true && questionNameOpen == question.question_name} 
-        {#if !editing}
-        <tr>
-          {#if !answerEdited}
-            <th>Answer</th>
-            <th>Correct Answer</th>
-            <th></th>
-            <th></th>
-          {/if}
-        </tr>
-        {#each answersByQuestionId[question.id] as ans}
-        {#if answerEdited.length == 0}
-          <tr>
-          <td>{ans.answer_name}</td>
-          <td>{#if ans.answer_correct == true}✔{/if}</td>
-          <td><button class="action-button" onclick={() => answerEdited = ans.answer_name}> 
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="edit-icon">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg></button></td>
-          </tr>
-          {:else if ans.answer_name == answerEdited}
-          {#if answerEdited}
-            <th>{questionNameOpen}</th>
-            {#if ans.answer_correct == true}
-            <th>Correct Answer</th>
-            {:else}
-            <th>Incorrect Answer</th>
-            {/if}
-          {/if}
-            <div class="editing-section">
-              <form class="editing-form" method="patch">
-                <textarea id="updated-answer">{ans.answer_name}</textarea>
-                <button class="action-button" onclick={() => updateAnswer(question.user_id, question.module_id, question.quiz_id, question.id,ans.id,ans.correct_answer)}>Update</button>
-                <button class="action-button" onclick={() => {{editing = false; answerEdited = ""; correctAnswer = false;}}}>Cancel</button>
-            </form>
-          </div>
-          {/if}
-          {/each}
-          {/if}
-          {#if editing}
-          <div class="editing-section">
-            <form class="editing-form" method="patch">
-            <textarea id="updated-answer">{ans.answer}</textarea>
-            <button class="action-button" onclick={() => updateQuestion(question.user_id, question.module_id, question.quiz_id, question.id)}>Update</button>
-            <button class="action-button" onclick={() => {editing = true; questionEdited = "";}}>Cancel</button>
-            </form>
-          </div>
-          {/if}
-        {/if}
-        </div>
-        {/each}
-      </tbody>
-    </table>
+    <Tabs {items} />
   </div>
-  {/if}
+ 
     {#if showModal}
       <Modal bind:showModal>
   <form onsubmit={registerQuestion}>
