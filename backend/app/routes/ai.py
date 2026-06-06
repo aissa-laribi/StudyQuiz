@@ -22,7 +22,8 @@ async def receive_from_sq(file: Annotated[bytes, File()]):
     fp.write(file)
     
     files = {'file': open(fp.name, 'rb')}
-    x = requests.post(os.getenv("AI_SYSTEM"), files=files)
+    x = requests.post(os.environ.get("AI_SYSTEM"), files=files)
+    print("DEBUG": + str(os.environ.get("AI_SYSTEM"))[:9])
     if x.status_code == 200:
         fp.close()
 
