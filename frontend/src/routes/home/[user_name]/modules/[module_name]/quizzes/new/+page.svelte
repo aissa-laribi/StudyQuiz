@@ -1,6 +1,5 @@
 <script>
   import { onMount } from 'svelte';
-  import Modal from './Modal.svelte';
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
   import Tabs from './Tabs.svelte'; 
@@ -678,7 +677,7 @@ onMount(async () => {
     <div id="spacer">
     <div class="overlay"></div>
       <img src="/modules/{imageIndex}.jpg" alt="Module Banner">
-      <h3>{module_name} - {quiz_name}</h3>
+      <h3>{module_name}</h3>
     </div>
     <div id="breadcrumbs">
       <ul>

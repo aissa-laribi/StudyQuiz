@@ -367,6 +367,7 @@
       font-family: 'Montserrat', sans-serif;
       font-size: 14pt;
       font-weight: 500;
+      margin-top: 1rem;
     }
     
     
@@ -785,9 +786,71 @@
     <div id="col-modules">
       <div id="my-modules">
       <h2>Quizzes
-      <button id="new-module-button" onclick={() => (showModal = true)}>
-      <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 20 20"  fill="none"  stroke="currentColor"  stroke-width="1"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-      <span class="tooltiptext">Add a New Quiz</span>
+      <button id="new-module-button" onclick={() => (goToPage(`new`))}>
+      <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="32"
+  height="32"
+  viewBox="0 0 512 512"
+  fill="none"
+  class="icon upload-ai-icon"
+>
+  <path
+    fill="#00ACEA"
+    d="M315 465H37c-3 0-5-3-5-5V104c0-3 2-5 5-5h86V5c0-3 2-5 5-5h263c3 0 5 2 5 5v333c0 3-2 5-5 5-44 0-80 36-80 80 0 12 3 24 8 34 1 2 1 4 0 5-1 2-2 3-4 3z"
+  />
+
+  <path
+    fill="#009BD3"
+    d="M315 465h-10c-6-13-10-27-10-42 0-53 43-96 96-96h5v11c0 3-2 5-5 5-44 0-80 36-80 80 0 12 3 24 8 34 1 2 1 4 0 5-1 2-2 3-4 3z"
+  />
+
+  <path
+    fill="#009BD3"
+    d="M32 114v-10c0-3 2-5 5-5h86V5c0-3 2-5 5-5h9c1 2 2 3 2 5v99c0 6-5 11-11 11H37c-2 0-4-1-5-1z"
+  />
+
+  <path
+    fill="#008CBE"
+    d="M128 109H37c-2 0-4-1-5-3 0-2 0-4 1-6L124 2c1-2 3-2 5-2 2 1 4 3 4 5v99c0 3-3 5-5 5z"
+  />
+
+  <path
+    fill="#FFFFFF"
+    d="M348 178H80c-3 0-5-3-5-5 0-3 2-5 5-5h268c2 0 5 2 5 5 0 2-3 5-5 5z"
+  />
+
+  <path
+    fill="#FFFFFF"
+    d="M348 222H80c-3 0-5-2-5-5 0-2 2-5 5-5h268c2 0 5 3 5 5 0 3-3 5-5 5z"
+  />
+
+  <path
+    fill="#FFFFFF"
+    d="M348 267H80c-3 0-5-2-5-5 0-3 2-5 5-5h268c2 0 5 2 5 5 0 3-3 5-5 5z"
+  />
+
+  <path
+    fill="#FFFFFF"
+    d="M348 312H80c-3 0-5-2-5-5 0-3 2-5 5-5h268c2 0 5 2 5 5 0 3-3 5-5 5z"
+  />
+
+  <path
+    fill="#D8ECF0"
+    d="M391 512c-49 0-90-40-90-89 0-50 41-90 90-90s89 40 89 90c0 49-40 89-89 89z"
+  />
+
+  <path
+    fill="#000000"
+    d="M432 428h-83c-2 0-5-3-5-5 0-3 3-5 5-5h83c3 0 5 2 5 5 0 2-2 5-5 5z"
+  />
+
+  <path
+    fill="#000000"
+    d="M391 469c-3 0-5-2-5-5v-83c0-3 2-5 5-5s5 2 5 5v83c0 3-2 5-5 5z"
+  />
+</svg>
+      <span class="tooltiptext">New Quiz</span>
       </button>
       </h2>
       </div>
