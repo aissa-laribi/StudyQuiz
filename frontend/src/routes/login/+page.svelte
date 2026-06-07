@@ -48,9 +48,7 @@
         }),
         signal: controller.signal
       });
-
-      if(res.ok) clearTimeout(timeoutId);
-
+      
       if (!res.ok) {
         failed = true;
         message = "Login failed: Incorrect credentials";

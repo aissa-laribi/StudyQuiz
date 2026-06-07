@@ -3,7 +3,10 @@
     import { onMount } from "svelte";
     import { page } from '$app/stores';
     import { get } from 'svelte/store';
-    
+    import { tick } from "svelte";
+    import lottie from "lottie-web";
+    import animationData from "$lib/file-reading.json";
+
 
     const { module_name} = get(page).params;
     let files = $state();
@@ -11,6 +14,8 @@
     let quiz_name = $state("");
     let user_name = $state("");
     let rateLimitMessage = $state("");
+    let loading = $state(false);
+    let animationContainer;
 
     async function getUsername(){
       const token = await localStorage.getItem("access_token");
@@ -40,6 +45,17 @@
         const token = localStorage.getItem("access_token");
         if (files) {
           const file = files[0];
+          loading = true;
+          await tick();
+
+          const animation = lottie.loadAnimation({
+            container: animationContainer,
+            renderer: "svg",
+            loop: true,
+            autoplay: true,
+            animationData
+          });
+        
         if (!token) return;
         const formData = new FormData();
         formData.append('file', file);
@@ -62,7 +78,7 @@
             console.log("Module:" + `${module_name}`);
             console.log("Quiz:" + `${quiz_name}`);*/
             
-            quiz_name = files[0].name.slice(0,files[0].name.length -3);
+            quiz_name = files[0].name.slice(0,files[0].name.length -4);
             console.log(quiz_name);
             const quizNameReq = await fetch(`${apiURL}/users/me/modules/${module_name}/quizzes/`,{
               method: "POST",
@@ -177,12 +193,18 @@
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     font-weight: bold;
   }
+  .animation-container {
+    display:grid;
+    max-height: 40vh;
+  }
 </style>
 <div id="edit-questions">
         <div id="spacer"><h1>AI Generated Quiz</h1></div>
         <div id="col1"></div>
         <div id="col2">
+        {#if !loading}
         <div id="col2-box">
+        
           <form>
           <label>
             {#if !files}
@@ -230,14 +252,18 @@
             {/if}
           </label>
           {#if files}
-            <p class="file-info">File Uploaded: {files[0].name}</p>
-            <button type="submit" class="generate-quiz-btn" onclick={sendSlides}>Generate Quiz</button>
+              <p class="file-info">File Uploaded: {files[0].name}</p>
+              <button type="submit" class="generate-quiz-btn" onclick={sendSlides}>Generate Quiz</button>
             {/if}    
           </form>
           {#if rateLimitMessage.length > 0}
             <p>{rateLimitMessage}</p>
           {/if}
           </div>
+        {/if}
+        {#if loading}
+          <div class="animation-container" bind:this={animationContainer}></div>
+        {/if}
         </div>
         <div id="col3"></div>
         <div id="spacer2"></div>
