@@ -5,44 +5,6 @@
   let user_name = "";
   const apiURL = import.meta.env.VITE_API_URL;
 
-  async function turnOnAI(){
-    const token = localStorage.getItem("access_token");
-    if(!token) return;
-
-    const query = await fetch(`${apiURL}/ai`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
-  }
-
-  async function getUsername(){
-    const token = localStorage.getItem("access_token");
-    if(!token) return;
-
-    const userQuery = await fetch(`${apiURL}/users/me`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    if(userQuery.ok){
-      const data = await userQuery.json();
-      user_name = data['user_name'];
-      goto(`/home/${user_name}`);
-    } else {
-      localStorage.removeItem("access_token");
-    }
-  }
-
-  onMount(async () => {
-    await turnOnAI();
-    await getUsername();
-  });
 </script>
 
 <style>
@@ -182,13 +144,7 @@
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
   <div class="menu-box">
-      <a class="login-link" href="./login">
-      {#if user_name.length == 0}
-        Login
-      {:else}
-        {goto(`/home/${user_name}`)}
-      {/if}
-      </a>
+
   </div>
   </nav>
 
@@ -204,6 +160,7 @@
     StudyQuiz uses third-party cloud hosting and AI inference infrastructure to provide this feature. Our AI inference provider is configured not to retain customer input or output data for model training or long-term storage.
     Uploaded material may be processed using infrastructure outside the EEA under appropriate data-processing safeguards.
     Users should not upload documents containing sensitive, confidential, or personally identifiable information.
+    Please do not upload documents containing sensitive, confidential, or personally identifiable information.
   </p>
   </div>
 </main>

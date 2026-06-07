@@ -3,3 +3,16 @@ html, body {
   padding: 0;
   background-color: #f6f7fb;
 }
+
+footer {
+   position: absolute;
+   
+   width: 100%;
+   text-align: center;
+   text-decoration: none;
+}
+
+footer a {
+  text-decoration: none;
+}
+

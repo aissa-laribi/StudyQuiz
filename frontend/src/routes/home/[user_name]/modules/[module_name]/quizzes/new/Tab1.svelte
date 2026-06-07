@@ -225,6 +225,8 @@
             <small>
               Accepted files: PDF Maximum size: 2 MB.
             </small>
+            <br>
+            <small>Upload study materials only. Avoid sensitive or confidential documents.</small>
             {/if}
           </label>
           {#if files}
