@@ -49,10 +49,7 @@
         signal: controller.signal
       });
       
-      if(res.ok){
-        console.log("Success!");
-        clearTimeout(timeoutId);
-      } else if (!res.ok) {
+      if (!res.ok) {
         failed = true;
         message = "Login failed: Incorrect credentials";
         logged = false;
