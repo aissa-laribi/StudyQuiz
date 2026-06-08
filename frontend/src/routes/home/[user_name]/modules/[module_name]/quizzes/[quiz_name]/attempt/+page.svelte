@@ -510,28 +510,8 @@ onMount(() => {
 }
 
 #try-again-btn button:hover {
-  background-color: rgb(13, 86, 160);
-}
-
-#back-to-module-btn button {
-  background-color: white;
-  color: #222;
-}
-
-#back-to-module-btn button:hover {
-  background-color: #e9e9e9;
-}
-
-.create-quiz-card {
-  border: 1px solid #ddd;
-  border-radius: 0.75rem;
-  padding: 1rem 1.25rem;
-  margin-top: 1rem;
-  background-color: #fafafa;
-}
-
-.create-quiz-card h2{
-  text-justify : center;
+  background-color: #0f0f0f;
+  color: white;
 }
 
 .mistake-card {
@@ -726,10 +706,14 @@ onMount(() => {
       <p>Back to module</p>
     </button>
   </div>
-</div>
-<div class="create-quiz-card">
-    <h2>Want to create your own quiz with AI?</h2>
-    <p>Go back to this module, click + to create a new quiz, then import AI-generated questions.</p>
+  <div id="new-quiz-btn">
+    <button
+      type="button"
+      onclick={() => goto(`/home/${user_name}/modules/${moduleName}/quizzes/new`)}
+    >
+      <p>Create a New Quiz</p>
+    </button>
+  </div>
 </div>
   {#if Object.entries(wrongAnswers).length === 0}
   <p>Great work — no mistakes to review.</p>
