@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.main import app
 from app.routes import user, module, quiz, question, answer, followup, attempt,ai
 from fastapi.middleware.cors import CORSMiddleware
 import os
