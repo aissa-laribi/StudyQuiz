@@ -829,12 +829,13 @@
     <section class="welcome-banner">
       <h1>Welcome to StudyQuiz</h1>
       <h2>Try the demo learning flow:</h2>
+
       <ol class="welcome-steps">
-        <li>Choose a sample module below</li>
-        <li>Take a quiz</li>
-        <li>See how StudyQuiz schedules your next review</li>
+        <li>Choose a sample module below, or create your own module.</li>
+        <li>Click <strong>New Quiz</strong> and upload your learning material.</li>
+        <li>Generate a quiz, take it, and see how StudyQuiz schedules your next review.</li>
       </ol>
-</section>
+    </section>
     </div>
     <div id="col-modules">
     <div id="my-modules">
