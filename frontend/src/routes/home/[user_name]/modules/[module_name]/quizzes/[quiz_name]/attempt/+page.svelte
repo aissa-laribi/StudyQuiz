@@ -176,6 +176,18 @@ function tryAgain() {
   initializeSelectedAnswers();
 }
 
+function nextReviewFormat(next_due){
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const days = Math.ceil((new Date(next_due) - Date.now()) / msPerDay);
+  if (days == 0){
+    return "Due today";
+  } else if(days == 1){
+    return "Tomorrow";
+  } else {
+    return `In ${days} days`;
+  }
+}
+
 onMount(() => {
   (async () => {
     const token = localStorage.getItem("access_token");
@@ -690,7 +702,7 @@ onMount(() => {
   {/if}
   {#if attempted}
   <p><strong> Score: {attempt_score}%</p>
-  <p><strong>Next review: {new Date(next_due).toLocaleDateString()}</strong></p>
+  <p><strong>Next review: {nextReviewFormat(next_due)}</strong></p>
   <div class="questions-iter result-actions">
   <div id="try-again-btn">
     <button type="button" onclick={tryAgain}>

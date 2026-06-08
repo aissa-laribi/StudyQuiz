@@ -147,6 +147,22 @@
     }
   }
 
+  function isOverdue(date) {
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const days = Math.ceil((new Date(date) - Date.now()) / msPerDay);
+    if (days < 0){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  function nextReviewFormat(date){
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const days = Math.abs(Math.ceil((new Date(date) - Date.now()) / msPerDay));
+    return `${days} days late`;
+}
+
   onMount(() => {
     getUsername();
     loadModulesAndFollowups();
@@ -612,6 +628,15 @@
       font-weight:600;
     }
 
+    .quiz-overdue-date {
+      margin: 0;
+      font-size: 1.1em;
+      text-align: left;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-weight:600;
+      color: red; 
+    }
+
     #not-attempted-quizzes{
       background-color: white;      
     }
@@ -774,7 +799,11 @@
 
       <div class="quiz-details">
         <p class="quiz-title">{followup.module.module_name} — {followup.quiz.quiz_name}</p>
+        {#if isOverdue(followup.followup_due_date)}
+        <p class="quiz-overdue-date">Due: {new Date(followup.followup_due_date).toLocaleDateString()} - {nextReviewFormat(followup.followup_due_date) }</p>
+        {:else}
         <p class="quiz-due-date">Due: {new Date(followup.followup_due_date).toLocaleDateString()}</p>
+        {/if}
       </div>
     </a>
   {/each}
