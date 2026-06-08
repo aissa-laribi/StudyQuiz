@@ -34,7 +34,7 @@ pluggy==1.6.0
 pyasn1==0.6.1
 pycparser==2.22
 pydantic==2.12.0
-pydantic_core==2.33.2
+pydantic_core==2.41.1
 Pygments==2.19.1
 PyJWT==2.9.0
 pytest==8.4.0
