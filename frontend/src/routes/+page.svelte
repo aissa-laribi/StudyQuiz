@@ -304,9 +304,8 @@
       grid-area: feature-grid;
       background-color: #f6f7fb
       padding : 1.25em;
-
-
     }
+    
     #feature-grid-inner {
       background-color: #f6f7fb;
       display: grid;
@@ -392,6 +391,12 @@
       'feat-col3'
       'feat-col4';
   }
+
+#video-player video{
+  width: 40vh;
+  border-radius: 2vh;
+  border: 1rem black solid;
+}
 
   #col1{
     display: block;
