@@ -120,11 +120,12 @@
         justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr;
-        grid-template-rows: 0.5fr 2fr 2fr;
+        grid-template-rows: 0.5fr 2fr 2fr 2fr;
         row-gap: 20px;
         grid-template-areas:
         'hero-spacer'
         'hero'
+        'showcase-container'
         'feature-grid';
     }
     main h1 {
@@ -179,6 +180,30 @@
       font-size: 2em;
       justify-content: center;
       cursor: touch;
+    }
+
+    #showcase-container {
+      grid-area: showcase-container;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-areas: 'video-spacer1 video-player video-spacer2';
+
+    }
+
+    #video-player{
+      grid-area: video-player;
+      display: grid;
+    }
+
+    #video-player video {
+      width: 90vh;
+      border-radius: 2vh;
+      border: 2rem black solid;
+    }
+
+    #video-spacer1 {
+      grid-area: video-spacer1;
+      
     }
 
     
@@ -408,6 +433,16 @@
       <a href="/login" class="signup-button"><button>Try the demo</button></a>
     </div>
     <p>No sign-up required</p>
+  <div id="showcase-container">
+    <div id="video-spacer"></div>
+    <div id="video-player">
+      <video autoplay muted loop playsinline>
+        <source src="/showcase.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div id="video-spacer"></div>
+    </div>
+  </div>
   <div id="feature-grid">
   <div id="feature-grid-inner">
     <div class="feat-col">
