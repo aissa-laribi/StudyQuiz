@@ -40,7 +40,7 @@ jobs:
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (id, user_name, email, password, role, verified) VALUES (2, 'testuser2', 'user2@gmail.com', '$P2', 'user', false);"
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (id, user_name, email, password, role, verified) VALUES (3, 'test_user3', 'user3@gmail.com', '$P3', 'user', false);"
           sudo -u postgres psql -d test -c '\dt'
-          sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";''
+          sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";'
       - name: Test with pytest
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
