@@ -60,14 +60,16 @@
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
-    // Load modules
-    const modQuery = await fetch(`${apiURL}/users/me/modules/`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
+    const headers = {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+    };
+
+    const [modQuery, folQuery] = await Promise.all([
+    fetch(`${apiURL}/users/me/modules/`, { method: "GET", headers }),
+    fetch(`${apiURL}/users/me/followups/`, { method: "GET", headers })
+  ]);
+
     if (modQuery.ok) {
       const data = await modQuery.json();
       modules = data.map(mod => [mod.module_name]);
@@ -75,14 +77,6 @@
       message = "Failed to fetch modules";
     }
 
-    // Load followups
-    const folQuery = await fetch(`${apiURL}/users/me/followups/`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
     if (folQuery.ok) {
       followups = await folQuery.json();
     } else {
@@ -163,13 +157,6 @@
     return `${days} days late`;
 }
 
-  onMount(() => {
-    getUsername();
-    loadModulesAndFollowups();
-    getNotAttempted();
-    
-  });
-
   async function registerModule(event) {
     event.preventDefault();
 
@@ -193,6 +180,17 @@
       message = "Module registration failed.";
     }
   }
+
+  onMount(async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await Promise.all([
+      getUsername(),
+      loadModulesAndFollowups(),
+      getNotAttempted()
+    ]);
+  });
 </script>
 
 
