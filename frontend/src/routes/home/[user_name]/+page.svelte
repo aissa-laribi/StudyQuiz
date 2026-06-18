@@ -776,7 +776,7 @@
     </div>
     <div id="modules-container">
       {#each modules as module, i}
-        <div class="module-box"><img src="/modules/{i+1}.jpg">
+        <div class="module-box"><img src="/modules-card/{i+1}.webp">
         <p><a href={`/home/${user_name}/modules/${module}`} 
         on:click={() => moduleHandler(i, module)}>{module}</a></p>
         </div>
