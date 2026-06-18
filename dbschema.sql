@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict gm3rkTgOlfyzvY0YBLG1pfFtvdVquNEmuRLPwtrRL0L05v72cS0y7zkEhljBrMc
+\restrict 6Eew7R6Ql5TkuthRHlLDMWiFVFaBBVlJsT5XeIlGr8Cf5H1CVcNXHBX9zOBP9Iq
 
--- Dumped from database version 18.3 (Ubuntu 18.3-1.pgdg22.04+1)
--- Dumped by pg_dump version 18.3 (Ubuntu 18.3-1.pgdg22.04+1)
+-- Dumped from database version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
+-- Dumped by pg_dump version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -27,6 +27,20 @@ SET row_security = off;
 
 
 ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- Name: pgstattuple; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgstattuple WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgstattuple; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgstattuple IS 'show tuple-level statistics';
+
 
 SET default_tablespace = '';
 
@@ -205,10 +219,10 @@ ALTER SEQUENCE public.module_id_seq OWNED BY public.module.id;
 
 CREATE TABLE public.question (
     id integer NOT NULL,
+    question_name character varying(445) NOT NULL,
     user_id integer NOT NULL,
     module_id integer NOT NULL,
     quiz_id integer NOT NULL,
-    question_name character varying(445) NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -249,11 +263,11 @@ CREATE TABLE public.quiz (
     module_id integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    repetitions integer NOT NULL,
-    "interval" integer NOT NULL,
-    ease_factor double precision NOT NULL,
+    repetitions integer DEFAULT 0,
+    "interval" integer DEFAULT 0,
+    ease_factor double precision DEFAULT 2.5,
     next_due timestamp without time zone,
-    last_score integer NOT NULL
+    last_score integer DEFAULT 0
 );
 
 
@@ -287,12 +301,13 @@ ALTER SEQUENCE public.quiz_id_seq OWNED BY public.quiz.id;
 
 CREATE TABLE public."user" (
     id integer NOT NULL,
-    user_name character varying(45) NOT NULL,
+    user_name character varying(45),
     email character varying(245) NOT NULL,
-    password character varying(255) NOT NULL,
-    role character varying(4) NOT NULL,
+    password character varying(245) NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    role character varying(4) DEFAULT 'user'::character varying NOT NULL,
+    verified boolean
 );
 
 
@@ -402,14 +417,6 @@ ALTER TABLE ONLY public.followup
 
 
 --
--- Name: module module_module_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.module
-    ADD CONSTRAINT module_module_name_key UNIQUE (module_name);
-
-
---
 -- Name: module module_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -431,14 +438,6 @@ ALTER TABLE ONLY public.question
 
 ALTER TABLE ONLY public.quiz
     ADD CONSTRAINT quiz_pkey PRIMARY KEY (id);
-
-
---
--- Name: quiz quiz_quiz_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.quiz
-    ADD CONSTRAINT quiz_quiz_name_key UNIQUE (quiz_name);
 
 
 --
@@ -640,7 +639,7 @@ CREATE INDEX ix_user_id ON public."user" USING btree (id);
 --
 
 ALTER TABLE ONLY public.answer
-    ADD CONSTRAINT answer_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.module(id);
+    ADD CONSTRAINT answer_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.module(id) ON DELETE CASCADE;
 
 
 --
@@ -728,7 +727,7 @@ ALTER TABLE ONLY public.module
 --
 
 ALTER TABLE ONLY public.question
-    ADD CONSTRAINT question_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.module(id);
+    ADD CONSTRAINT question_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.module(id) ON DELETE CASCADE;
 
 
 --
@@ -752,7 +751,7 @@ ALTER TABLE ONLY public.question
 --
 
 ALTER TABLE ONLY public.quiz
-    ADD CONSTRAINT quiz_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.module(id) ON DELETE CASCADE;
+    ADD CONSTRAINT quiz_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.module(id);
 
 
 --
@@ -775,5 +774,5 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict gm3rkTgOlfyzvY0YBLG1pfFtvdVquNEmuRLPwtrRL0L05v72cS0y7zkEhljBrMc
+\unrestrict 6Eew7R6Ql5TkuthRHlLDMWiFVFaBBVlJsT5XeIlGr8Cf5H1CVcNXHBX9zOBP9Iq
 
