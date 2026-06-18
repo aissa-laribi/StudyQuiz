@@ -36,11 +36,11 @@ jobs:
           sudo -u postgres createdb test
           sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
           sudo -u postgres psql -d test -f dbschema.sql
-          sudo -u postgres psql -d test -c "INSERT INTO \"user\" VALUES (1,'testuser1', 'user1@gmail.com', '$P1', 'root');"
-          sudo -u postgres psql -d test -c "INSERT INTO \"user\" VALUES (2,'testuser2', 'user2@gmail.com', '$P2', 'user');"
-          sudo -u postgres psql -d test -c "INSERT INTO \"user\" VALUES (3,'test_user3', 'user3@gmail.com', '$P3', 'user');"
+          sudo -u postgres psql -d test -c "INSERT INTO \"user\" (id, user_name, email, password, role, verified) VALUES (1, 'testuser1', 'user1@gmail.com', '$P1', 'root', true);"
+          sudo -u postgres psql -d test -c "INSERT INTO \"user\" (id, user_name, email, password, role, verified) VALUES (2, 'testuser2', 'user2@gmail.com', '$P2', 'user', false);"
+          sudo -u postgres psql -d test -c "INSERT INTO \"user\" (id, user_name, email, password, role, verified) VALUES (3, 'test_user3', 'user3@gmail.com', '$P3', 'user', false);"
           sudo -u postgres psql -d test -c '\dt'
-          sudo -u postgres psql -d test -c 'SELECT * FROM "user";'
+          sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";''
       - name: Test with pytest
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
