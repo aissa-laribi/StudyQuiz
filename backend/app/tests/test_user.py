@@ -81,15 +81,14 @@ async def test_get_users1_not_logged(async_app_client):
 @pytest.mark.anyio
 async def test_post(async_app_client):
     data = {
-        "user_name": "testuser1",
         "email": "user1@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g",
     }
     
     response = await async_app_client.post("/users", json=data)
     print(response.text)
-    assert response.status_code == 405
-    assert response.json() == {"detail":"Method Not Allowed"}
+    assert response.status_code == 409
+    assert response.json() == {'detail':'An account with this email already exists.'}
     return data
 
 @pytest.mark.order(5)
@@ -118,7 +117,8 @@ async def test_login_correct_pwd(async_app_client):
         "password": "StrongPwd1234,,,,tewfw4g",
     }
     response = await async_app_client.post("/users", json=data)
-    assert response.status_code == 405
+    assert response.status_code == 409
+    assert response.json()['detail'] == "An account with this email already exists."
     
     form_data = (
         "grant_type=password&username=testuser1"

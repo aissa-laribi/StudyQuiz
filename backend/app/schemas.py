@@ -1,10 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import List, Optional
 
 #Checks the validity of the data passed for user_name, email, and password
 class UserCreate(BaseModel):
-    user_name: str
     email: EmailStr
     password: str #Plain text password entered from User
     
@@ -12,12 +11,12 @@ class UserCreate(BaseModel):
 #Ensuring password nost sent in the response
 class UserResponse(BaseModel):
     id: int
-    user_name: str
     email: EmailStr
     role: str
+    verified: bool
 
     class Config:
-        orm_mode = True  # Enables ORM model conversion to this schema
+        model_config = ConfigDict(from_attributes=True) # Allows this schema to be created from ORM objects
 
 class ModuleCreate(BaseModel):
     name: str

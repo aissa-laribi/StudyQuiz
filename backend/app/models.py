@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List,Optional
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, DateTime, Float, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,12 +11,13 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_name: Mapped[str] = mapped_column(String(45), nullable=False, unique=True)
+    user_name: Mapped[Optional[str]] = mapped_column(String(45), nullable=True, unique=False)
     email: Mapped[str] = mapped_column(String(245), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(4), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(DateTime, onupdate=func.now(), nullable=True)
+    verified: Mapped[bool] = mapped_column(Boolean,nullable=False,unique=False)
     modules: Mapped[List["Module"]] = relationship(back_populates="owner")
     
 class Module(Base):

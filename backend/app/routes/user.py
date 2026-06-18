@@ -1,13 +1,15 @@
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import DBAPIError, IntegrityError, SQLAlchemyError
 from app.schemas import TokenData, Token
 from app.database import get_db
 from app.models import User
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated,Optional
+from app.schemas import UserCreate
 import os
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -65,7 +67,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: As
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-
         role = payload.get("role")
         if username is None or role is None:
             raise credentials_exception
@@ -92,7 +93,6 @@ async def get_user_info(current_user: Annotated[User, Depends(get_current_active
 
 @router.get("/users")
 async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
-
     if current_user.role == "root":
         result = await db.execute(select(User))
         users = result.scalars().all()
@@ -135,32 +135,59 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-"""
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
     #user: the request body of this API call validated by the UserCreate schema
     #db: An asynchronous database session, injected using the Depends(get_db) dependency.
     hashed_pw = hash_password(user.password)  # Hash the raw password
-    query  = select(User.id)
-    result = await db.execute(query)
-    users = result.scalars().all()
+    query  = select(User.id) #select the id column of the User model 
+    result = await db.execute(query) #Query db `SELECT USER.ID FROM USER`
+    users = result.scalars().all() #Return all users id in a list
     if len(users) == 0:
         role_str = "root"
+        verified = True
     else:
         role_str= "user"
-    new_user = User(user_name=user.user_name, email=user.email, password=hashed_pw, role=role_str) #create an instance of the ORM Userand initialising with the request body converted as a dictionary
+        verified = False
+    new_user = User(user_name=None, #create an instance of the ORM Userand initialising with the request body converted as a dictionary
+                    email=user.email, 
+                    password=hashed_pw, role=role_str, 
+                    created_at=datetime.now(),
+                    updated_at=datetime.now(),
+                    verified=verified,
+                    #plan=1,
+                )    
     try:
         db.add(new_user) #Add the instance of the ORM User to the db session
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
-        return {"User " + str(new_user.user_name) + "successfully added"}
-    except IntegrityError:  # Handle unique constraint violations
+        return {
+            "message": "User successfully created",
+            "user_id": new_user.id,
+            "email": new_user.email,
+            "verified": new_user.verified
+        }
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists."
+        )
+    except DBAPIError as e:  # Handle general databases error
         await db.rollback()  # Rollback the transaction to clean up the session
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error_type": type(e).__name__,
+                "message": "A database operation failed."
+        }
+        )
     
     #TODOS:  
     #        Force the user to enter a secure password on client side and serverside as well
-
+"""
 @router.patch("/users/{user_id}")
 async def update_user(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, new_data: dict, db: AsyncSession = Depends(get_db)):
     
@@ -231,4 +258,5 @@ async def delete_user(
         return {"message": "User deleted successfully", "user_id": user_id}
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
 """
