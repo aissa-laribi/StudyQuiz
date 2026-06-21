@@ -135,7 +135,6 @@ async def test_login_correct_pwd(async_app_client):
     assert response.status_code == 200
     assert "access_token" in response.json()
     
-
 @pytest.mark.order(7)
 @pytest.mark.anyio
 async def test_get_users1_logged(async_app_client):
@@ -161,7 +160,7 @@ async def test_get_users1_logged(async_app_client):
     assert response.json()[0]["role"] == "root"
     assert response.json()[1]["role"] == "user"
 
-@pytest.mark.order(15)
+@pytest.mark.order(8)
 @pytest.mark.anyio
 async def test_login_wrong_pwd2(async_app_client):
     form_data = (
@@ -179,7 +178,7 @@ async def test_login_wrong_pwd2(async_app_client):
     assert response.status_code == 401
     assert response.json()['detail'] == "Incorrect username or password"
 
-@pytest.mark.order(16)
+@pytest.mark.order(9)
 @pytest.mark.anyio
 async def test_login_correct_pwd2(async_app_client):
     form_data = (
@@ -197,7 +196,7 @@ async def test_login_correct_pwd2(async_app_client):
     access_token = token.json()["access_token"]
     assert token.status_code == 200
 
-@pytest.mark.order(17)
+@pytest.mark.order(10)
 @pytest.mark.anyio
 async def test_one_root_only(async_app_client):
     form_data = (
@@ -232,7 +231,7 @@ async def test_one_root_only(async_app_client):
     response = await async_app_client.delete(f"/users/{response.json()[3]['id']}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
 
-@pytest.mark.order(18)
+@pytest.mark.order(11)
 @pytest.mark.anyio
 async def test_new_user_not_verified(async_app_client):
     form_data = (
@@ -266,7 +265,7 @@ async def test_new_user_not_verified(async_app_client):
     response = await async_app_client.delete(f"/users/{response.json()[3]['id']}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
 
-@pytest.mark.order(19)
+@pytest.mark.order(12)
 @pytest.mark.anyio
 async def test_root_delete_user(async_app_client):
     form_data = (
@@ -302,8 +301,7 @@ async def test_root_delete_user(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
-
-@pytest.mark.order(20)
+@pytest.mark.order(13)
 @pytest.mark.anyio
 async def test_user_delete_itself(async_app_client):
     data = {
@@ -331,3 +329,77 @@ async def test_user_delete_itself(async_app_client):
     response = await async_app_client.delete(f"/users/{user_id}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
+
+@pytest.mark.order(14)
+@pytest.mark.anyio
+async def test_user_not_delete_another_user(async_app_client):
+    data = {
+        "email": "user4@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g"
+    }
+    response = await async_app_client.post("/users",json=data)
+    assert response.status_code == 200
+    data = {
+        "email": "user5@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g"
+    }
+    response = await async_app_client.post("/users",json=data)
+    assert response.status_code == 200
+    form_data = (
+        "grant_type=password&username=user4@gmail.com"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    user1_id = response.json()['id']
+    form_data = (
+        "grant_type=password&username=user5@gmail.com"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    user2_id = response.json()['id']
+    response = await async_app_client.delete(f"/users/{user1_id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == None
+    response = await async_app_client.delete(f"/users/{user2_id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User deleted successfully", "user_id": user2_id}
+    form_data = (
+        "grant_type=password&username=user4@gmail.com"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+    
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    response = await async_app_client.delete(f"/users/{user1_id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User deleted successfully", "user_id": user1_id}
+    #if user1 was deleted by user2 the response.json would have been None
+    
