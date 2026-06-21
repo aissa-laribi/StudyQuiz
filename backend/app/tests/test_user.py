@@ -88,7 +88,7 @@ async def test_post(async_app_client):
     response = await async_app_client.post("/users", json=data)
     print(response.text)
     assert response.status_code == 409
-    assert response.json() == {'detail':'An account with this email already exists.'}
+    assert response.json() == {'detail':'Account creation conflicts with existing database data.'}
     return data
 
 @pytest.mark.order(5)
@@ -118,7 +118,7 @@ async def test_login_correct_pwd(async_app_client):
     }
     response = await async_app_client.post("/users", json=data)
     assert response.status_code == 409
-    assert response.json()['detail'] == "An account with this email already exists."
+    assert response.json()['detail'] == "Account creation conflicts with existing database data."
     
     form_data = (
         "grant_type=password&username=testuser1"

@@ -168,12 +168,15 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
             "email": new_user.email,
             "verified": new_user.verified
         }
-    except IntegrityError:
+    except IntegrityError as e:
         await db.rollback()
+        print("IntegrityError type:", type(e).__name__)
+        print("Original database error:", e.orig)
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="An account with this email already exists."
-        )
+            detail="Account creation conflicts with existing database data."
+    )
     except DBAPIError as e:  # Handle general databases error
         await db.rollback()  # Rollback the transaction to clean up the session
         print(e)
