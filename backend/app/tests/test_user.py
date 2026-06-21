@@ -263,3 +263,43 @@ async def test_new_user_not_verified(async_app_client):
     assert len(response.json()) == 4
     assert response.json()[3]['role'] == 'user'
     assert response.json()[3]['verified'] == False
+    response = await async_app_client.delete(f"/users/{response.json()[3]['id']}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+
+@pytest.mark.order(19)
+@pytest.mark.anyio
+async def test_root_delete_user(async_app_client):
+    form_data = (
+        "grant_type=password&username=testuser1"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+
+    response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert len(response.json()) == 3
+    data = {
+        "email": "user4@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g"
+    }
+    response = await async_app_client.post("/users",json=data)
+    assert response.status_code == 200
+    response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert len(response.json()) == 4
+    assert response.json()[3]['role'] == 'user'
+    assert response.json()[3]['verified'] == False
+    user_id = (list(filter(lambda x: x['email'] == 'user4@gmail.com',response.json()))[0])['id']
+    response = await async_app_client.delete(f"/users/{user_id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
+
+
