@@ -303,3 +303,31 @@ async def test_root_delete_user(async_app_client):
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
 
+@pytest.mark.order(20)
+@pytest.mark.anyio
+async def test_user_delete_itself(async_app_client):
+    data = {
+        "email": "user4@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g"
+    }
+    response = await async_app_client.post("/users",json=data)
+    assert response.status_code == 200
+    form_data = (
+        "grant_type=password&username=user4@gmail.com"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.get("/users/me",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    user_id = response.json()['id']
+    response = await async_app_client.delete(f"/users/{user_id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
