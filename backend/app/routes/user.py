@@ -150,7 +150,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     else:
         role_str= "user"
         verified = False
-    new_user = User(user_name=None, #create an instance of the ORM Userand initialising with the request body converted as a dictionary
+    new_user = User(user_name=user.email, #create an instance of the ORM Userand initialising with the request body converted as a dictionary
                     email=user.email, 
                     password=hashed_pw, role=role_str, 
                     created_at=datetime.now(),
@@ -225,7 +225,7 @@ async def update_user(current_user: Annotated[User, Depends(get_current_active_u
     
     #TODOS: Not return password in bodyresponse if password not updated
     
-
+"""
 @router.delete("/users/{user_id}")
 async def delete_user(
     current_user: Annotated[User, Depends(get_current_active_user)],user_id: int,
@@ -235,28 +235,42 @@ async def delete_user(
     if current_user.role == "root":
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
         if user.role == "root":
-            raise HTTPException(status_code=403, detail="Root user cannot delete themselves.")
+            raise HTTPException(status_code=403, detail="Root user cannot delete itself.")
         else:
             result = await db.execute(select(User).where(User.id == user_id))
             user = result.scalars().first()
-            if user is None:
-                raise HTTPException(status_code=404, detail="User not found")
-
-
-            await db.delete(user)
-            await db.commit()
-    
-            return {"message": "User deleted successfully", "user_id": user_id}
+            
+            try:
+                await db.delete(user)
+                await db.commit()
+                return {"message": "User deleted successfully", "user_id": user_id}
+            except AttributeError:
+                await db.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="No account with this username exists."
+                )
+            except DBAPIError as e:  # Handle general databases error
+                await db.rollback()  # Rollback the transaction to clean up the session
+                print(e)
+                raise HTTPException(
+                    status_code=500,
+                    detail={
+                        "error_type": type(e).__name__,
+                        "message": "A database operation failed."
+                    }
+                )
     elif current_user.id == user_id:
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
-        await db.delete(user)
-        await db.commit()
-        return {"message": "User deleted successfully", "user_id": user_id}
-    else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
-
-"""
+        try:
+            await db.delete(user)
+            await db.commit()
+            return {"message": "User deleted successfully", "user_id": user_id}
+        except AttributeError:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
