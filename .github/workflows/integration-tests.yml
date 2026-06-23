@@ -28,6 +28,7 @@ jobs:
           P1: ${{ secrets.P1}}
           P2: ${{ secrets.P2}}
           P3: ${{ secrets.P3}}
+          SEND_CONFIRMATION: ${{ secrets.SEND_CONFIRMATION}}
           TABLE_NAME : user
         run: |
           sudo apt-get update -y
