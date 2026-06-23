@@ -167,8 +167,8 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
         resend.api_key = SEND_EMAIL
-        print(os.getcwd())
-        email_html=open("/frontend/static/confirmation-email.html","r")
+        print(os.listdir(os.getcwd()))
+        email_html=open("./frontend/static/confirmation-email.html","r")
         attachment: resend.RemoteAttachment = {
             "path": "https://studyquiz.co/logo.png",
             "filename": "logo.png",
