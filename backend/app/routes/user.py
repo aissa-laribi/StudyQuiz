@@ -1,3 +1,5 @@
+import sys
+
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,11 +15,13 @@ from app.schemas import UserCreate
 import os
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
+import resend
 
 #load_dotenv("../.env")
 SECRET_KEY= os.getenv("SECRET_KEY")
 ALGORITHM= os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 180
+SEND_EMAIL= os.getenv("SEND_CONFIRMATION")
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
@@ -162,6 +166,26 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         db.add(new_user) #Add the instance of the ORM User to the db session
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
+        resend.api_key = SEND_EMAIL
+        email_html=open("../frontend/static/confirmation-email.html","r")
+        attachment: resend.RemoteAttachment = {
+            "path": "https://studyquiz.co/logo.png",
+            "filename": "logo.png",
+            "content_id": "logo-image",
+        }
+         
+        email_content=""
+        for i in email_html.readlines():
+            email_content+=str(i)
+        email_html.close()
+        params: resend.Emails.SendParams = {
+        "from": "hello@studyquiz.co",
+        "to": f"{user.email}",
+        "subject": "Welcome to StudyQuiz!",
+        "html": f"{email_content}",
+        }
+        resend.Emails.send(params)
+
         return {
             "message": "User successfully created",
             "user_id": new_user.id,
