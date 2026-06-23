@@ -28,7 +28,6 @@ jobs:
           P1: ${{ secrets.P1}}
           P2: ${{ secrets.P2}}
           P3: ${{ secrets.P3}}
-          SEND_CONFIRMATION: ${{ secrets.SEND_CONFIRMATION}}
           TABLE_NAME : user
         run: |
           sudo apt-get update -y
@@ -42,6 +41,7 @@ jobs:
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (user_name, email, password, role, verified) VALUES ('test_user3', 'user3@gmail.com', '$P3', 'user', false);"
           sudo -u postgres psql -d test -c '\dt'
           sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";'
+  
       - name: Test with pytest
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
@@ -49,6 +49,7 @@ jobs:
           PYTHONPATH: backend
           SECRET_KEY: ${{ secrets.TEST_SECRET_KEY}}
           ALGORITHM: HS256
+          SEND_CONFIRMATION: ${{ secrets.SEND_CONFIRMATION}}
         run: |
           pip install pytest pytest-cov
           pytest backend/app/tests/test_user.py backend/app/tests/test_module.py \
