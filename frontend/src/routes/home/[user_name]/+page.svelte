@@ -767,7 +767,6 @@
       </ol>
     </section>
     </div>
-    {#if }
     <div id="col-modules">
     <div id="my-modules">
     <h2>My Modules
