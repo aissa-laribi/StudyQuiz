@@ -320,13 +320,15 @@
     <div id="login-col2">
     <div id="login-spacer"></div>
     <div id="login-form-section">
-        <p id="login-intro">Welcome Back!</p>
-        <h3 class="login-title">Signin to Studyquiz</h3>
-        <p>For guest user, enter Guest with no password</p>
+        <p id="login-intro">Welcome back!</p>
+        <h3 class="login-title">Signin to StudyQuiz</h3>
+        <p><strong>Guest access</strong></p>
+        <p><strong>Username:</strong> Guest</p>
+        <p><strong>Password:</strong> Leave blank</p>
         <form on:submit|preventDefault={handleLogin}>
         <i class="fa fa-envelope icon"></i>
-        <input name="username" type="input" placeholder="username">
-		    <input name="password" type="password" placeholder="password">
+        <input name="username" type="input" placeholder="Username">
+		    <input name="password" type="password" placeholder="Password">
       <button disabled={loading}>
       {loading ? "…" : "Log in"}
       </button>
