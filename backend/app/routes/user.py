@@ -22,6 +22,7 @@ SECRET_KEY= os.getenv("SECRET_KEY")
 ALGORITHM= os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 180
 SEND_EMAIL= os.getenv("SEND_CONFIRMATION")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
@@ -61,6 +62,15 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
     return encoded_jwt
 
+def confirmation_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(hours=24)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -167,7 +177,8 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
         resend.api_key = SEND_EMAIL
-        email_html=open("frontend/static/confirmation-email.html","r")
+        email_html=open("../frontend/static/confirmation-email.html","r")
+        confirmation_url = f"{FRONTEND_URL}/users/{new_user.user_name}?from=confirmation-email"
         attachment: resend.RemoteAttachment = {
             "path": "https://studyquiz.co/logo.png",
             "filename": "logo.png",
@@ -175,7 +186,12 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         }
          
         email_content=""
+        c = 0
         for i in email_html.readlines():
+            if '{{ confirmation_url }}' in i:
+                print("True")
+                i = i.replace('{{ confirmation_url }}', confirmation_url)
+                print(i)
             email_content+=str(i)
         email_html.close()
         params: resend.Emails.SendParams = {

@@ -12,12 +12,11 @@
   let followups = [];
   let notAttempted = []
   let user = Object;
-  let notAttempted = []
-  let user = Object;
   let user_name = "";
   let user_id = 0;
   let module_name = "";
   let quiz_name = "";
+  let toggledProfile = false;
   
   const apiURL = import.meta.env.VITE_API_URL;
   const imgModuleIndex = writable(null);
@@ -27,19 +26,15 @@
   function moduleHandler(index, name){
     localStorage.setItem(`imgModuleIndex`, index+1);
     localStorage.setItem(`moduleName`, name);
-<<<<<<< HEAD
   }
 
   function logout(){
     localStorage.removeItem("access_token");
     localStorage.removeItem("user_name");
     window.location.href = "/";
-=======
->>>>>>> 6fc7a09 (Add Not Attempted Quizzes UI)
   }
 
   async function getUsername(){
-    const token = localStorage.getItem("access_token");
     const token = localStorage.getItem("access_token");
     if(!token) return;
 
@@ -54,15 +49,12 @@
     if(userQuery.ok){
       const data = await userQuery.json();
       user = data;
-      user = data;
       user_name = data['user_name'];
-      user_id = data['id'];
       user_id = data['id'];
     } else {
       message = "Failed to retrieve username";
     }
   }
-
 
   async function loadModulesAndFollowups() {
     const token = localStorage.getItem("access_token");
@@ -111,25 +103,6 @@
     }
   }
 
-  async function getNotAttempted(){
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    // Load not attempted
-    const q = await fetch(`${apiURL}/users/me/quizzes/new`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-        }
-    });
-    if (q.ok) {
-      notAttempted = await q.json();
-    } else {
-      message = "Failed to fetch quizzes";
-    }
-  }
-
   async function getModuleName(id){
     const token = localStorage.getItem("access_token");
     if (!token || !id || !user_id) return "Unknown module";
@@ -168,43 +141,21 @@
     }
   }
 
-  async function getModuleName(id){
-    const token = localStorage.getItem("access_token");
-    if (!token || !id || !user_id) return "Unknown module";
-    const q = await fetch(`${apiURL}/users/${user_id}/modules/${id}`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-        }
-    });
-
-    if (q.ok) {
-      const data = await q.json();
-      return data.module_name;
+  function isOverdue(date) {
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const days = Math.ceil((new Date(date) - Date.now()) / msPerDay);
+    if (days < 0){
+      return true;
     } else {
-        return "Unkown module";
+      return false;
     }
   }
 
-  async function getQuizname(module_id,id){
-    const token = localStorage.getItem("access_token");
-    if (!token || !module_id || !id || !user_id) return "Unknown quiz";
-    const q = await fetch(`${apiURL}/users/${user_id}/modules/${module_id}/quizzes/${id}`, {
-      method: 'GET',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-        }
-    });
-
-    if (q.ok) {
-      const data = await q.json();
-      return data.quiz_name;
-    } else {
-        return "Unkown quiz";
-    }
-  }
+  function nextReviewFormat(date){
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const days = Math.abs(Math.ceil((new Date(date) - Date.now()) / msPerDay));
+    return `${days} days late`;
+}
 
   async function registerModule(event) {
     event.preventDefault();
@@ -354,13 +305,11 @@
         vertical-align: baseline;
         grid-template-columns: 2fr 1fr;
         grid-template-rows: auto auto;
-        grid-template-rows: auto auto;
         gap: 2rem;
         grid-template-areas:
         'spacer spacer'
         'col-modules col-quizzes'
         ;
-        padding-bottom: 3rem;
         padding-bottom: 3rem;
     }
     main h1 {
@@ -428,7 +377,6 @@
       border-bottom: 3px solid #eff0f3;
       margin: 2em; 
     }
-
 
     #my-modules button {
       border: 0px;
@@ -610,8 +558,6 @@
       height: fit-content;
       display: grid;
       gap: 3rem;
-      display: grid;
-      gap: 3rem;
     }
     #col-quizzes h2{
       //font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
@@ -680,33 +626,14 @@
       font-weight:600;
     }
 
-    #not-attempted-quizzes{
-      background-color: white;      
-    }
-    #not-attempted-quizzes h2{
+    .quiz-overdue-date {
+      margin: 0;
+      font-size: 1.1em;
       text-align: left;
-      //margin: 0 2em 0em 2em;
-      //gap: 1em;
-      font-family: 'Montserrat', sans-serif;      
-      max-width: 100%;
-      font-size: 2rem;
-      height: 6vh;
-      background-color: white;
-      border-bottom: 3px solid #eff0f3;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-weight:600;
+      color: red; 
     }
-
-    #not-attempted-container{
-      background-color: white;
-      padding: 1em;
-      //display:flex;
-      //flex-wrap: wrap;
-      //margin: 2em 2em 2em 2em;
-      gap: 1em;
-      max-width: 100%;
-      height: auto;
-    }
-
-
 
     #not-attempted-quizzes{
       background-color: white;      
@@ -819,6 +746,8 @@
       </button>
     {#if toggledProfile}
       <div class="dropdown">
+        <button on:click={logout}>Upgrade</button>
+        <button on:click={logout}>Settings</button>
         <button on:click={logout}>Logout</button>
       </div>
     {/if}
@@ -830,13 +759,15 @@
     <section class="welcome-banner">
       <h1>Welcome to StudyQuiz</h1>
       <h2>Try the demo learning flow:</h2>
+
       <ol class="welcome-steps">
-        <li>Choose a sample module below</li>
-        <li>Take a quiz</li>
-        <li>See how StudyQuiz schedules your next review</li>
+        <li>Choose a sample module below, or create your own module.</li>
+        <li>Click <strong>New Quiz</strong> and upload your learning material.</li>
+        <li>Generate a quiz, take it, and see how StudyQuiz schedules your next review.</li>
       </ol>
-</section>
+    </section>
     </div>
+    {#if }
     <div id="col-modules">
     <div id="my-modules">
     <h2>My Modules
@@ -869,7 +800,11 @@
 
       <div class="quiz-details">
         <p class="quiz-title">{followup.module.module_name} — {followup.quiz.quiz_name}</p>
+        {#if isOverdue(followup.followup_due_date)}
+        <p class="quiz-overdue-date">Due: {new Date(followup.followup_due_date).toLocaleDateString()} - {nextReviewFormat(followup.followup_due_date) }</p>
+        {:else}
         <p class="quiz-due-date">Due: {new Date(followup.followup_due_date).toLocaleDateString()}</p>
+        {/if}
       </div>
     </a>
   {/each}
@@ -921,56 +856,7 @@
 {/each}
   </div>
   {/if}
-  </div>
-  {#if notAttempted.length > 0}
-  <div id="not-attempted-container">
-  <div id="not-attempted-quizzes">
-    <h2>Not Attempted Quizzes</h2>
-  </div>
-  {#each notAttempted.slice(0, 3) as n}
-  {#await getModuleName(n.module_id)}
-    <div class="followup-box">
-      <p>Loading module...</p>
-    </div>
-  {:then moduleName}
-    {#await getQuizname(n.module_id, n.id)}
-      <div class="followup-box">
-        <p>{moduleName} — Loading quiz...</p>
-      </div>
-    {:then quizName}
-      <a
-        class="followup-box"
-        href={`/home/me/modules/${moduleName}/quizzes/${quizName}/attempt`}
-      >
-        <div class="quiz-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 14v2.2l1.6 1"/>
-            <path d="M16 4h2a2 2 0 0 1 2 2v.832"/>
-            <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"/>
-            <circle cx="16" cy="16" r="6"/>
-            <rect x="8" y="2" width="8" height="4" rx="1"/>
-          </svg>
-        </div>
-
-        <div class="quiz-details">
-          <p class="quiz-title">{moduleName} — {quizName}</p>
-        </div>
-      </a>
-    {:catch}
-      <div class="followup-box">
-        <p>{moduleName} — Unknown quiz</p>
-      </div>
-    {/await}
-  {:catch}
-    <div class="followup-box">
-      <p>Unknown module — Unknown quiz</p>
-    </div>
-  {/await}
-{/each}
-  </div>
-  {/if}
 </div>
-  
   
 
     {#if showModal}
