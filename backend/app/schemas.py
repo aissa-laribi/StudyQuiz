@@ -8,15 +8,28 @@ class UserCreate(BaseModel):
     password: str #Plain text password entered from User
     
 
-#Ensuring password nost sent in the response
+#Ensuring password not sent in the response
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
     role: str
     verified: bool
 
-    class Config:
-        model_config = ConfigDict(from_attributes=True) # Allows this schema to be created from ORM objects
+    model_config = ConfigDict(from_attributes=True) # Allows this schema to be created from ORM objects
+
+class VerificationTokenCreate(BaseModel):
+    user_id: int
+    token: str
+    expires_at: datetime
+
+
+class VerificationTokenResponse(BaseModel):
+    id: int
+    user_id: int
+    created_at: datetime
+    expires_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ModuleCreate(BaseModel):
     name: str

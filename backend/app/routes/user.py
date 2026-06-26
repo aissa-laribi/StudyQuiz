@@ -6,16 +6,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import DBAPIError, IntegrityError, SQLAlchemyError
 from app.schemas import TokenData, Token
 from app.database import get_db
-from app.models import User
+from app.models import User, VerificationToken
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Annotated,Optional
-from app.schemas import UserCreate
+from app.schemas import UserCreate,VerificationTokenCreate
 import os
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 import resend
+import secrets
+import hashlib
+
 
 #load_dotenv("../.env")
 SECRET_KEY= os.getenv("SECRET_KEY")
@@ -62,15 +65,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
     return encoded_jwt
 
-def confirmation_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(hours=24)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+def confirmation_token() -> str:
+    return secrets.token_urlsafe(32)
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -149,6 +145,10 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
+def create_verification_token(user_id:int,token:str) -> VerificationToken:
+    return VerificationToken(user_id=user_id,token_hash=hashlib.sha256(token.encode("utf-8")).hexdigest(),created_at=datetime.now(timezone.utc),expires_at=datetime.now(timezone.utc) + timedelta(hours=24))
+
+
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
@@ -164,6 +164,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     else:
         role_str= "user"
         verified = False
+        token:str = confirmation_token()
     new_user = User(user_name=user.email, #create an instance of the ORM Userand initialising with the request body converted as a dictionary
                     email=user.email, 
                     password=hashed_pw, role=role_str, 
@@ -173,12 +174,17 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
                     #plan=1,
                 )    
     try:
+        #new_user.verification_tokens)
         db.add(new_user) #Add the instance of the ORM User to the db session
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
+        verification_token = create_verification_token(user_id=new_user.id,token=token)
+        db.add(verification_token)
+        await db.commit()
+        await db.refresh(verification_token)
         resend.api_key = SEND_EMAIL
         email_html=open("frontend/static/confirmation-email.html","r")
-        confirmation_url = f"{FRONTEND_URL}/users/{new_user.user_name}?from=confirmation-email"
+        confirmation_url = f"{FRONTEND_URL}/confirm-email?token={token}"
         attachment: resend.RemoteAttachment = {
             "path": "https://studyquiz.co/logo.png",
             "filename": "logo.png",
@@ -189,9 +195,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         c = 0
         for i in email_html.readlines():
             if '{{ confirmation_url }}' in i:
-                print("True")
                 i = i.replace('{{ confirmation_url }}', confirmation_url)
-                print(i)
             email_content+=str(i)
         email_html.close()
         params: resend.Emails.SendParams = {

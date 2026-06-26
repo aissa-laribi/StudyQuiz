@@ -19,6 +19,16 @@ class User(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime, onupdate=func.now(), nullable=True)
     verified: Mapped[bool] = mapped_column(Boolean,nullable=False,unique=False)
     modules: Mapped[List["Module"]] = relationship(back_populates="owner")
+    verification_tokens: Mapped[list["VerificationToken"]] = relationship(back_populates="user",cascade="all, delete-orphan")
+
+class VerificationToken(Base):
+    __tablename__= "verification_token"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"),nullable=False,index=True,)
+    token_hash: Mapped[str] = mapped_column(String(64),nullable=False,unique=True,index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),server_default=func.now(),nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),nullable=False)
+    user: Mapped["User"] = relationship(back_populates="verification_tokens")
     
 class Module(Base):
     __tablename__ = "module"
