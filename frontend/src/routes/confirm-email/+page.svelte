@@ -1,94 +1,33 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import lottie from "lottie-web";
-  import animationData from "$lib/login-waiting.json";
-
   let animationContainer;
-
-  let message = "";
-  let login = "Login";
-  let logged = false;
-  let loading = false;
-  let failed = false;
+  let validToken=false;
+  let email=null;
   
 
   const apiURL = import.meta.env.VITE_API_URL;
 
-  $: if(logged === true){
-    login="Logged in";
-  } else {
-    login = "Login";
-  }
-  
-  async function handleLogin(event) {
-    event.preventDefault();
-
-    loading = true;
-    failed = false;
-    message = "";
-
-    const formData = new FormData(event.target);
-    const username = formData.get('username');
-    const password = formData.get('password');
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000);
-
-    try {
-      const res = await fetch(`${apiURL}/users/token`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          username,
-          password,
-          grant_type: "password",
-          client_id: "string",
-          client_secret: "string"
-        }),
-        signal: controller.signal
-      });
-      
-      if (!res.ok) {
-        failed = true;
-        message = "Login failed: Incorrect credentials";
-        logged = false;
-        return;
+  async function validTokenCheck() {
+    const req = await fetch(`${apiURL}/users/verification-email?token=${window.location.href.slice(42)}`,{
+      headers: {
+        method: "GET",
+        accept: "application/json"
       }
-
-      const token = await res.json();
-      localStorage.setItem("access_token", token.access_token);
-      
-      logged = true;
-      goto(`/home/${username}`);
-      
-
-    } catch (e) {
-      failed = true;
-      if (e.name === "AbortError") {
-        message = message = "Preparing your workspace. This may take a few seconds.";
-      } else {
-        message = "Network error. Please try again.";
-      }
-    } finally {
-      clearTimeout(timeoutId);
-      loading = false;
+    }
+    );
+    if (req.ok){
+      const result = await req.json();
+      validToken = true;
+      email = result.email;
+    } else {
+      console.log("Not")
     }
   }
 
   onMount(() => {
-    fetch(`${apiURL}/`).catch(() => {});
-    const animation = lottie.loadAnimation({
-      container: animationContainer,
-      renderer: "svg",
-      loop: true,
-      autoplay: true,
-      animationData
-    });
-
-    return () => animation.destroy();
+    validTokenCheck()
   });
-
 </script>
 
 <style>
@@ -262,8 +201,8 @@
     <div id="form-box">
         <form>
             <input type="text" name="Username" placeholder="Choose a username" required>
-            <input type="text" name="email" placeholder="Email" required>
-            <input name="organization" placeholder="Organization">
+            <input type="email" bind:value={email} readonly>
+            <input name="organization" placeholder="School,college or organization">
             <input name="city" placeholder="City">
             <div id="over16-box">
                 <table>

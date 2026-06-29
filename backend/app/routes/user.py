@@ -95,6 +95,19 @@ async def get_current_active_user(
 ):
     return current_user
 
+@router.get("/users/verification-email")
+async def get_verification_token(token:str,db: AsyncSession = Depends(get_db)):
+    print(hashlib.sha256(token.encode("utf-8")).hexdigest())
+    result = await db.execute(select(VerificationToken).where(VerificationToken.token_hash==hashlib.sha256(token.encode("utf-8")).hexdigest()))
+    data = result.scalars().first()
+    if data != None:
+        response = await db.execute(select(User).where(User.id == data.user_id))
+        user = response.scalars().first()
+        return {"email":user.email}
+    else:
+        return None
+
+
 @router.get("/users/me")
 async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
@@ -147,7 +160,6 @@ async def login_for_access_token(
 
 def create_verification_token(user_id:int,token:str) -> VerificationToken:
     return VerificationToken(user_id=user_id,token_hash=hashlib.sha256(token.encode("utf-8")).hexdigest(),created_at=datetime.now(timezone.utc),expires_at=datetime.now(timezone.utc) + timedelta(hours=24))
-
 
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
