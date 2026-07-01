@@ -218,7 +218,7 @@ async def test_one_root_only(async_app_client):
     assert len(response.json()) == 3
     assert len(list(filter(lambda x : x["role"] == "root",response.json()))) == 1
     data = {
-        "email": "user4@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g"
     }
     response = await async_app_client.post("/users",json=data)
@@ -252,7 +252,7 @@ async def test_new_user_not_verified(async_app_client):
     assert response.status_code == 200
     assert len(response.json()) == 3
     data = {
-        "email": "user4@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g"
     }
     response = await async_app_client.post("/users",json=data)
@@ -286,7 +286,7 @@ async def test_root_delete_user(async_app_client):
     assert response.status_code == 200
     assert len(response.json()) == 3
     data = {
-        "email": "user4@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g"
     }
     response = await async_app_client.post("/users",json=data)
@@ -296,7 +296,7 @@ async def test_root_delete_user(async_app_client):
     assert len(response.json()) == 4
     assert response.json()[3]['role'] == 'user'
     assert response.json()[3]['verified'] == False
-    user_id = (list(filter(lambda x: x['email'] == 'user4@gmail.com',response.json()))[0])['id']
+    user_id = (list(filter(lambda x: x['email'] == 'testsstudyquiz@gmail.com',response.json()))[0])['id']
     response = await async_app_client.delete(f"/users/{user_id}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
@@ -305,13 +305,13 @@ async def test_root_delete_user(async_app_client):
 @pytest.mark.anyio
 async def test_user_delete_itself(async_app_client):
     data = {
-        "email": "user4@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g"
     }
     response = await async_app_client.post("/users",json=data)
     assert response.status_code == 200
     form_data = (
-        "grant_type=password&username=user4@gmail.com"
+        "grant_type=password&username=testsstudyquiz@gmail.com"
         "&password=StrongPwd1234,,,,tewfw4g"
         "&scope=&client_id=string&client_secret=string"
     )
@@ -334,7 +334,7 @@ async def test_user_delete_itself(async_app_client):
 @pytest.mark.anyio
 async def test_user_not_delete_another_user(async_app_client):
     data = {
-        "email": "user4@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g"
     }
     response = await async_app_client.post("/users",json=data)
@@ -346,7 +346,7 @@ async def test_user_not_delete_another_user(async_app_client):
     response = await async_app_client.post("/users",json=data)
     assert response.status_code == 200
     form_data = (
-        "grant_type=password&username=user4@gmail.com"
+        "grant_type=password&username=testsstudyquiz@gmail.com"
         "&password=StrongPwd1234,,,,tewfw4g"
         "&scope=&client_id=string&client_secret=string"
     )
@@ -384,7 +384,7 @@ async def test_user_not_delete_another_user(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user2_id}
     form_data = (
-        "grant_type=password&username=user4@gmail.com"
+        "grant_type=password&username=testsstudyquiz@gmail.com"
         "&password=StrongPwd1234,,,,tewfw4g"
         "&scope=&client_id=string&client_secret=string"
     )
@@ -402,4 +402,3 @@ async def test_user_not_delete_another_user(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user1_id}
     #if user1 was deleted by user2 the response.json would have been None
-    

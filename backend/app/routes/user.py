@@ -44,6 +44,21 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password,hashed_password)
 
+async def get_role_signup_and_verified(db:Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(select(User.id))
+    users = result.scalars().all() #Return all users id in a list
+    if len(users) == 0:
+        return {
+        "role": "root",
+        "verified" : True,
+        "token": None  }
+    else:
+        return {
+            "role" : "user",
+            "verified" : False,
+            "token": confirmation_token()
+        }
+
 async def authenticate_user(username: str, password: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.user_name == username))
     user = result.scalars().first()
@@ -97,7 +112,6 @@ async def get_current_active_user(
 
 @router.get("/users/verification-email")
 async def get_verification_token(token:str,db: AsyncSession = Depends(get_db)):
-    print(hashlib.sha256(token.encode("utf-8")).hexdigest())
     result = await db.execute(select(VerificationToken).where(VerificationToken.token_hash==hashlib.sha256(token.encode("utf-8")).hexdigest()))
     data = result.scalars().first()
     if data != None:
@@ -161,42 +175,11 @@ async def login_for_access_token(
 def create_verification_token(user_id:int,token:str) -> VerificationToken:
     return VerificationToken(user_id=user_id,token_hash=hashlib.sha256(token.encode("utf-8")).hexdigest(),created_at=datetime.now(timezone.utc),expires_at=datetime.now(timezone.utc) + timedelta(hours=24))
 
-@router.post("/users")
-async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
-    #user: the request body of this API call validated by the UserCreate schema
-    #db: An asynchronous database session, injected using the Depends(get_db) dependency.
-    hashed_pw = hash_password(user.password)  # Hash the raw password
-    query  = select(User.id) #select the id column of the User model 
-    result = await db.execute(query) #Query db `SELECT USER.ID FROM USER`
-    users = result.scalars().all() #Return all users id in a list
-    if len(users) == 0:
-        role_str = "root"
-        verified = True
-    else:
-        role_str= "user"
-        verified = False
-        token:str = confirmation_token()
-    new_user = User(user_name=user.email, #create an instance of the ORM Userand initialising with the request body converted as a dictionary
-                    email=user.email, 
-                    password=hashed_pw, role=role_str, 
-                    created_at=datetime.now(),
-                    updated_at=datetime.now(),
-                    verified=verified,
-                    #plan=1,
-                )    
-    try:
-        #new_user.verification_tokens)
-        db.add(new_user) #Add the instance of the ORM User to the db session
-        await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
-        await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
-        verification_token = create_verification_token(user_id=new_user.id,token=token)
-        db.add(verification_token)
-        await db.commit()
-        await db.refresh(verification_token)
+async def send_email_confirmation(client,user_email,user_token):
+    if client == "API":
         resend.api_key = SEND_EMAIL
-        email_html=open("frontend/static/confirmation-email.html","r")
-        confirmation_url = f"{FRONTEND_URL}/confirm-email?token={token}"
+        email_html=open("../frontend/static/confirmation-email.html","r")
+        confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
         attachment: resend.RemoteAttachment = {
             "path": "https://studyquiz.co/logo.png",
             "filename": "logo.png",
@@ -208,16 +191,53 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
         for i in email_html.readlines():
             if '{{ confirmation_url }}' in i:
                 i = i.replace('{{ confirmation_url }}', confirmation_url)
-            email_content+=str(i)
+                email_content+=str(i)
         email_html.close()
         params: resend.Emails.SendParams = {
-        "from": "hello@studyquiz.co",
-        "to": f"{user.email}",
+        "from": "StudyQuiz <hello@studyquiz.co>",
+        "to": [user_email],
         "subject": "Welcome to StudyQuiz!",
         "html": f"{email_content}",
         }
         resend.Emails.send(params)
+    elif client == "TEST":
+        email_html=open("../frontend/static/confirmation-email.html","r")
+        confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
+        email_content=""
+        c = 0
+        for i in email_html.readlines():
+            if '{{ confirmation_url }}' in i:
+                i = i.replace('{{ confirmation_url }}', confirmation_url)
+                email_content+=str(i)
+        email_html.close()
 
+@router.post("/users")
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod: bool=True):
+    #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
+    #user: the request body of this API call validated by the UserCreate schema
+    #db: An asynchronous database session, injected using the Depends(get_db) dependency.
+    hashed_pw = hash_password(user.password)  # Hash the raw password
+    data = await get_role_signup_and_verified(db)  
+    new_user = User(user_name=user.email, #create an instance of the ORM Userand initialising with the request body converted as a dictionary
+                    email=user.email, 
+                    password=hashed_pw, role=data['role'], 
+                    created_at=datetime.now(),
+                    updated_at=datetime.now(),
+                    verified=data['verified'],
+                    #plan=1,
+                )    
+    try:
+        db.add(new_user) #Add the instance of the ORM User to the db session
+        await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
+        await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
+        verification_token = create_verification_token(user_id=new_user.id,token=data['token'])
+        db.add(verification_token)
+        await db.commit()
+        await db.refresh(verification_token)
+        if(prod):
+            await send_email_confirmation("API",new_user.email,data['token'])
+        else:
+            await send_email_confirmation("TEST",new_user.email,data['token'])
         return {
             "message": "User successfully created",
             "user_id": new_user.id,
