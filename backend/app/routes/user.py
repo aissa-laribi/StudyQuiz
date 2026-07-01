@@ -178,7 +178,7 @@ def create_verification_token(user_id:int,token:str) -> VerificationToken:
 async def send_email_confirmation(client,user_email,user_token):
     if client == "API":
         resend.api_key = SEND_EMAIL
-        email_html=open("../frontend/static/confirmation-email.html","r")
+        email_html=open("frontend/static/confirmation-email.html","r")
         confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
         attachment: resend.RemoteAttachment = {
             "path": "https://studyquiz.co/logo.png",
@@ -187,21 +187,20 @@ async def send_email_confirmation(client,user_email,user_token):
         }
          
         email_content=""
-        c = 0
         for i in email_html.readlines():
             if '{{ confirmation_url }}' in i:
                 i = i.replace('{{ confirmation_url }}', confirmation_url)
-                email_content+=str(i)
+            email_content+=str(i)
         email_html.close()
         params: resend.Emails.SendParams = {
         "from": "StudyQuiz <hello@studyquiz.co>",
-        "to": [user_email],
+        "to": user_email,
         "subject": "Welcome to StudyQuiz!",
         "html": f"{email_content}",
         }
         resend.Emails.send(params)
     elif client == "TEST":
-        email_html=open("../frontend/static/confirmation-email.html","r")
+        email_html=open("frontend/static/confirmation-email.html","r")
         confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
         email_content=""
         c = 0
