@@ -15,6 +15,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(245), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(4), nullable=False)
+    organization: Mapped[str] = mapped_column(String(20), nullable=True)
+    city: Mapped[str] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(DateTime, onupdate=func.now(), nullable=True)
     verified: Mapped[bool] = mapped_column(Boolean,nullable=False,unique=False)
