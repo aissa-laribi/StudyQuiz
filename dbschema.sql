@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict DksPiLDxm7vZNBzxCqRaoRuK1EmQo8OTImVyVdRRX1lAbhIUcGXu8V8g8GAOzVa
+\restrict 6nBRc8ynblCrnX8qAUXpu4FW0Am8A5Jpdfjv4rZWioxC9SNEqTEyK3vqmQrovV1
 
 -- Dumped from database version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
 -- Dumped by pg_dump version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
@@ -307,7 +307,9 @@ CREATE TABLE public."user" (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     role character varying(4) DEFAULT 'user'::character varying NOT NULL,
-    verified boolean
+    verified boolean,
+    organization character varying(20),
+    city character varying(20)
 );
 
 
@@ -827,5 +829,5 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DksPiLDxm7vZNBzxCqRaoRuK1EmQo8OTImVyVdRRX1lAbhIUcGXu8V8g8GAOzVa
+\unrestrict 6nBRc8ynblCrnX8qAUXpu4FW0Am8A5Jpdfjv4rZWioxC9SNEqTEyK3vqmQrovV1
 
