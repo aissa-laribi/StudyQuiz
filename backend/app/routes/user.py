@@ -1,7 +1,8 @@
 import sys
 
+from sqlalchemy import Row
 from sqlalchemy.future import select
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import DBAPIError, IntegrityError, SQLAlchemyError
 from app.schemas import TokenData, Token
@@ -120,6 +121,58 @@ async def get_verification_token(token:str,db: AsyncSession = Depends(get_db)):
         return {"email":user.email}
     else:
         return None
+    
+@router.post("/users/verification-email")
+async def confirm_email(user_name:str,email:str,token:str,organization: str | None = None, city: str | None = None, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(VerificationToken).where(VerificationToken.token_hash==hashlib.sha256(token.encode("utf-8")).hexdigest()))
+    verification_token = result.scalars().first()
+    if verification_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired verification token",
+        )
+    user_id = verification_token.user_id
+    result = await db.execute(select(User).where(User.id==user_id))
+    user = result.scalars().first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    try:
+        user.user_name = user_name
+        user.verified = True
+        user.updated_at = datetime.now()
+        user.organization = organization
+        user.city = city
+        await db.delete(verification_token)
+        await db.commit()
+        await db.refresh(user)
+        return {
+            "message": "Account verified successfully",
+            "user_id": user.id,
+            "user_name": user.user_name,
+            "email": user.email,
+            "verified": user.verified,
+        }
+    except IntegrityError as e:
+        await db.rollback()
+        print("IntegrityError type:", type(e).__name__)
+        print("Original database error:", e.orig)
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=e.orig)
+    except DBAPIError as e:  # Handle general databases error
+        await db.rollback()  # Rollback the transaction to clean up the session
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error_type": type(e).__name__,
+                "message": "A database operation failed."
+        }
+        )
 
 
 @router.get("/users/me")
