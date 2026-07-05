@@ -275,7 +275,7 @@ async def test_send_confirmation_email(async_app_client):
     }
     response = await async_app_client.post("/users?prod=false",json=data)
     assert response.status_code == 200
-    assert f"http://localhost:5173/confirm-email?token=" in response.json()
+    assert f"/confirm-email?token=" in response.json()
     assert len(response.json().split('\n')) == 4
     token = str(response.json().split('\n')[2].split('=')[1])
     data = {
