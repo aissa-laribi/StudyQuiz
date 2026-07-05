@@ -267,6 +267,48 @@ async def test_new_user_not_verified(async_app_client):
 
 @pytest.mark.order(12)
 @pytest.mark.anyio
+
+async def test_send_confirmation_email(async_app_client):
+    data = {
+        "email": "testsstudyquiz@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users?prod=false",json=data)
+    assert response.status_code == 200
+    assert f"http://localhost:5173/confirm-email?token=" in response.json()
+    assert len(response.json().split('\n')) == 4
+    token = str(response.json().split('\n')[2].split('=')[1])
+    data = {
+        "user_name": "testsstudyquiz@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
+        "token": token,
+    }
+    response = await async_app_client.post("/users/verification-email",params=data)
+    assert response.status_code == 200
+    assert response.json()['message'] == "Account verified successfully"
+    assert response.json()['user_name'] == 'testsstudyquiz@gmail.com'
+    assert response.json()['email'] == 'testsstudyquiz@gmail.com'
+    assert response.json()['verified'] == True
+    user_id = int(response.json()['user_id'])
+    form_data = (
+        "grant_type=password&username=testsstudyquiz@gmail.com"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
+
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.delete(f"/users/{user_id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User deleted successfully", "user_id": user_id}   
+
+@pytest.mark.order(13)
+@pytest.mark.anyio
 async def test_root_delete_user(async_app_client):
     form_data = (
         "grant_type=password&username=testuser1"
@@ -301,7 +343,7 @@ async def test_root_delete_user(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
-@pytest.mark.order(13)
+@pytest.mark.order(14)
 @pytest.mark.anyio
 async def test_user_delete_itself(async_app_client):
     data = {
@@ -330,7 +372,7 @@ async def test_user_delete_itself(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
-@pytest.mark.order(14)
+@pytest.mark.order(15)
 @pytest.mark.anyio
 async def test_user_not_delete_another_user(async_app_client):
     data = {
