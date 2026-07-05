@@ -256,12 +256,12 @@ async def send_email_confirmation(client,user_email,user_token):
         email_html=open("frontend/static/confirmation-email.html","r")
         confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
         email_content=""
-        c = 0
         for i in email_html.readlines():
             if '{{ confirmation_url }}' in i:
                 i = i.replace('{{ confirmation_url }}', confirmation_url)
                 email_content+=str(i)
         email_html.close()
+        return email_content
 
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod: bool=True):
@@ -289,7 +289,8 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod:
         if(prod):
             await send_email_confirmation("API",new_user.email,data['token'])
         else:
-            await send_email_confirmation("TEST",new_user.email,data['token'])
+            response = await send_email_confirmation("TEST",new_user.email,data['token'])
+            return response
         return {
             "message": "User successfully created",
             "user_id": new_user.id,
