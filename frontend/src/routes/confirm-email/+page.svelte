@@ -1,12 +1,64 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { form } from '$app/server';
   let animationContainer;
   let validToken=false;
-  let email=null;
+  let user_email=null;
+  let username=null;
+  let organization = null;
+  let city = null;
+  let over16=false;
+  let message="";
+
+  
+  
+  
   
 
   const apiURL = import.meta.env.VITE_API_URL;
+  async function handleConfirmation(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    username = formData.get('Username');
+    organization = formData.get('organization');
+    city = formData.get('city');
+    over16 = formData.get('over16');
+
+    console.log(username);
+    console.log(city);
+    console.log(user_email)
+    console.log(organization);
+    console.log(over16);
+    const payload = {
+    user_name: username,
+    email: user_email,
+    token: window.location.href.slice(42),
+    organization: organization,
+    city: city,
+    };
+    const query = new URLSearchParams({
+  user_name: username,
+  email: user_email,
+  token: window.location.href.slice(42),
+  organization: organization || "",
+  city: city || ""
+});
+    const req = await fetch(`${apiURL}/users/verification-email?${query.toString()}`, {
+      method: "POST",
+      headers: {
+        accept: "application/json"
+      }
+    }); 
+    if(req.ok) {
+      message = "Email successfully confirmed";
+      goto(`/login`);
+    } else {
+      message = "Unsuccessful";
+    }
+  }
+
 
   async function validTokenCheck() {
     const req = await fetch(`${apiURL}/users/verification-email?token=${window.location.href.slice(42)}`,{
@@ -19,7 +71,7 @@
     if (req.ok){
       const result = await req.json();
       validToken = true;
-      email = result.email;
+      user_email = result.email;
     } else {
       console.log("Not")
     }
@@ -199,9 +251,9 @@
   <main>
     <div id="spacer"><h1>Confirm Your Account</h1></div> 
     <div id="form-box">
-        <form>
+        <form on:submit|preventDefault={handleConfirmation}>
             <input type="text" name="Username" placeholder="Choose a username" required>
-            <input type="email" bind:value={email} readonly>
+            <input type="email" bind:value={user_email} readonly>
             <input name="organization" placeholder="School,college or organization">
             <input name="city" placeholder="City">
             <div id="over16-box">
@@ -209,7 +261,7 @@
                     <tbody>
                         <tr>
                             <td>
-                                <input type="checkbox" id="over16" name="over16">
+                                <input type="checkbox" id="over16" name="over16" required>
                             </td>
                             <td>
                                 <label for="over16"> I confirm I am at least 16 years old</label>
@@ -219,7 +271,9 @@
                 </table>
             </div>
             <button>Confirm</button>
+            <p>{message}</p>
         </form>
+
     </div>
   </main>
   <div id="sidebar2"></div>
