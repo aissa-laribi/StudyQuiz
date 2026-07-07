@@ -328,8 +328,10 @@ async def test_expired_token(async_app_client):
         token_object = result.scalar_one_or_none()
         assert token_object is not None
         await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)- timedelta(minutes=5)))
-
         await session.commit()
+        print("ROUTE TOKEN EXPIRES_AT:", token_object.expires_at)
+        print("ROUTE NOW:", datetime.now(timezone.utc))
+        print("ROUTE TOKEN USER_ID:", token_object.user_id)
     data = {
         "user_name": "testsstudyquiz@gmail.com",
         "email": "testsstudyquiz@gmail.com",
