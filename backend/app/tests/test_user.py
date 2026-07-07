@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import hashlib
 
 import pytest
 from passlib.context import CryptContext
@@ -359,6 +360,7 @@ async def test_expired_token(async_app_client):
         "&password=StrongPwd1234,,,,tewfw4g"
         "&scope=&client_id=string&client_secret=string"
     )
+    assert hashlib.sha256(token.encode("utf-8")).hexdigest() == updated_token.token_hash
     response = await async_app_client.post("/users/verification-email",params=data)
     assert response.status_code == 401
     assert response.json() == {"detail":"Expired verification token"}
