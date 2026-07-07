@@ -1,15 +1,17 @@
+from datetime import datetime, timezone
+
 import pytest
 from passlib.context import CryptContext
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy import delete, select,update
 import os
 from app.main import app
 from dotenv import load_dotenv
-from sqlalchemy import select
-from app.models import User, Base
 from app.database import get_db
+from app.models import User,VerificationToken
 
 # Load .env
 load_dotenv(".env")
@@ -83,7 +85,6 @@ async def test_post(async_app_client):
     }
     
     response = await async_app_client.post("/users", json=data)
-    print(response.text)
     assert response.status_code == 409
     assert response.json() == {'detail':'Account creation conflicts with existing database data.'}
     return data
@@ -256,7 +257,7 @@ async def test_new_user_not_verified(async_app_client):
     assert response.status_code == 200
 
 @pytest.mark.anyio
-async def test_send_confirmation_email(async_app_client):
+async def test_verification_email(async_app_client):
     data = {
         "email": "testsstudyquiz@gmail.com",
         "password": "StrongPwd1234,,,,tewfw4g",
@@ -294,6 +295,40 @@ async def test_send_confirmation_email(async_app_client):
     response = await async_app_client.delete(f"/users/{user_id}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
+
+@pytest.mark.anyio
+async def test_expired_token(async_app_client):
+    data = {
+        "email": "testsstudyquiz@gmail.com",
+        "password": "StrongPwd1234,,,,tewfw4g",
+    }
+    response = await async_app_client.post("/users?prod=false",json=data)
+    assert response.status_code == 200
+    assert f"/confirm-email?token=" in response.json()
+    assert len(response.json().split('\n')) == 4
+    token = str(response.json().split('\n')[2].split('=')[1])
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.email == "testsstudyquiz@gmail.com"))
+        user = result.scalar_one_or_none()
+        assert user is not None
+        assert user.email == "testsstudyquiz@gmail.com"
+        result = await session.execute(select(VerificationToken).where(VerificationToken.user_id == user.id))
+        token_object = result.scalar_one_or_none()
+        assert token_object is not None
+        await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)))
+
+        await session.commit()
+    data = {
+        "user_name": "testsstudyquiz@gmail.com",
+        "email": "testsstudyquiz@gmail.com",
+        "token": token,
+    }
+    response = await async_app_client.post("/users/verification-email",params=data)
+    assert response.status_code == 401
+    assert response.json() == {"detail":"Expired verification token"}
+    async with async_session() as session:
+        result = await session.execute(delete(User).where(User.email == "testsstudyquiz@gmail.com"))
+        await session.commit()
 
 
 @pytest.mark.anyio
