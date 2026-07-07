@@ -327,9 +327,15 @@ async def test_expired_token(async_app_client):
         result = await session.execute(select(VerificationToken).where(VerificationToken.user_id == user.id))
         token_object = result.scalar_one_or_none()
         assert token_object is not None
-        await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)- timedelta(minutes=5)))
-        #I want to print the result of the previous line her
+        result=await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)- timedelta(minutes=5)))
+        print("Rows updated:", result.rowcount)    
         await session.commit()
+        result = await session.execute(select(VerificationToken).where(VerificationToken.user_id == user.id))
+        updated_token = result.scalar_one_or_none()
+        assert updated_token is not None
+        print("Updated expires_at:", updated_token.expires_at)
+        print("Now:", datetime.now(timezone.utc))
+        print("Is expired:",updated_token.expires_at < datetime.now(timezone.utc))
     data = {
         "user_name": "testsstudyquiz@gmail.com",
         "email": "testsstudyquiz@gmail.com",
