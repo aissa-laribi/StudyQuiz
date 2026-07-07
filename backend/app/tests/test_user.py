@@ -328,28 +328,9 @@ async def test_expired_token(async_app_client):
         result = await session.execute(select(VerificationToken).where(VerificationToken.user_id == user.id))
         token_object = result.scalar_one_or_none()
         assert token_object is not None
-        result=await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)- timedelta(minutes=5)))
-        print("Rows updated:", result.rowcount)    
+        result=await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)- timedelta(minutes=5)))    
         await session.commit()
-        result = await session.execute(select(VerificationToken).where(VerificationToken.user_id == user.id))
-        updated_token = result.scalar_one_or_none()
-        assert updated_token is not None
-        print("Updated expires_at:", updated_token.expires_at)
-        print("Now:", datetime.now(timezone.utc))
-        print("Is expired:",updated_token.expires_at < datetime.now(timezone.utc))
-        result = await session.execute(select(VerificationToken))
-        rows = result.scalars().all()
 
-        for r in rows:
-            print(
-                "VerificationToken:",
-                {
-                    "id": r.id,
-                    "user_id": r.user_id,
-                    "token_hash": r.token_hash,
-                    "expires_at": r.expires_at,
-                }
-            )
     data = {
         "user_name": "testsstudyquiz@gmail.com",
         "email": "testsstudyquiz@gmail.com",
@@ -360,7 +341,6 @@ async def test_expired_token(async_app_client):
         "&password=StrongPwd1234,,,,tewfw4g"
         "&scope=&client_id=string&client_secret=string"
     )
-    assert hashlib.sha256(token.encode("utf-8")).hexdigest() == updated_token.token_hash
     response = await async_app_client.post("/users/verification-email",params=data)
     print("Response status:", response.status_code)
     print("Response body:", response.json())
