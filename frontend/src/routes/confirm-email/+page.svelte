@@ -61,21 +61,37 @@
 
 
   async function validTokenCheck() {
-    const req = await fetch(`${apiURL}/users/verification-email?token=${window.location.href.slice(42)}`,{
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (!token) {
+      validToken = false;
+      message = "Missing confirmation token.";
+      return;
+    }
+    try{
+      const req = await fetch(`${apiURL}/users/verification-email?token=${encodeURIComponent(token)}`, {
+      method: "GET",
       headers: {
-        method: "GET",
         accept: "application/json"
       }
+      });
+      if (req.ok){
+        const result = await req.json();
+        validToken = true;
+        user_email = result.email;
+      } else {
+        console.log("Not")
+        validToken = false;
+      }
+    } catch(error){
+      console.error(error);
+      validToken = false;
+      message = "Could not check the confirmation link.";
+      } finally {
+        validToken = false;  
+      }
     }
-    );
-    if (req.ok){
-      const result = await req.json();
-      validToken = true;
-      user_email = result.email;
-    } else {
-      console.log("Not")
-    }
-  }
 
   onMount(() => {
     validTokenCheck()
@@ -183,6 +199,11 @@
       cursor: pointer;
       
     }
+    #invalid-link-box{
+      display: block;
+      background-color: antiquewhite;
+      text-align: center;
+    }
 
   
 @media (max-width: 500px) {
@@ -249,7 +270,8 @@
   </nav>
   <div id="sidebar1"></div>
   <main>
-    <div id="spacer"><h1>Confirm Your Account</h1></div> 
+    {#if validToken}
+    <div id="spacer"><h1>Confirm Your Account</h1></div>
     <div id="form-box">
         <form on:submit|preventDefault={handleConfirmation}>
             <input type="text" name="Username" placeholder="Choose a username" required>
@@ -275,6 +297,13 @@
         </form>
 
     </div>
+  {:else} 
+  <div id="spacer"><h1>Invalid confirmation link</h1></div>
+  <div id="invalid-link-box">
+    <p>This confirmation link is invalid or has expired.</p>
+    <p>Please log in and request a new confirmation email.</p>
+  </div>
+  {/if} 
   </main>
   <div id="sidebar2"></div>
 </section>
