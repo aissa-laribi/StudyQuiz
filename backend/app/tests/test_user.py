@@ -336,6 +336,19 @@ async def test_expired_token(async_app_client):
         print("Updated expires_at:", updated_token.expires_at)
         print("Now:", datetime.now(timezone.utc))
         print("Is expired:",updated_token.expires_at < datetime.now(timezone.utc))
+        result = await session.execute(select(VerificationToken))
+        rows = result.scalars().all()
+
+        for r in rows:
+            print(
+                "VerificationToken:",
+                {
+                    "id": r.id,
+                    "user_id": r.user_id,
+                    "token_hash": r.token_hash,
+                    "expires_at": r.expires_at,
+                }
+            )
     data = {
         "user_name": "testsstudyquiz@gmail.com",
         "email": "testsstudyquiz@gmail.com",
