@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from passlib.context import CryptContext
@@ -315,7 +315,7 @@ async def test_expired_token(async_app_client):
         result = await session.execute(select(VerificationToken).where(VerificationToken.user_id == user.id))
         token_object = result.scalar_one_or_none()
         assert token_object is not None
-        await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)))
+        await session.execute(update(VerificationToken).where(VerificationToken.user_id == user.id).values(expires_at=datetime.now(timezone.utc)- timedelta(minutes=5)))
 
         await session.commit()
     data = {
