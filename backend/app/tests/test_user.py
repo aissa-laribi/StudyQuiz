@@ -54,14 +54,13 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 # Tests
-@pytest.mark.order(1)
+
 @pytest.mark.anyio
 async def test_root(async_app_client):
     response = await async_app_client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Welcome to StudyQuiz!"}
 
-@pytest.mark.order(2)
 @pytest.mark.anyio
 async def test_no_users(async_app_client):
     response = await async_app_client.get("/users")
@@ -69,14 +68,12 @@ async def test_no_users(async_app_client):
     assert response.json() == {'detail': 'Not authenticated'} 
     #print("Get_Users1 " +str(response.json()))
 
-@pytest.mark.order(3)
 @pytest.mark.anyio
 async def test_get_users1_not_logged(async_app_client):
     response = await async_app_client.get("/users")
     assert response.status_code == 401
     assert response.json() == {'detail': 'Not authenticated'}
 
-@pytest.mark.order(4)
 #Testing user creation on empty db
 @pytest.mark.anyio
 async def test_post(async_app_client):
@@ -91,7 +88,6 @@ async def test_post(async_app_client):
     assert response.json() == {'detail':'Account creation conflicts with existing database data.'}
     return data
 
-@pytest.mark.order(5)
 @pytest.mark.anyio
 async def test_login_wrong_pwd(async_app_client):
     form_data = (
@@ -108,7 +104,6 @@ async def test_login_wrong_pwd(async_app_client):
     assert response.status_code == 401 
     assert response.json()['detail'] == "Incorrect username or password"
 
-@pytest.mark.order(6)
 @pytest.mark.anyio
 async def test_login_correct_pwd(async_app_client):
     data = {
@@ -135,7 +130,6 @@ async def test_login_correct_pwd(async_app_client):
     assert response.status_code == 200
     assert "access_token" in response.json()
     
-@pytest.mark.order(7)
 @pytest.mark.anyio
 async def test_get_users1_logged(async_app_client):
     form_data = (
@@ -160,7 +154,6 @@ async def test_get_users1_logged(async_app_client):
     assert response.json()[0]["role"] == "root"
     assert response.json()[1]["role"] == "user"
 
-@pytest.mark.order(8)
 @pytest.mark.anyio
 async def test_login_wrong_pwd2(async_app_client):
     form_data = (
@@ -178,7 +171,6 @@ async def test_login_wrong_pwd2(async_app_client):
     assert response.status_code == 401
     assert response.json()['detail'] == "Incorrect username or password"
 
-@pytest.mark.order(9)
 @pytest.mark.anyio
 async def test_login_correct_pwd2(async_app_client):
     form_data = (
@@ -196,7 +188,6 @@ async def test_login_correct_pwd2(async_app_client):
     access_token = token.json()["access_token"]
     assert token.status_code == 200
 
-@pytest.mark.order(10)
 @pytest.mark.anyio
 async def test_one_root_only(async_app_client):
     form_data = (
@@ -231,7 +222,6 @@ async def test_one_root_only(async_app_client):
     response = await async_app_client.delete(f"/users/{response.json()[3]['id']}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
 
-@pytest.mark.order(11)
 @pytest.mark.anyio
 async def test_new_user_not_verified(async_app_client):
     form_data = (
@@ -265,7 +255,6 @@ async def test_new_user_not_verified(async_app_client):
     response = await async_app_client.delete(f"/users/{response.json()[3]['id']}",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
 
-@pytest.mark.order(12)
 @pytest.mark.anyio
 async def test_send_confirmation_email(async_app_client):
     data = {
@@ -307,7 +296,6 @@ async def test_send_confirmation_email(async_app_client):
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
 
-@pytest.mark.order(13)
 @pytest.mark.anyio
 async def test_root_delete_user(async_app_client):
     form_data = (
@@ -343,7 +331,6 @@ async def test_root_delete_user(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
-@pytest.mark.order(14)
 @pytest.mark.anyio
 async def test_user_delete_itself(async_app_client):
     data = {
@@ -372,7 +359,6 @@ async def test_user_delete_itself(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user_id}
 
-@pytest.mark.order(15)
 @pytest.mark.anyio
 async def test_user_not_delete_another_user(async_app_client):
     data = {
