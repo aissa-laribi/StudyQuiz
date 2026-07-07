@@ -362,6 +362,8 @@ async def test_expired_token(async_app_client):
     )
     assert hashlib.sha256(token.encode("utf-8")).hexdigest() == updated_token.token_hash
     response = await async_app_client.post("/users/verification-email",params=data)
+    print("Response status:", response.status_code)
+    print("Response body:", response.json())
     assert response.status_code == 401
     assert response.json() == {"detail":"Expired verification token"}
     token = await async_app_client.post(
