@@ -323,12 +323,25 @@ async def test_expired_token(async_app_client):
         "email": "testsstudyquiz@gmail.com",
         "token": token,
     }
+    form_data = (
+        "grant_type=password&username=testsstudyquiz@gmail.com"
+        "&password=StrongPwd1234,,,,tewfw4g"
+        "&scope=&client_id=string&client_secret=string"
+    )
     response = await async_app_client.post("/users/verification-email",params=data)
     assert response.status_code == 401
     assert response.json() == {"detail":"Expired verification token"}
-    async with async_session() as session:
-        result = await session.execute(delete(User).where(User.email == "testsstudyquiz@gmail.com"))
-        await session.commit()
+    token = await async_app_client.post(
+        "/users/token", 
+        data=form_data, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert token.status_code == 200
+    access_token = token.json()["access_token"]
+    response = await async_app_client.delete(f"/users/{user.id}",headers={"Authorization": f"Bearer {access_token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User deleted successfully", "user_id": user.id}
+    
 
 
 @pytest.mark.anyio
