@@ -131,6 +131,13 @@ async def confirm_email(user_name:str,email:str,token:str,organization: str | No
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired verification token",
         )
+    print(verification_token.expires_at)
+    print(datetime.now(timezone.utc))
+    if verification_token.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Expired verification token",
+        )
     user_id = verification_token.user_id
     result = await db.execute(select(User).where(User.id==user_id))
     user = result.scalars().first()
