@@ -1,0 +1,74 @@
+<html> 
+    <head>
+        <style> 
+            body { 
+                font-family:Arial, sans-serif;
+                background-color: rgba(220, 220, 220, 0.982);
+            }
+            .container { 
+                text-align: center; 
+                background-color: rgba(220, 220, 220, 0.982); 
+                margin-top: 1rem;
+            } 
+            section{ 
+                max-width:520px;
+                margin:auto;
+                padding: 32px;
+                border-top: 4px;
+                background-color: white;
+                border-top: 2px black solid; 
+            } 
+            #img-container{ 
+                text-align: center; 
+                padding-bottom:1rem; 
+            } 
+            #verify{ 
+                border-top: 0.5vh gainsboro solid; 
+            }
+            #verify a{
+                color: white;
+            } 
+            #paste{ margin-top: 1rem; 
+                border-top: 0.5vh gainsboro solid; 
+            } 
+            #paste a{ 
+                color:#1269c0; 
+            }
+
+            .url-button{ 
+                display:inline-block; 
+                color:white; 
+                background-color:#1269c0; 
+                padding:14px 24px; 
+                border-radius:10px; 
+                text-decoration:none; 
+                font-weight:bold; 
+            } 
+            button:hover{ 
+                background-color: black; 
+            } 
+        </style>
+    </head> 
+    <body>
+        <div class="container">
+        <section>
+            <div id="img-container">
+                <img src="https://studyquiz.co/logo.png">
+            </div>
+            <div id="verify"> 
+                <h2>Verify Your Account</h2>
+                <p>Welcome to StudyQuiz! Please confirm your email address</p>
+                <a class="url-button" href="{{ confirmation_url }}">Confirm Email</a>
+            </div> 
+            <div id="paste"> 
+                <p>Or paste this link into your browser:</p>
+                <a href="{{ confirmation_url }}">
+                    {{ confirmation_url }}
+                </a> 
+            </div> 
+            <p style="margin-top:28px; font-size:13px; color:#666666;"> This confirmation link expires in 24 hours. </p> 
+            <p style="font-size:13px; color:#666666;"> If you did not create a StudyQuiz account, you can ignore this email. </p> 
+        </section> 
+        </div>
+    </body> 
+</html>

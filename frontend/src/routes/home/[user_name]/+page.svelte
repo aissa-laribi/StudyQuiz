@@ -746,6 +746,8 @@
       </button>
     {#if toggledProfile}
       <div class="dropdown">
+        <button on:click={logout}>Upgrade</button>
+        <button on:click={logout}>Settings</button>
         <button on:click={logout}>Logout</button>
       </div>
     {/if}
