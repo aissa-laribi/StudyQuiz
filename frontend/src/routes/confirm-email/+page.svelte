@@ -38,13 +38,14 @@
     organization: organization,
     city: city,
     };
+
     const query = new URLSearchParams({
-  user_name: username,
-  email: user_email,
-  token: window.location.href.slice(42),
-  organization: organization || "",
-  city: city || ""
-});
+      user_name: username,
+      email: user_email,
+      token: window.location.href.slice(42),
+      organization: organization || "",
+      city: city || ""
+    });
     const req = await fetch(`${apiURL}/users/verification-email?${query.toString()}`, {
       method: "POST",
       headers: {
@@ -63,10 +64,12 @@
   async function validTokenCheck() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
+    console.log(token);
 
     if (!token) {
       validToken = false;
       message = "Missing confirmation token.";
+      console.log(message);
       return;
     }
     try{
@@ -77,9 +80,13 @@
       }
       });
       if (req.ok){
+        console.log("Request OK");
         const result = await req.json();
+        console.log(result);
         validToken = true;
+        console.log(validToken);
         user_email = result.email;
+        console.log(user_email);
       } else {
         console.log("Not")
         validToken = false;
@@ -88,13 +95,12 @@
       console.error(error);
       validToken = false;
       message = "Could not check the confirmation link.";
-      } finally {
-        validToken = false;  
       }
     }
 
   onMount(() => {
     validTokenCheck()
+    console.log(validToken);
   });
 </script>
 
@@ -201,8 +207,28 @@
     }
     #invalid-link-box{
       display: block;
-      background-color: antiquewhite;
       text-align: center;
+    }
+    .login-button{ 
+        display:inline-block; 
+        color:white; 
+        background-color:#1269c0; 
+        padding:14px 24px; 
+        border-radius:10px; 
+        text-decoration:none; 
+        font-weight:bold;
+        font-size: 18pt; 
+    }
+
+    .login-button:hover{
+      display:inline-block; 
+      color:#1269c0; 
+      background-color:white; 
+      padding:14px 24px; 
+      border-radius:10px; 
+      text-decoration:none; 
+      font-weight:bold;
+      font-size: 18pt; 
     }
 
   
@@ -302,6 +328,7 @@
   <div id="invalid-link-box">
     <p>This confirmation link is invalid or has expired.</p>
     <p>Please log in and request a new confirmation email.</p>
+    <a class="login-button" href="/login">Login</a>
   </div>
   {/if} 
   </main>
