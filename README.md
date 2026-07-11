@@ -132,6 +132,6 @@ If an issue does not have one of these labels, please assume it is not currently
 
 Please comment on an issue before starting work so that the scope can be confirmed and duplicated work can be avoided.
 
-Contributors whose pull requests are accepted and successfully merged will be acknowledged in the project contributors list.
+Contributors whose pull requests are accepted and successfully may be acknowledged in the project contributors list.
 
 For detailed contribution rules, see `CONTRIBUTING.md`.
