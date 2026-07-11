@@ -1,82 +1,109 @@
 # StudyQuiz
+
 [![Integration Tests](https://github.com/aissa-laribi/StudyQuiz/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/aissa-laribi/StudyQuiz/actions/workflows/integration-tests.yml)
 
-**StudyQuiz** is a web app that turns AI-assisted quizzes generated from study materials such as lecture slides into a **structured learning system**.  
-It uses **spaced repetition** and **progress tracking**, which LLMs alone can’t offer, to help students retain information long-term instead of just cramming and forgetting.  
+**StudyQuiz** is a web application that turns study materials such as lecture slides and PDF notes into **AI-assisted quizzes within a structured learning system**.
+
+Unlike using an LLM alone, StudyQuiz combines quiz generation with **spaced repetition**, scheduled reviews, and progress tracking to help students retain concepts over time instead of relying on short-term cramming.
 
 🌐 Live version: https://studyquiz.co
 
 ---
 
 ## Features
-- **User Management**: Register, log in, reset passwords.
-- **Quiz Management**: Create modules, add quizzes, and track progress.
-- **Question Shuffling**: Display questions in random order.
-- **Spaced Repetition**: Schedule follow-ups based on performance.
-- **API-First**: Backend built as a clean, reusable API.
-- **Web-Based Interface**: Accessible on desktop and mobile.
-- **AI-assisted quiz import workflow**: Import structured quizzes generated from study materials.
+
+* **User management**: Register, verify an account, log in, and manage access.
+* **Module and quiz management**: Create modules, quizzes, questions, and answers.
+* **AI-assisted quiz generation**: Upload study materials and generate structured quizzes.
+* **Question shuffling**: Display questions in a different order between attempts.
+* **Spaced repetition**: Schedule follow-up reviews based on quiz performance.
+* **Progress tracking**: Record attempts, results, and upcoming review dates.
+* **API-first architecture**: Reusable backend API built with FastAPI.
+* **Responsive web interface**: Accessible on desktop and mobile.
 
 ## Planned Enhancements
-- Integrated AI inference for quiz generation 
+
+* User profile management
+* Account plans and usage limits
+* Support for non-PDF materials
+* Manual quiz creation
+* Additional AI inference options
 
 ---
 
 ## Tech Stack
-- **Backend**: FastAPI, PostgreSQL, SQLAlchemy
-- **Frontend**: Svelte
-- **Testing/CI**: Pytest, GitHub Actions
-- **Deployment**: Render, Uvicorn
+
+* **Backend**: FastAPI, PostgreSQL, SQLAlchemy
+* **Frontend**: Svelte
+* **Testing/CI**: Pytest, GitHub Actions
+* **Deployment**: FastAPI Cloud, Render, Uvicorn
 
 ---
+
 ## Roadmap
-- ✅ Backend API for quiz logic
-- ✅ SuperMemo 2 implementation
-- ✅ CLI interaction via FastAPI
-- ✅ Frontend development
-- ✅ Hosted version
-- ✅ AI-assisted quiz import workflow
-- ✅ Integration test workflow
-- ⏳ Integrated AI inference for quiz generation
+
+* ✅ Backend API for quiz logic
+* ✅ SuperMemo 2 spaced-repetition implementation
+* ✅ FastAPI interactive API documentation
+* ✅ Svelte frontend
+* ✅ Hosted production version
+* ✅ AI-assisted quiz generation from uploaded study materials
+* ✅ Email verification workflow
+* ✅ Integration test workflow
+* ⏳ User profile management
+* ⏳ Account plans and usage limits
+
 ---
 
 ## Setup Instructions
 
 ### Backend
-1. Navigate to the backend directory
+
+1. Navigate to the backend directory.
 
 2. (Optional but recommended) Create and activate a virtual environment:
-```
-    # Create virtual environment
-    python3 -m venv venv
 
-    # Activate it (Linux/macOS)
-    source venv/bin/activate
+```bash
+# Create virtual environment
+python3 -m venv venv
 
-    # OR on Windows (cmd)
-    venv\Scripts\activate.bat
+# Activate it (Linux/macOS)
+source venv/bin/activate
+
+# OR on Windows (cmd)
+venv\Scripts\activate.bat
 ```
 
 3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
 ```
-   pip install -r requirements.txt
-```
+
 4. Run the FastAPI server:
+
+```bash
+uvicorn app.main:app --reload
 ```
-    uvicorn app.main:app --reload
-```
+
 ### Frontend
+
 1. Navigate to the frontend directory:
+
+```bash
+cd frontend
 ```
-    cd frontend
-```
+
 2. Install Node.js dependencies:
+
+```bash
+npm install
 ```
-    npm install
-```
+
 3. Start the frontend development server:
-```
-    npm run dev
+
+```bash
+npm run dev
 ```
 
 ## License
@@ -93,16 +120,18 @@ See the `LICENSE` file for details.
 
 StudyQuiz welcomes selected open-source contributions within clearly defined boundaries.
 
-Not every open issue is available for external contribution. Issues that are open to contributors will be labelled with one of the following:
+Contributions can help improve test coverage, accessibility, user experience, and selected backend or frontend features.
 
-- `open-to-contributors`
-- `good first issue`
-- `help wanted`
+Not every open issue is available for external contribution. Issues open to contributors will be labelled with one of the following:
+
+* `open-to-contributors`
+* `good first issue`
+* `help wanted`
 
 If an issue does not have one of these labels, please assume it is not currently open for contributors.
 
-Please comment on an issue before starting work so that the scope can be confirmed.
+Please comment on an issue before starting work so that the scope can be confirmed and duplicated work can be avoided.
 
-Contributors whose pull requests are accepted and merged may be acknowledged in the project contributors list.
+Contributors whose pull requests are accepted and successfully merged will be acknowledged in the project contributors list.
 
 For detailed contribution rules, see `CONTRIBUTING.md`.
