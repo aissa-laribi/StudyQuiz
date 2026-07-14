@@ -236,7 +236,7 @@ def create_verification_token(user_id:int,token:str) -> VerificationToken:
 async def send_email_confirmation(client,user_email,user_token):
     if client == "API":
         resend.api_key = SEND_EMAIL
-        email_html=open("frontend/static/confirmation-email.html","r")
+        email_html=open("../frontend/static/confirmation-email.html","r")
         confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
         attachment: resend.RemoteAttachment = {
             "path": "https://studyquiz.co/logo.png",
