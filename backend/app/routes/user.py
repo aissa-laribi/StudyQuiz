@@ -250,13 +250,16 @@ async def send_email_confirmation(client,user_email,user_token):
                 i = i.replace('{{ confirmation_url }}', confirmation_url)
             email_content+=str(i)
         email_html.close()
-        params: resend.Emails.SendParams = {
-        "from": "StudyQuiz <hello@studyquiz.co>",
-        "to": user_email,
-        "subject": "Welcome to StudyQuiz!",
-        "html": f"{email_content}",
-        }
-        resend.Emails.send(params)
+        if len(SEND_EMAIL) !=0:
+            params: resend.Emails.SendParams = {
+            "from": "StudyQuiz <hello@studyquiz.co>",
+            "to": user_email,
+            "subject": "Welcome to StudyQuiz!",
+            "html": f"{email_content}",
+            }
+            resend.Emails.send(params)
+        else:
+            print(email_content)
     elif client == "TEST":
         email_html=open("frontend/static/confirmation-email.html","r")
         confirmation_url = f"{FRONTEND_URL}/confirm-email?token={user_token}"
@@ -287,15 +290,16 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod:
         db.add(new_user) #Add the instance of the ORM User to the db session
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)
         await db.refresh(new_user) #Refreshes the new_user instance with data from the database (e.g., auto-generated IDs)
-        verification_token = create_verification_token(user_id=new_user.id,token=data['token'])
-        db.add(verification_token)
-        await db.commit()
-        await db.refresh(verification_token)
-        if(prod):
-            await send_email_confirmation("API",new_user.email,data['token'])
-        else:
-            response = await send_email_confirmation("TEST",new_user.email,data['token'])
-            return response
+        if new_user.role != 'root':
+            verification_token = create_verification_token(user_id=new_user.id,token=data['token'])
+            db.add(verification_token)
+            await db.commit()
+            await db.refresh(verification_token)
+            if(prod):
+                await send_email_confirmation("API",new_user.email,data['token'])
+            else:
+                response = await send_email_confirmation("TEST",new_user.email,data['token'])
+                return response
         return {
             "message": "User successfully created",
             "user_id": new_user.id,
