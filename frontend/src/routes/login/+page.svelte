@@ -22,59 +22,77 @@
   }
   
   async function handleLogin(event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    loading = true;
-    failed = false;
-    message = "";
+  loading = true;
+  failed = false;
+  message = "";
 
-    const formData = new FormData(event.target);
-    const username = formData.get('username');
-    const password = formData.get('password');
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000);
+  const formData = new FormData(event.target);
+  const username = formData.get("username");
+  const password = formData.get("password");
 
-    try {
-      const res = await fetch(`${apiURL}/users/token`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          username,
-          password,
-          grant_type: "password",
-          client_id: "string",
-          client_secret: "string"
-        }),
-        signal: controller.signal
-      });
-      
-      if (!res.ok) {
-        failed = true;
-        message = "Login failed: Incorrect credentials";
-        logged = false;
-        return;
-      }
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const token = await res.json();
-      localStorage.setItem("access_token", token.access_token);
-      
-      logged = true;
-      goto(`/home/${username}`);
-      
+  try {
+    const res = await fetch(`${apiURL}/users/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        username,
+        password,
+        grant_type: "password",
+        client_id: "string",
+        client_secret: "string",
+      }),
+      signal: controller.signal,
+    });
 
-    } catch (e) {
+    if (res.status === 401) {
       failed = true;
-      if (e.name === "AbortError") {
-        message = message = "Preparing your workspace. This may take a few seconds.";
-      } else {
-        message = "Network error. Please try again.";
-      }
-    } finally {
-      clearTimeout(timeoutId);
-      loading = false;
+      message = "Incorrect username or password.";
+      logged = false;
+      return;
     }
+
+    if (res.status >= 500) {
+      failed = true;
+      message =
+        "The service is temporarily unavailable. Please try again.";
+      logged = false;
+      return;
+    }
+
+    if (!res.ok) {
+      failed = true;
+      message = "Login failed. Please try again.";
+      logged = false;
+      return;
+    }
+
+    const token = await res.json();
+    localStorage.setItem("access_token", token.access_token);
+
+    logged = true;
+    await goto(`/home/${username}`);
+  } catch (error) {
+    failed = true;
+    logged = false;
+
+    if (error.name === "AbortError") {
+      message =
+        "Login is taking longer than expected. Please try again.";
+    } else {
+      message = "Network error. Please try again.";
+    }
+  } finally {
+    clearTimeout(timeoutId);
+    loading = false;
   }
+}
 
   onMount(() => {
     fetch(`${apiURL}/`).catch(() => {});
