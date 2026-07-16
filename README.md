@@ -57,9 +57,20 @@ Unlike using an LLM alone, StudyQuiz combines quiz generation with **spaced repe
 
 ## Setup Instructions
 
+### Clone the repository
+
+```
+git clone https://github.com/aissa-laribi/StudyQuiz.git
+cd StudyQuiz
+```
+
 ### Backend
 
 1. Navigate to the backend directory.
+
+```
+cd backend
+```
 
 2. (Optional but recommended) Create and activate a virtual environment:
 
@@ -80,9 +91,56 @@ venv\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-4. Run the FastAPI server:
+4.  Development Environment Variables
+
+Create an `.env` file and add the following:
+
+```
+DATABASE_URL=postgresql+asyncpg://studyquiz_user:password@localhost/studyquiz_local
+TEST_DATABASE_URL=postgresql+asyncpg://studyquiz_user:password@localhost/test_studyquiz_local
+
+SECRET_KEY="local-development-secret"
+ALGORITHM="HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES=120
+
+AI_SYSTEM=""
+SEND_CONFIRMATION=""
+FRONTEND_URL="http://localhost:5173"
+```
+
+5.  Create the development databases
+
+Make sure PostgreSQL is installed and running.
+
+Create a PostgreSQL user and the development databases using your local PostgreSQL administration tools:
+
+Open PostgreSQL using an administrator account. On Ubuntu or Debian:
+
+```
+sudo -u postgres psql
+```
+
+Then create the PostgreSQL user and databases:
+
+```
+CREATE USER studyquiz_user WITH PASSWORD 'password';
+CREATE DATABASE studyquiz_local OWNER studyquiz_user;
+CREATE DATABASE test_studyquiz_local OWNER studyquiz_user;
+\q
+```
+
+Then import the schema:
+
+```
+cd ..
+psql "postgresql://studyquiz_user:password@localhost/studyquiz_local" -f dbschema.sql
+psql "postgresql://studyquiz_user:password@localhost/test_studyquiz_local" -f dbschema.sql
+```
+
+6. Run the FastAPI server:
 
 ```bash
+cd backend
 uvicorn app.main:app --reload
 ```
 
@@ -90,8 +148,10 @@ uvicorn app.main:app --reload
 
 1. Navigate to the frontend directory:
 
+Open a new Terminal window
+
 ```bash
-cd frontend
+cd /path/to/StudyQuiz/frontend
 ```
 
 2. Install Node.js dependencies:
@@ -100,11 +160,17 @@ cd frontend
 npm install
 ```
 
-3. Start the frontend development server:
+3. Create an `.env.development` file and add:
+```
+VITE_API_URL=http://localhost:8000
+```
+
+4. Start the frontend development server:
 
 ```bash
 npm run dev
 ```
+
 
 ## License
 
@@ -132,6 +198,6 @@ If an issue does not have one of these labels, please assume it is not currently
 
 Please comment on an issue before starting work so that the scope can be confirmed and duplicated work can be avoided.
 
-Contributors whose pull requests are accepted and successfully may be acknowledged in the project contributors list.
+Contributors whose pull requests are accepted and successfully merged may be acknowledged in the project contributors list.
 
 For detailed contribution rules, see `CONTRIBUTING.md`.
