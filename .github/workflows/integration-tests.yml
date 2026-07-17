@@ -50,6 +50,7 @@ jobs:
           SECRET_KEY: ${{ secrets.TEST_SECRET_KEY}}
           ALGORITHM: HS256
           SEND_CONFIRMATION: ${{ secrets.SEND_CONFIRMATION}}
+          FRONTEND_PATH: frontend
         run: |
           pip install pytest pytest-cov
           pytest backend/app/tests/test_user.py backend/app/tests/test_module.py \
