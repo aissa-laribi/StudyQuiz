@@ -91,11 +91,11 @@ venv\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
-4.  Development Environment Variables
+4. Development environment variables
 
 Create an `.env` file and add the following:
 
-```
+```env
 DATABASE_URL=postgresql+asyncpg://studyquiz_user:password@localhost/studyquiz_local
 TEST_DATABASE_URL=postgresql+asyncpg://studyquiz_user:password@localhost/test_studyquiz_local
 
@@ -106,9 +106,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES=120
 AI_SYSTEM=""
 SEND_CONFIRMATION=""
 FRONTEND_URL="http://localhost:5173"
+FRONTEND_PATH=../frontend
 ```
 
-5.  Create the development databases
+5. Create the development databases
 
 Make sure PostgreSQL is installed and running.
 
@@ -116,25 +117,37 @@ Create a PostgreSQL user and the development databases using your local PostgreS
 
 Open PostgreSQL using an administrator account. On Ubuntu or Debian:
 
-```
+```bash
 sudo -u postgres psql
 ```
 
 Then create the PostgreSQL user and databases:
 
-```
+```sql
 CREATE USER studyquiz_user WITH PASSWORD 'password';
 CREATE DATABASE studyquiz_local OWNER studyquiz_user;
 CREATE DATABASE test_studyquiz_local OWNER studyquiz_user;
 \q
 ```
-
 Then import the schema:
 
-```
+```bash
 cd ..
 psql "postgresql://studyquiz_user:password@localhost/studyquiz_local" -f dbschema.sql
 psql "postgresql://studyquiz_user:password@localhost/test_studyquiz_local" -f dbschema.sql
+```
+Open PostgreSQL again and add the users required by the integration tests:
+
+```bash
+sudo -u postgres psql
+```
+
+```sql
+\c test_studyquiz_local
+INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('testuser1', 'user1@gmail.com', '$2b$12$3jF.2woCsTQaie.tYorJR.YTe/F6TZC/dJf8.g9Bb0BZIXEo77cn6', 'root', true);
+INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('testuser2', 'user2@gmail.com', '$2b$12$zzKJod0KMg79oNxugy4Uh.NcMEE/rzaDet1v/7dJSNvmGHgTqM/z2', 'user', false);
+INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('test_user3', 'user3@gmail.com', '$2b$12$aYHuJm/kmuLORvDMbhf/eucpdu7CcV7V36qluB8H/YKK0piszRFQ6', 'user', false);
+\q
 ```
 
 6. Run the FastAPI server:
@@ -170,7 +183,6 @@ VITE_API_URL=http://localhost:8000
 ```bash
 npm run dev
 ```
-
 
 ## License
 
