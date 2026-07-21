@@ -12,7 +12,8 @@ import os
 from app.main import app
 from dotenv import load_dotenv
 from app.database import get_db
-from app.models import User,VerificationToken
+from app.models import User, VerificationToken
+from app.user import hash_password, verify_password
 
 # Load .env
 load_dotenv(".env")
