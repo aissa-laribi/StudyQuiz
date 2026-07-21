@@ -492,3 +492,37 @@ async def test_user_not_delete_another_user(async_app_client):
     assert response.status_code == 200
     assert response.json() == {"message": "User deleted successfully", "user_id": user1_id}
     #if user1 was deleted by user2 the response.json would have been None
+
+    # Unit tests for password hashing functions
+
+def test_hash_password_does_not_return_plaintext():
+    password = "TestPassword123"
+
+    hashed_password = hash_password(password)
+
+    assert hashed_password != password
+
+
+def test_hash_password_generates_different_hashes_for_same_password():
+    password = "TestPassword123"
+
+    first_hash = hash_password(password)
+    second_hash = hash_password(password)
+
+    assert first_hash != second_hash
+
+
+def test_verify_password_returns_true_for_correct_password():
+    password = "TestPassword123"
+
+    hashed_password = hash_password(password)
+
+    assert verify_password(password, hashed_password) is True
+
+
+def test_verify_password_returns_false_for_incorrect_password():
+    password = "TestPassword123"
+
+    hashed_password = hash_password(password)
+
+    assert verify_password("WrongPassword123", hashed_password) is False
