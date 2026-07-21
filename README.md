@@ -127,8 +127,13 @@ Then create the PostgreSQL user and databases:
 CREATE USER studyquiz_user WITH PASSWORD 'password';
 CREATE DATABASE studyquiz_local OWNER studyquiz_user;
 CREATE DATABASE test_studyquiz_local OWNER studyquiz_user;
+```
+Exit PostgreSQL:
+
+```
 \q
 ```
+
 Then import the schema:
 
 ```bash
@@ -141,12 +146,19 @@ Open PostgreSQL again and add the users required by the integration tests:
 ```bash
 sudo -u postgres psql
 ```
+Connect to the test database. Run this command separately and wait for the connection confirmation:
 
 ```sql
 \c test_studyquiz_local
+```
+```sql
 INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('testuser1', 'user1@gmail.com', '$2b$12$3jF.2woCsTQaie.tYorJR.YTe/F6TZC/dJf8.g9Bb0BZIXEo77cn6', 'root', true);
 INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('testuser2', 'user2@gmail.com', '$2b$12$zzKJod0KMg79oNxugy4Uh.NcMEE/rzaDet1v/7dJSNvmGHgTqM/z2', 'user', false);
 INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('test_user3', 'user3@gmail.com', '$2b$12$aYHuJm/kmuLORvDMbhf/eucpdu7CcV7V36qluB8H/YKK0piszRFQ6', 'user', false);
+```
+Exit PostgreSQL:
+
+```sql
 \q
 ```
 
