@@ -185,7 +185,7 @@ async def confirm_email(user_name:str,email:str,token:str,organization: str | No
 async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
     user = result.scalars().first()
-    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id}
+    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id, "verified":user.verified}
 
 @router.get("/users")
 async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
@@ -209,7 +209,8 @@ async def get_user(current_user: Annotated[User, Depends(get_current_active_user
         "user_id": user_id,
         "user_name": user.user_name,
         "email": user.email,
-        "role":user.role
+        "role":user.role,
+        "verified":user.verified
         }
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
