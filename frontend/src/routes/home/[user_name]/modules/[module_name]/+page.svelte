@@ -9,6 +9,7 @@
   let logged = false;
   let newQuizName = "";
   let showModal = false;
+  let showDeleteModal = false;
   let quizzes = [];
   let followups = [];
   let user_name = "";
@@ -103,6 +104,40 @@
       message = "Failed to rename the module. This name may already belong to another module.";
     }
   }
+
+  async function deleteModule(event){
+    event.preventDefault();
+    const token = await localStorage.getItem("access_token");
+    if(!token) return;
+    
+    const currentName = await localStorage.getItem(`moduleName`);
+    if(!currentName) return;
+    const idQuery = await fetch(`${apiURL}/users/me/modules/${encodeURIComponent(currentName)}`,{
+      method: `GET`,
+      headers : {
+        "Authorization": `Bearer ${token}`
+      }});
+    if(!idQuery.ok) return;
+
+    const data = await idQuery.json();
+    module_id = data.id;
+    
+    const delQuery = await fetch(`${apiURL}/users/${user_id}/modules/${module_id}`, {
+      method : `DELETE`,
+      headers : {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+    });
+
+    if(delQuery.ok) {
+      message = "Module successfully deleted";
+      showDeleteModal = false;
+      goto(`/home/me/`);
+    } else {
+      message = "Failed to delete the module."
+  }
+}
 
   async function deleteQuiz(module_id,quiz_id){
     const token = await localStorage.getItem("access_token");
@@ -383,6 +418,27 @@
         color: white;
         border-radius: 1rem;
     }
+
+    .delete-module-btn {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10pt;
+      padding: 0;
+      border: 0px;
+      background-color: transparent;
+      color: rgb(190, 30, 45);
+      cursor: pointer;
+    }
+
+    .delete-module-btn svg{
+      display: block;
+    }
+
+    .delete-module-btn:hover {
+        background-color: rgb(190, 30, 45);
+        color: white;
+        border-radius: 1rem;
+    }
     
 
 
@@ -508,6 +564,55 @@
       font-weight: 600;
       font-family: 'Montserrat', sans-serif;
     }
+
+    #form-delete-navbar {
+      display: block;
+      align-items: center;
+      text-align: center;
+    }
+    
+    #form-delete-navbar h2{
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28pt;
+      text-align: center;
+    }
+
+    #form-delete-description {
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;      
+      font-size: 1.75em;
+      letter-spacing: -0.02em;
+    }
+
+    .form-delete-buttons {
+      text-align: center;
+    }
+
+    .form-delete-buttons button {
+      border-radius: 1rem;
+      border: 0.1em solid transparent;
+      align-items: center;
+      padding: 0.5rem 2rem;
+      font-size: 20pt;
+      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    #form-delete-cancel:hover{
+      background-color: black;
+      color:white;
+      cursor:pointer
+    }
+
+    #form-delete-button{
+      background-color: rgb(190, 30, 45);
+      color:white;
+    }
+    #form-delete-button:hover{
+      background-color: black;
+      color:white;
+      cursor:pointer
+    }
+
 
     #modules-container{
       //display:inline-flex;
@@ -865,7 +970,42 @@
                 {toastMessage}
                 </div>
               {/if}
-            </button>
+      </button>
+      <button type="button" class="delete-module-btn" aria-label="Delete Module" 
+            onclick={() => {if (user_name === "Guest" || user_name === "Undefined") {
+                              showToast("Editing is not available in guest mode.");
+                            } else {
+                              showDeleteModal = !showDeleteModal;
+                            }
+                          }
+                        }
+                      >
+              <svg
+  class="delete-icon"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path d="M3 6h18" />
+  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+  <path d="M10 11v6" />
+  <path d="M14 11v6" />
+</svg>
+              Delete Module
+              {#if toastMessage}
+                <div class="toast">
+                {toastMessage}
+                </div>
+              {/if}
+      </button>
     </div>
 
     <div id="col-modules">
@@ -956,6 +1096,26 @@
         </div>
         </form>
 
+      </Modal>
+      {/if}
+      {#if showDeleteModal}
+      <Modal bind:showModal={showDeleteModal}>
+        <form onsubmit={deleteModule}>
+        <nav id="form-delete-navbar">
+          <h2>Are you sure?</h2>
+        </nav>
+        <div id="form-delete-description">
+        <p>Are you sure you want to delete this module? This action cannot be undone.</p>
+        </div>
+        <div class="form-delete-buttons">
+          <button id="form-delete-cancel" onclick={() => {showDeleteModal = !showDeleteModal}}>
+            Cancel
+          </button>
+          <button id="form-delete-button" type="submit">
+            Delete
+          </button>
+        </div>
+        </form>
       </Modal>
       {/if}
     
