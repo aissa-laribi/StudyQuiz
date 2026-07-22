@@ -33,15 +33,10 @@
   }
 
   .modal-box {
-    padding: 1vh;
-    border-radius:1em;
-    top: 7rem;
-    left: 21rem;
-    display: flex;
-    position: fixed;
+    padding: 2vh;
+    border-radius:1rem;
     border: 1px black solid;
     background-color: white;
-    height:15vh;
   }
 
 

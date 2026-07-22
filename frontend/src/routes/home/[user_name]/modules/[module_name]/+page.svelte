@@ -33,10 +33,7 @@
     console.log('Web Storage is not supported in this environment.');
   }
 
-
   $: login = logged ? "Logged in" : "Login";
-  
-
   
   async function getUsername(){
     const token = await localStorage.getItem("access_token");
@@ -70,6 +67,41 @@
     setTimeout(() => {
       toastMessage = "";
     }, 3000);
+  }
+
+  async function changeModuleName(event){
+    event.preventDefault();
+    const token = await localStorage.getItem("access_token");
+    if(!token) return;
+    
+    const currentName = await localStorage.getItem(`moduleName`);
+    if(!currentName) return;
+    const idQuery = await fetch(`${apiURL}/users/me/modules/${encodeURIComponent(currentName)}`,{
+      method: `GET`,
+      headers : {
+        "Authorization": `Bearer ${token}`
+      }});
+    if(!idQuery.ok) return;
+
+    const data = await idQuery.json();
+    module_id = data.id;
+    
+    const edQuery = await fetch(`${apiURL}/users/${user_id}/modules/${module_id}`, {
+      method : `PATCH`,
+      headers : {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body : JSON.stringify({ module_name: moduleName.trim()})
+    });
+
+    if(edQuery.ok) {
+      message = "Module successfully edited";
+      localStorage.setItem("moduleName", moduleName.trim());
+      showModal = false;
+    } else {
+      message = "Failed to rename the module. This name may already belong to another module.";
+    }
   }
 
   async function deleteQuiz(module_id,quiz_id){
@@ -304,6 +336,11 @@
       z-index: 2;
     }
 
+    #breadcrumbs {
+      display: inline-flex;
+      column-gap: 1rem;
+    }
+
     #breadcrumbs a{
       text-decoration: none;
       color: #3174ec;
@@ -325,6 +362,32 @@
       padding: 8px;
       color: #3174ec;
       content: ">>>";
+    }
+    .edit-module-btn {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10pt;
+      padding: 0;
+      border: 0px;
+      background-color: transparent;
+      color: rgb(18, 105, 192);
+      cursor: pointer;
+    }
+
+    .edit-module-btn svg{
+      display: block;
+    }
+
+    .edit-module-btn:hover {
+        background-color: rgb(18, 105, 192);
+        color: white;
+        border-radius: 1rem;
+    }
+    
+
+
+    .module-actions{
+      display:inline-block;
     }
     
     #col-modules{
@@ -388,21 +451,16 @@
 
     #form-navbar {
       display: flex;
-      border-radius: 1em;
-      //max-width: 100%;
-      height: 30%;
-      //padding: 1vh;
       color: rgb(18, 105, 192);
-      display: flex;
       justify-content: space-between; 
       align-items: center;
-      
       background-color: white;
     }
 
     #form-navbar h2{
       color: rgb(18, 105, 192);
       font-family: 'Montserrat', sans-serif;
+      font-size: 22pt;
     }
 
     #form-navbar button{
@@ -411,10 +469,13 @@
       border: 0;
     }
 
+    #form-navbar button:hover{
+      cursor: pointer;
+    }
+
     #form-fields {
-      //padding: 1vh;
-      height: 30%;
-      display: flex;
+      
+
     }
 
     #form-fields input {
@@ -425,34 +486,27 @@
       letter-spacing: -0.02em;
     }
 
-    #form-button-section{
-      height: 40%;
-      //padding: 1vh;
-      display: flex;
-      //align-items: center;
-      justify-content: flex-end;  /* <-- pushes button to the right */
-      //padding: 1em;
-      //border-radius: 1em;
-      align-items: center;
-    }
-
-    #form-button-section button{
-      height: 80%;
-      border-radius: 2em;
+    #form-fields button {
+      border-radius: 0.5rem;
       border: 0.1em solid transparent;
-      background-color: rgb(18, 105, 192);
-      display: flex;
-      align-items: center;
-    }
-
-    #form-button-section button:hover{
-      background-color:green;
-    }
-
-    #form-button-section button p{
       color:white;
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;      
-      font-weight: 600;      
+      background-color: rgb(18, 105, 192);
+      align-items: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    #form-fields button:hover {
+      border: 1px solid black;
+      cursor: pointer;
+      border-radius: 0.5rem;
+      background-color:white;
+      color: rgb(18, 105, 192);
+      align-items: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
     }
 
     #modules-container{
@@ -782,7 +836,38 @@
         <li><a href="/home/{user_name}">Home</a></li>
         <li>{moduleName}</li>
       </ul>
+      <button type="button" class="edit-module-btn" aria-label="Rename Module" 
+            onclick={() => {if (user_name === "Guest" || user_name === "Undefined") {
+                              showToast("Editing is not available in guest mode.");
+                            } else {
+                              showModal = !showModal;
+                            }
+                          }
+                        }
+                      >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="edit-icon">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg> 
+              Rename Module
+              {#if toastMessage}
+                <div class="toast">
+                {toastMessage}
+                </div>
+              {/if}
+            </button>
     </div>
+
     <div id="col-modules">
       <div id="my-modules">
       <h2>Quizzes
@@ -854,6 +939,25 @@
       </button>
       </h2>
       </div>
+      {#if showModal}
+      <Modal bind:showModal>
+        <form onsubmit={changeModuleName}>
+        <nav id="form-navbar">
+          <h2>Rename the Module</h2>
+          <button aria-label="Close" onclick={() => (showModal = false)}>
+            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+          </button>
+        </nav>
+        <div id="form-fields">
+          <input id="module-name" bind:value={moduleName} type="text" placeholder="Module Name" required>
+          <button type="submit">
+            Rename
+          </button>
+        </div>
+        </form>
+
+      </Modal>
+      {/if}
     
       <div id="modules-container">
         {#each quizzes as quiz, i}
@@ -957,26 +1061,6 @@
       {/each}
       </div>
     </div> 
-    {#if showModal}
-      <Modal bind:showModal>
-        <form onsubmit={registerQuiz}>
-        <nav id="form-navbar">
-          <h2>Add a New Quiz</h2>
-          <button onclick={() => (showModal = false)}>
-            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
-          </button>
-        </nav>
-        <div id="form-fields">
-          <input id="module-name" bind:value={newQuizName} type="text" placeholder="Quiz Name">
-        </div>
-        <div id="form-button-section">
-          <button type="submit">
-            <p>Continue</p>
-          </button>
-        </div>
-        </form>
-      </Modal>
-    {/if}
 </main>
   <div id="sidebar1"></div>
   <div id="sidebar2"></div>
