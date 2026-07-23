@@ -154,7 +154,7 @@ Connect to the test database. Run this command separately and wait for the conne
 ```sql
 INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('testuser1', 'user1@gmail.com', '$2b$12$3jF.2woCsTQaie.tYorJR.YTe/F6TZC/dJf8.g9Bb0BZIXEo77cn6', 'root', true);
 INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('testuser2', 'user2@gmail.com', '$2b$12$zzKJod0KMg79oNxugy4Uh.NcMEE/rzaDet1v/7dJSNvmGHgTqM/z2', 'user', false);
-INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('test_user3', 'user3@gmail.com', '$2b$12$aYHuJm/kmuLORvDMbhf/eucpdu7CcV7V36qluB8H/YKK0piszRFQ6', 'user', false);
+INSERT INTO public."user" (user_name, email, password, role, verified) VALUES ('test_user3', 'user3@gmail.com', '$2b$12$.WAmsbedo68kGHG0GD8jgO4GYGCUxS3LX1kFQ.ZCD5y5jLyAlStQK', 'user', false);
 ```
 Exit PostgreSQL:
 
