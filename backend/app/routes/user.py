@@ -1,6 +1,5 @@
 import sys
-
-from sqlalchemy import Row
+from sqlalchemy import Row, delete
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +18,7 @@ from jwt.exceptions import InvalidTokenError
 import resend
 import secrets
 import hashlib
+import logging
 
 
 #load_dotenv("../.env")
@@ -38,7 +38,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
 # passlib uses hashlib (and other crypto libraries) underneath
 # and adds salting, slow algorithms, and secure password handling 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+logger = logging.getLogger(__name__)
 # Utility function to hash passwords
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -107,8 +107,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: As
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
+async def get_current_active_user(current_user: Annotated[User, Depends(get_current_user)],
 ):
     return current_user
 
@@ -185,7 +184,7 @@ async def confirm_email(user_name:str,email:str,token:str,organization: str | No
 async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
     user = result.scalars().first()
-    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id}
+    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id, "verified":user.verified}
 
 @router.get("/users")
 async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
@@ -209,7 +208,8 @@ async def get_user(current_user: Annotated[User, Depends(get_current_active_user
         "user_id": user_id,
         "user_name": user.user_name,
         "email": user.email,
-        "role":user.role
+        "role":user.role,
+        "verified":user.verified
         }
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
@@ -327,6 +327,30 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod:
         }
         )
     
+@router.post("/users/me/resend-verificationtoken")
+async def resend_verification_token(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db),prod: bool=True):
+    try:
+        await db.execute(delete(VerificationToken).where(VerificationToken.user_id == current_user.id))
+        token = confirmation_token()
+        verification_token = create_verification_token(user_id=current_user.id,token=token)
+        db.add(verification_token)
+        await db.commit()
+        await db.refresh(verification_token)
+
+        if(prod):
+            await send_email_confirmation("API",current_user.email,token)
+            return {"message": "Verification email sent"}
+        else:
+            response = await send_email_confirmation("TEST",current_user.email,token)
+            return response
+    except Exception as e:
+        await db.rollback()
+        logger.exception("Failed to resend verification token")
+        raise HTTPException(
+            status_code=500,
+            detail=f"{type(e).__name__}: {str(e)}"
+        )
+
     #TODOS:  
     #        Force the user to enter a secure password on client side and serverside as well
 """
