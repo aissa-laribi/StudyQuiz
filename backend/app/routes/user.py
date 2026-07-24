@@ -80,7 +80,7 @@ async def authenticate_user(username: str, password: str, db: AsyncSession = Dep
         db_time,
         bcrypt_time,
     )
-    if password_ok:
+    if not password_ok:
         return False
     return user
 
