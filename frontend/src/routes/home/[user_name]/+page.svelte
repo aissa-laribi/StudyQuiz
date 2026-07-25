@@ -14,9 +14,11 @@
   let user = Object;
   let user_name = "";
   let user_id = 0;
+  let verified = false;
   let module_name = "";
   let quiz_name = "";
   let toggledProfile = false;
+  let resendMessage = "";
   
   const apiURL = import.meta.env.VITE_API_URL;
   const imgModuleIndex = writable(null);
@@ -51,11 +53,29 @@
       user = data;
       user_name = data['user_name'];
       user_id = data['id'];
+      verified = data['verified'];
     } else {
       message = "Failed to retrieve username";
     }
   }
 
+  async function resendVerificationEmail(){
+    const token = localStorage.getItem("access_token");
+    if(!token) return;
+
+    const resendQuery = await fetch(`${apiURL}/users/me/resend-verificationtoken`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+    if (resendQuery.ok) {
+      resendMessage = "Confirmation email successfully sent.";
+    } else {
+      resendMessage = "Failed to send confirmation email.";
+    }
+  }
   async function loadModulesAndFollowups() {
     const token = localStorage.getItem("access_token");
     if (!token) return;
@@ -196,13 +216,16 @@
 
 <style>
     .container {
+        min-height:100vh;
         display: grid;
         grid-template-columns: 1fr 10fr 1fr;
-        grid-template-rows: 0.6fr 10fr;
+        grid-template-rows: auto 1fr auto;
         grid-template-areas:
         'nav nav nav'
-        'sidebar1 main sidebar2';
+        'sidebar1 main sidebar2'
+        'footer footer footer';
         align-items: stretch;
+
         }
     nav {
         grid-area : nav;
@@ -304,7 +327,7 @@
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 2fr 1fr;
-        grid-template-rows: auto auto;
+        grid-template-rows: 0.6fr;
         gap: 2rem;
         grid-template-areas:
         'spacer spacer'
@@ -366,6 +389,42 @@
   line-height: 1.5;
   font-family: 'Montserrat', sans-serif;
 }
+
+#unverified-banner {
+  margin: auto;
+  padding: 1rem 1rem;
+  border: 1px solid #f0c36d;
+  border-radius: 1rem;
+  background: #fff8e6;
+  text-align: center;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#unverified-banner p {
+  margin: 0;
+}
+
+#unverified-banner #hint {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+#unverified-banner button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  background: #1269c0;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#unverified-banner button:hover {
+  background: #000000;
+}
     #col-modules{
       grid-area: col-modules;
       background-color: white;
@@ -376,6 +435,12 @@
     #my-modules {
       border-bottom: 3px solid #eff0f3;
       margin: 2em; 
+    }
+    .hint {
+      margin: 1rem 0 0 0;
+      color: #555;
+      font-size: 0.95rem;
+      text-align: left;
     }
 
     #my-modules button {
@@ -711,7 +776,7 @@
     'spacer'
     'col-modules'
     'col-quizzes';
-    gap: 0;
+    
   }
   #col-modules {
     grid-area: col-modules;
@@ -738,17 +803,17 @@
 <section class="container">
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
-  <div class="menu-box" on:mouseenter={() => toggledProfile = true}
-  on:mouseleave={() => toggledProfile = false}>
+  <div class="menu-box" onmouseenter={() => toggledProfile = true}
+  onmouseleave={() => toggledProfile = false}>
     <div class="user-menu">
       <button>
         {user_name} ▼
       </button>
     {#if toggledProfile}
       <div class="dropdown">
-        <button on:click={logout}>Upgrade</button>
-        <button on:click={logout}>Settings</button>
-        <button on:click={logout}>Logout</button>
+        <button onclick={logout}>Upgrade</button>
+        <button onclick={logout}>Settings</button>
+        <button onclick={logout}>Logout</button>
       </div>
     {/if}
 </div>
@@ -759,28 +824,43 @@
     <section class="welcome-banner">
       <h1>Welcome to StudyQuiz</h1>
       <h2>Try the demo learning flow:</h2>
-
       <ol class="welcome-steps">
         <li>Choose a sample module below, or create your own module.</li>
         <li>Click <strong>New Quiz</strong> and upload your learning material.</li>
         <li>Generate a quiz, take it, and see how StudyQuiz schedules your next review.</li>
       </ol>
     </section>
+    {#if user && !verified}
+      <div id="unverified-banner">
+        <p><strong>Your account is not verified yet.</strong> Please verify your email to create modules and quizzes.</p>
+        <p id="hint">Check your inbox or request a new verification link.</p>
+        <button onclick={resendVerificationEmail}>
+          Resend verification email
+        </button>
+      </div>
+    {/if}
+    {#if resendMessage}
+          <p class="resend-message">{resendMessage}</p>
+    {/if}
     </div>
     <div id="col-modules">
     <div id="my-modules">
     <h2>My Modules
-    <button id="new-module-button" on:click={() => (showModal = true)}>
+    {#if user && verified}
+    <button id="new-module-button" onclick={() => (showModal = true)}>
     <svg  xmlns="http://www.w3.org/2000/svg"  width="32"  height="32"  viewBox="0 0 20 20"  fill="none"  stroke="currentColor"  stroke-width="1"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
     <span class="tooltiptext">Add a New Module</span>
     </button>
+    {:else}
+    <p class="hint">Verify your email to start creating modules</p>
+    {/if}
     </h2>
     </div>
     <div id="modules-container">
       {#each modules as module, i}
         <div class="module-box"><img src="/modules-card/{i+1}.webp">
         <p><a href={`/home/${user_name}/modules/${module}`} 
-        on:click={() => moduleHandler(i, module)}>{module}</a></p>
+        onclick={() => moduleHandler(i, module)}>{module}</a></p>
         </div>
       {/each}
     </div> 
@@ -860,10 +940,10 @@
 
     {#if showModal}
       <Modal bind:showModal>
-        <form on:submit={registerModule}>
+        <form onsubmit={registerModule}>
         <nav id="form-navbar">
           <h2>Register a New Module</h2>
-          <button on:click={() => (showModal = false)}>
+          <button onclick={() => (showModal = false)}>
             <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
           </button>
         </nav>
