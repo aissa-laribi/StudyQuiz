@@ -94,8 +94,27 @@
   }
 }
 
+async function measureBackendWakeUp() {
+  const start = performance.now();
+  try{
+    const res = await fetch(`${apiURL}/`,{
+      method: "GET",
+      cache: "no-store"
+    });
+    const end = performance.now();
+    const seconds = ((end - start) / 1000).toFixed(2)
+    console.log(`BACKEND_WAKEUP_TIME: ${seconds}s status=${res.status}`);
+  } catch(error) {
+    const end = performance.now();
+    const seconds = ((end - start) / 1000).toFixed(2);
+    console.log(`BACKEND_WAKEUP_FAILED_AFTER: ${seconds}s`, error);
+  }
+  
+}
+
   onMount(() => {
-    fetch(`${apiURL}/`).catch(() => {});
+    measureBackendWakeUp();
+
     const animation = lottie.loadAnimation({
       container: animationContainer,
       renderer: "svg",
