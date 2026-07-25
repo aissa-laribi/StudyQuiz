@@ -68,18 +68,14 @@ async def authenticate_user(username: str, password: str, db: AsyncSession = Dep
     db_time = time.perf_counter() - t0
     user = result.scalars().first()
     if not user:
-        logger.info("LOGIN_TIMING user_found=false db_time=%.4f", db_time)
+        print(f"LOGIN_TIMING user_found=false db_time={db_time:.4f}",flush=True,)
         return False
 
     t1 = time.perf_counter()
     password_ok = verify_password(password, user.password)
 
     bcrypt_time = time.perf_counter() - t1
-    logger.info(
-        "LOGIN_TIMING user_found=true db_time=%.4f bcrypt_time=%.4f",
-        db_time,
-        bcrypt_time,
-    )
+    print(f"LOGIN_TIMING user_found=true db_time={db_time:.4f} bcrypt_time={bcrypt_time:.4f}",flush=True,)
     if not password_ok:
         return False
     return user
