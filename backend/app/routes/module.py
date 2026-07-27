@@ -55,7 +55,7 @@ async def create_module(current_user: Annotated[User, Depends(get_current_active
 @router.post("/users/{user_id}/modules/batch-create")
 async def create_modules(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, modules: BatchModules,db: AsyncSession = Depends(get_db)):
     results = {}
-    if current_user.role == "root" or current_user.id == user_id:
+    if current_user.role == "root" or current_user.id == user_id and (current_user.verified):
         for module in modules.data:
             new_module = Module(module_name=module.name, user_id=user_id)
             db.add(new_module)
