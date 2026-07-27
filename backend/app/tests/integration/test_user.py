@@ -157,8 +157,6 @@ async def test_get_users1_logged(async_app_client):
     response = await async_app_client.get("/users",headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     assert len(response.json()) == 3
-    assert response.json()[0]["id"] == 1 #Hard-coded ID might fail in a workflow
-    assert response.json()[1]["id"] == 2
     assert response.json()[0]["role"] == "root"
     assert response.json()[1]["role"] == "user"
 

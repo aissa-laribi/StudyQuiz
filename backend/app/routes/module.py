@@ -26,7 +26,7 @@ class Module(Base):
 async def create_module(current_user: Annotated[User, Depends(get_current_active_user)], module: ModuleCreate, db: AsyncSession = Depends(get_db)):
     user_id = current_user.id
     try:
-        if current_user.role == "root" or current_user.id == user_id:
+        if current_user.role == "root" or (current_user.id == user_id and current_user.verified):
             new_module = Module(module_name=module.name, user_id=user_id)
             db.add(new_module)
             await db.commit()

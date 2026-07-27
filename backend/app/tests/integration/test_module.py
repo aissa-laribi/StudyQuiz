@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 import os
-from sqlalchemy import text
+from sqlalchemy import text, update
 from app.main import app
 from dotenv import load_dotenv
 from app.models import Base,User,Module
@@ -553,6 +553,9 @@ async def test_access_other_user_module_forbidden(async_app_client):
     headers = {"Authorization": f"Bearer {token}"}
 
     data = {"name": "Module 1",}
+    async with async_session() as session:
+            result = await session.execute(update(User).where(User.user_name == "testuser2").values(verified=True))
+            await session.commit()
     response = await async_app_client.post("/users/me/modules/", json=data, headers=headers)
     assert response.status_code == 200
     modules = await async_app_client.get(f"/users/me/modules/",headers=headers)
@@ -579,6 +582,9 @@ async def test_access_other_user_module_forbidden(async_app_client):
     modules = await async_app_client.get(f"/users/2/modules/",headers=headers)
     assert modules.status_code == 403
     assert modules.json() == {'detail': 'Not enough permissions'}
+    async with async_session() as session:
+            result = await session.execute(update(User).where(User.user_name == "testuser2").values(verified=False))
+            await session.commit()
 
 @pytest.mark.anyio
 async def test_root_access_other_user_module_authorized(async_app_client):
