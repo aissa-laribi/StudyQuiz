@@ -28,7 +28,7 @@ class Quiz(Base):
 router = APIRouter()
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/batch-create/")
 async def create_quizzes(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quizzes: BatchQuizCreate, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
+    if current_user.role == "root" or  (current_user.id == user_id and current_user.verified):
         results = {}
         for quiz in quizzes.data:
             new_quiz = Quiz(user_id=user_id, module_id=module_id, quiz_name=quiz.name)
@@ -45,7 +45,7 @@ async def create_quizzes(current_user: Annotated[User, Depends(get_current_activ
 async def create_quiz_from_module_name(current_user: Annotated[User, Depends(get_current_active_user)], module_name: str, quiz: QuizCreate, db: AsyncSession = Depends(get_db)
 ):
     user_id = current_user.id
-    if current_user.role == "root" or current_user.id == user_id:
+    if current_user.role == "root" or (current_user.id == user_id and current_user.verified):
         result = await db.execute(
             select(Module).where(Module.module_name == module_name, Module.user_id == user_id)
         )
@@ -71,7 +71,7 @@ async def create_quiz_from_module_name(current_user: Annotated[User, Depends(get
 
 @router.post("/users/{user_id}/modules/{module_id}/quizzes/")
 async def create_quiz(current_user: Annotated[User, Depends(get_current_active_user)],user_id: int, module_id: int, quiz: QuizCreate, db: AsyncSession = Depends(get_db)):
-    if current_user.role == "root" or current_user.id == user_id:
+    if current_user.role == "root" or  (current_user.id == user_id and current_user.verified):
         new_quiz = Quiz(quiz_name=quiz.name, user_id=user_id, module_id=module_id)
         db.add(new_quiz)
         await db.commit()
