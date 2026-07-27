@@ -1,3 +1,4 @@
+from asyncio import sleep
 import sys
 import time
 from sqlalchemy import Row, delete
@@ -64,7 +65,13 @@ async def get_role_signup_and_verified(db:Annotated[AsyncSession, Depends(get_db
 
 async def authenticate_user(username: str, password: str, db: AsyncSession = Depends(get_db)):
     t0 = time.perf_counter()
-    result = await db.execute(select(User).where(User.user_name == username))
+    try:
+        result = await db.execute(select(User).where(User.user_name == username))
+    except DBAPIError as e:
+        print(f"LOGIN_DB_ERROR first_attempt={type(e).__name__}", flush=True)
+        await db.rollback()
+        await sleep(0.5)
+        result = await db.execute(select(User).where(User.user_name == username))
     db_time = time.perf_counter() - t0
     user = result.scalars().first()
     if not user:
