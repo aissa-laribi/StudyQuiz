@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import List,Optional
 
-from sqlalchemy import CheckConstraint, Column, Integer, String, ForeignKey, Boolean, func, DateTime, Float, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, Date, Integer, String, ForeignKey, Boolean, func, DateTime, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,6 +24,7 @@ class User(Base):
     modules: Mapped[List["Module"]] = relationship(back_populates="owner")
     verification_tokens: Mapped[list["VerificationToken"]] = relationship(back_populates="user",cascade="all, delete-orphan")
     plan: Mapped["Plan"] = relationship(back_populates="users")
+    ai_usage: Mapped[list["AIUsage"]] = relationship(back_populates="user",cascade="all,delete-orphan",passive_deletes=True)
 
 class VerificationToken(Base):
     __tablename__= "verification_token"
@@ -127,3 +128,12 @@ class Plan(Base):
     ai_daily_allowance: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
     price_monthly: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
     users: Mapped[list["User"]] = relationship(back_populates="plan")
+
+class AIUsage(Base):
+    __tablename__ = "ai_usage"
+    __table_args__ = (UniqueConstraint("user_id","usage_date",name="uq_ai_usage_user_date"), CheckConstraint("consumption >= 0",name="ck_ai_usage_consumption_not_negative"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id",ondelete="CASCADE"),nullable=False,i ndex=True)
+    usage_date: Mapped[date] = mapped_column(Date,nullable=False,index=True,default=date.today)
+    consumption: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
+    user: Mapped["User"] = relationship(back_populates="ai_usage")

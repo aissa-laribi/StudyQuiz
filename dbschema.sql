@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict FO9Orce6zmJFPEYaNsTO9NLsD1C1x7B3gyMb7aUAchNMWapvO9XzqSQuNe7m4xM
+\restrict XUjQodg6au5oi6ZpryfWyXP1xtW9pUGLDQSmXRn9y99w3UUA0buKQDRDZCaIqCS
 
 -- Dumped from database version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
 -- Dumped by pg_dump version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
@@ -29,6 +29,19 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: ai_usage; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ai_usage (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    usage_date date DEFAULT CURRENT_DATE NOT NULL,
+    consumption integer DEFAULT 0 NOT NULL,
+    CONSTRAINT ck_ai_usage_consumption_non_negative CHECK ((consumption >= 0))
+);
+
 
 --
 -- Name: alembic_version; Type: TABLE; Schema: public; Owner: -
@@ -386,6 +399,14 @@ ALTER TABLE ONLY public."user" ALTER COLUMN id SET DEFAULT nextval('public.user_
 
 
 --
+-- Name: ai_usage ai_usage_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ai_usage
+    ADD CONSTRAINT ai_usage_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -471,6 +492,14 @@ ALTER TABLE ONLY public.module
 
 ALTER TABLE ONLY public.quiz
     ADD CONSTRAINT unique_quiz_name_per_module UNIQUE (user_id, quiz_name);
+
+
+--
+-- Name: ai_usage uq_ai_usage_user_date; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ai_usage
+    ADD CONSTRAINT uq_ai_usage_user_date UNIQUE (user_id, usage_date);
 
 
 --
@@ -724,6 +753,14 @@ ALTER TABLE ONLY public.attempt
 
 
 --
+-- Name: ai_usage fk_ai_usage_user; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ai_usage
+    ADD CONSTRAINT fk_ai_usage_user FOREIGN KEY (user_id) REFERENCES public."user"(id) ON DELETE CASCADE;
+
+
+--
 -- Name: user fk_user_plan; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -815,5 +852,5 @@ ALTER TABLE ONLY public.quiz
 -- PostgreSQL database dump complete
 --
 
-\unrestrict FO9Orce6zmJFPEYaNsTO9NLsD1C1x7B3gyMb7aUAchNMWapvO9XzqSQuNe7m4xM
+\unrestrict XUjQodg6au5oi6ZpryfWyXP1xtW9pUGLDQSmXRn9y99w3UUA0buKQDRDZCaIqCS
 
