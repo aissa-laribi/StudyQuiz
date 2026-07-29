@@ -52,7 +52,7 @@ async def get_role_signup_and_verified(db:Annotated[AsyncSession, Depends(get_db
     result = await db.execute(select(User.id))
     users = result.scalars().all() #Return all users id in a list
     if len(users) == 0:
-        return {
+        return {    
         "role": "root",
         "verified" : True,
         "token": None  }
@@ -200,7 +200,7 @@ async def confirm_email(user_name:str,email:str,token:str,organization: str | No
 async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
     user = result.scalars().first()
-    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id, "verified":user.verified}
+    return {"user_name": user.user_name,"email": user.email,"role":user.role, "id":user.id, "verified":user.verified, "plan_id":user.plan_id}
 
 @router.get("/users")
 async def get_users(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
@@ -225,7 +225,8 @@ async def get_user(current_user: Annotated[User, Depends(get_current_active_user
         "user_name": user.user_name,
         "email": user.email,
         "role":user.role,
-        "verified":user.verified
+        "verified":user.verified,
+        "plan":user.plan,
         }
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
@@ -301,7 +302,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod:
                     created_at=datetime.now(),
                     updated_at=datetime.now(),
                     verified=data['verified'],
-                    #plan=1,
+                    plan_id=1
                 )    
     try:
         db.add(new_user) #Add the instance of the ORM User to the db session

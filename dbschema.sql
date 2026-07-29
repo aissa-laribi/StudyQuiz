@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 7b4B8aB3Z8rrzJeMbk9wXnLu3r1ssE69KNZ97arDx00W0GiWSw3npl0lYaXfbap
+\restrict FO9Orce6zmJFPEYaNsTO9NLsD1C1x7B3gyMb7aUAchNMWapvO9XzqSQuNe7m4xM
 
 -- Dumped from database version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
 -- Dumped by pg_dump version 18.4 (Ubuntu 18.4-1.pgdg22.04+1)
@@ -24,9 +24,6 @@ SET row_security = off;
 --
 
 -- *not* creating schema, since initdb creates it
-
-
---
 
 
 SET default_tablespace = '';
@@ -183,6 +180,23 @@ ALTER SEQUENCE public.module_id_seq OWNED BY public.module.id;
 
 
 --
+-- Name: plan; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.plan (
+    id integer NOT NULL,
+    plan_code character varying(30) NOT NULL,
+    display_name character varying(40) NOT NULL,
+    ai_monthly_allowance integer DEFAULT 0 NOT NULL,
+    ai_daily_allowance integer DEFAULT 0 NOT NULL,
+    price_monthly_pence integer DEFAULT 0 NOT NULL,
+    CONSTRAINT ck_plan_ai_daily_allowance_non_negative CHECK ((ai_daily_allowance >= 0)),
+    CONSTRAINT ck_plan_ai_monthly_allowance_non_negative CHECK ((ai_monthly_allowance >= 0)),
+    CONSTRAINT ck_plan_price_non_negative CHECK ((price_monthly_pence >= 0))
+);
+
+
+--
 -- Name: question; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -270,7 +284,8 @@ CREATE TABLE public."user" (
     role character varying(4) DEFAULT 'user'::character varying NOT NULL,
     verified boolean,
     organization character varying(20),
-    city character varying(20)
+    city character varying(20),
+    plan_id integer NOT NULL
 );
 
 
@@ -408,6 +423,22 @@ ALTER TABLE ONLY public.followup
 
 ALTER TABLE ONLY public.module
     ADD CONSTRAINT module_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: plan plan_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan
+    ADD CONSTRAINT plan_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: plan plan_plan_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.plan
+    ADD CONSTRAINT plan_plan_code_key UNIQUE (plan_code);
 
 
 --
@@ -693,6 +724,14 @@ ALTER TABLE ONLY public.attempt
 
 
 --
+-- Name: user fk_user_plan; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."user"
+    ADD CONSTRAINT fk_user_plan FOREIGN KEY (plan_id) REFERENCES public.plan(id) ON DELETE RESTRICT;
+
+
+--
 -- Name: verification_token fk_verification_token_user; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -776,4 +815,5 @@ ALTER TABLE ONLY public.quiz
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 7b4B8aB3Z8rrzJeMbk9wXnLu3r1ssE69KNZ97arDx00W0GiWSw3npl0lYaXfbap
+\unrestrict FO9Orce6zmJFPEYaNsTO9NLsD1C1x7B3gyMb7aUAchNMWapvO9XzqSQuNe7m4xM
+
