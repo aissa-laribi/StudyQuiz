@@ -133,7 +133,7 @@ class AIUsage(Base):
     __tablename__ = "ai_usage"
     __table_args__ = (UniqueConstraint("user_id","usage_date",name="uq_ai_usage_user_date"), CheckConstraint("consumption >= 0",name="ck_ai_usage_consumption_not_negative"))
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id",ondelete="CASCADE"),nullable=False,i ndex=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id",ondelete="CASCADE"),nullable=False,index=True)
     usage_date: Mapped[date] = mapped_column(Date,nullable=False,index=True,default=date.today)
     consumption: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
     user: Mapped["User"] = relationship(back_populates="ai_usage")
