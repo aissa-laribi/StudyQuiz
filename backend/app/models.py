@@ -126,7 +126,7 @@ class Plan(Base):
     display_name: Mapped[str] = mapped_column(String(40),nullable=False)
     ai_monthly_allowance: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
     ai_daily_allowance: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
-    price_monthly: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
+    price_monthly_pence: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
     users: Mapped[list["User"]] = relationship(back_populates="plan")
 
 class AIUsage(Base):
