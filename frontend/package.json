@@ -23,6 +23,7 @@
 		"vite-plugin-devtools-json": "^0.2.0"
 	},
 	"dependencies": {
-		"lottie-web": "^5.13.0"
+		"lottie-web": "^5.13.0",
+		"svelte-intersection-observer": "^2.2.0"
 	}
 }

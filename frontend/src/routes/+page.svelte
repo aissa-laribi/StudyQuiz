@@ -1,9 +1,15 @@
 <script>
   import { onMount } from 'svelte';
   import{ goto } from '$app/navigation';
+  import { redirect } from '@sveltejs/kit';
+  import { fade,fly } from 'svelte/transition';
+  import IntersectionObserver from 'svelte-intersection-observer';
 
   let user_name = "";
   const apiURL = import.meta.env.VITE_API_URL;
+
+  let element;
+  let intersecting = false;
 
   async function turnOnAI(){
     const token = localStorage.getItem("access_token");
@@ -43,18 +49,21 @@
     await turnOnAI();
     await getUsername();
   });
+
 </script>
 
 <style>
     .container {
         display: grid;
         height: 100vh;
-        grid-template-columns: 1fr 10fr 1fr;
-        grid-template-rows: 0.6fr 0.1fr 10fr;
+        min-height: 100vh;
+        height: auto;
+        overflow: visible;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
         grid-template-areas:
-        'nav nav nav'
-        'notice notice notice'
-        'main main main';
+          'nav'
+          'main';
         }
     nav {
         grid-area : nav;
@@ -67,7 +76,7 @@
         ;
         //max-height:4vh;
     }
-    #notice {
+    /*#notice {
       grid-area: notice;
       display: flex;
       align-items: center;
@@ -75,7 +84,7 @@
       background-color: #4190e01c;
       font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
       text-align: center;
-}
+    }*/
 
     .logo-box{
         grid-area: logo-box;
@@ -115,18 +124,21 @@
         grid-area: main;
         background-color: white;
         display: grid;
-        height: 100vh; 
-        vertical-align: baseline;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+        /*vertical-align: baseline;
         justify-content: center;
-        vertical-align: baseline;
+        vertical-align: baseline;*/
         grid-template-columns: 1fr;
-        grid-template-rows: 0.5fr 2fr 2fr 2fr;
+        grid-template-rows: 0.1fr 0.1fr 0.1fr 0.1fr;
         row-gap: 20px;
         grid-template-areas:
         'hero-spacer'
         'hero'
         'showcase-container'
-        'feature-grid';
+        'feature-grid'
+        'plans-grid';
     }
     main h1 {
       font-family: 'Montserrat', sans-serif;
@@ -205,38 +217,6 @@
       grid-area: video-spacer1;
       
     }
-
-    
-    #feature-grid {
-      grid-area: feature-grid;
-      background-color: #f6f7fb;
-      padding : 1.25em;
-
-
-    }
-    #feature-grid-inner {
-      background-color: #f6f7fb;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      grid-template-rows: 1fr;
-      grid-template-areas:
-      'feat-col1 feat-col2 feat-col3 feat-col4';
-      text-align: center;
-      color : white;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.5em;
-      border-radius: 1em;
-    }
-
-    #feature-grid #col1 {
-      template-area: col1;
-      
-      
-    }
-
-    #feature-grid #col1 h3 {
-      
-    }
     #sidebar1 {
         grid-area : sidebar1;
         background-color: #f6f7fb;
@@ -309,7 +289,7 @@
     #feature-grid-inner {
       background-color: #f6f7fb;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr;
       grid-template-areas:
       'feat-col1 feat-col2 feat-col3 feat-col4';
@@ -319,6 +299,7 @@
       font-size: 1.5em;
       border-radius: 1em;
       gap:1rem;
+      padding:1rem;
     }
 
     .feat-col {
@@ -326,21 +307,41 @@
       border-radius: 2rem;
       background-color: white;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      padding: 1rem;
     }
 
     .feat-col img {
       width: 50%;
     }
 
-    #feature-grid #col1 {
-      template-area: col1;
-      
-      
+    #plans-grid{
+      grid-area: plans-grid;
+      background-color: #f6f7fb
+      padding : 1.25em;
     }
 
-    #feature-grid #col1 h3 {
-      
+    #plans-grid-inner {
+      background-color: #f6f7fb;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr;
+      grid-template-areas:
+      'plan-col1 plan-col2';
+      text-align: center;
+      color : black;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.5em;
+      border-radius: 1em;
+      gap:1rem;
     }
+
+    .plan-col {
+      border: 0.1rem solid black;
+      border-radius: 2rem;
+      background-color: white;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
     #sidebar1 {
         grid-area : sidebar1;
         background-color: #f6f7fb;
@@ -349,6 +350,10 @@
     #sidebar2 {
         grid-area : sidebar2;
         background-color: #f6f7fb;
+    }
+    footer {
+      grid-area: footer;
+      background-color: aqua;
     }
 @media (max-width: 500px) {
   .container{
@@ -370,7 +375,7 @@
   .menu-box {
     grid-area: menu-box;
   }
-  #notice {
+  /*#notice {
     font-size: 0.9rem;
     border-radius: 0.4em;
   }
@@ -378,7 +383,7 @@
     display: flex;
     font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 1em;
-  }
+  }*/
   main {
     display: block;
   }
@@ -411,7 +416,7 @@
   }
 }
 </style>
-
+<IntersectionObserver {element} bind:intersecting>
 <section class="container">
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
@@ -425,9 +430,10 @@
       </a>
   </div>
   </nav>
+  <!--
   <div id="notice" role="status" aria-live="polite">
     <p>Registration is limited for now but you can explore StudyQuiz as a guest.</p>
-  </div>
+  </div> -->
   <main>
   <div id="hero-spacer">
   </div>
@@ -435,9 +441,8 @@
     <h1>Turn your study material into quizzes. Review at the right time.</h1>
     <p>Create quizzes from your study material with AI, test your knowledge, and let StudyQuiz schedule your next review.</p>
     <div class="button-container">
-      <a href="/login" class="signup-button"><button>Try the demo</button></a>
+      <a href="/login" class="signup-button"><button>New CTA</button></a>
     </div>
-    <p>No sign-up required</p>
   <div id="showcase-container">
     <div id="video-spacer"></div>
     <div id="video-player">
@@ -449,27 +454,62 @@
     </div>
   </div>
   <div id="feature-grid">
-  <div id="feature-grid-inner">
-    <div class="feat-col">
+  <div bind:this={element} id="feature-grid-inner">
+    {#if intersecting}
+    <div class="feat-col" transition:fly={{y:1800,duration:3000,opacity:0}}>
       <h3>AI-generated quizzes</h3>
       <p>Turn study material into quiz questions with AI support.</p>
       <img src="spaced-repetition.png">
     </div>
+    
+    <!--
     <div class="feat-col">
       <h3>Manual quiz builder</h3>
       <p>Create and edit your own quizzes when you want full control.</p>
       <img src="shuffling.png">
     </div>
-    <div class="feat-col">
+  -->
+    <div class="feat-col" transition:fly={{y:1600,duration:2000}}>
       <h3>Spaced repetition</h3>
       <p>Review at the right time when StudyQuiz schedules it.</p>
       <img src="followups-schedule.png">
     </div>
-    <div class="feat-col">
+    <div class="feat-col" transition:fly={{y:1400,duration:1000}}>
       <h3>Progress and mistakes</h3>
       <p>Track scores, due reviews, and answers to revisit.</p>
       <img src="web-api.png">
     </div>
+    {/if}
+  </div>
+  </div>
+  <div id="plans-grid">
+  <div id="plans-grid-inner">
+    <div class="plan-col">
+      <h3>Early Birds</h3>
+      <p>$0<br>Generous free access for six active early users.</p>
+      <ul>
+        <li>60 AI-generated quizzes per month</li>
+        <li>Maximum 5 AI generations per day</li>
+        <li>Unlimited manual quizzes</li>
+        <li>Unlimited quiz attempts</li>
+        <li>Regular Usage Required*</li>
+      </ul>
+    <strong>Limited to 6 places</strong>
+    <button>Join Early Birds waiting list</button>
+    </div>
+    <div class="plan-col">
+      <h3>Free</h3>
+      <p>$0<br>Try the complete StudyQuiz workflow with a smaller AI allowance.</p>
+      <ul>
+        <li>5 AI-generated quizzes per month</li>
+        <li>Maximum 1 AI generation per day</li>
+        <li>Unlimited manual quizzes</li>
+        <li>Unlimited scheduled reviews</li>
+        <li>Unlimited quiz attempts</li>
+        </ul>
+      <button>Join Free plan waiting list</button>  
+    </div>
+    <p>StudyQuiz plans are not open yet. Join a waiting list to be notified when access becomes available.</p>
   </div>
   </div>
   
@@ -478,3 +518,4 @@
   <div id="sidebar2"></div>
   
 </section>
+</IntersectionObserver>
