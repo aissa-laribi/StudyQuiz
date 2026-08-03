@@ -143,7 +143,6 @@
     
   }
   #col2-box {
-    
     border-radius: 1rem;
     height: 40vh;
     border: 5px dashed #3174ec;
@@ -154,8 +153,15 @@
   .hidden {
     display: none;
   }
-  label{
-    cursor: pointer;
+  label p{
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  label small{
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
   }
   .generate-quiz-btn{
     padding: 2rem;
@@ -165,21 +171,25 @@
   }
   svg:hover{
     cursor: pointer;
-    border-radius: 2rem;
-    background-color: #3172ec02;
-    padding: 0.1rem;
   }
-  .generate-quiz-btn{
-    padding: 2rem;
-    margin-bottom: 1rem;
-    background-color: #3174ec;
-    color: white;
-    width: auto;
-    font-size: 18pt;
-    cursor: pointer;
-    border-radius: 1rem;
-    border: 1px solid #bbb;
+
+.upload-ai-icon:hover {
+  transform: translateY(-4px) scale(1.06);
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.2));
+}
+
+.generate-quiz-btn{
+  padding: 2rem;
+  margin-bottom: 1rem;
+  background-color: #3174ec;
+  color: white;
+  width: auto;
+  font-size: 18pt;
+  cursor: pointer;
+  border-radius: 1rem;
+  border: 1px solid #bbb;
   }
+
   .generate-quiz-btn:hover{
     padding: 2rem;
     margin-bottom: 1rem;
@@ -209,7 +219,7 @@
           <label>
             {#if !files}
             <input bind:files class="hidden" type="file" name="file" accept=".pdf"/>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 512 512" fill="none" class="icon upload-ai-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 512 512" fill="none" class="upload-ai-icon">
                         <path fill="#00ACEA" d="M315 465H37c-3 0-5-3-5-5V104c0-3 2-5 5-5h86V5c0-3 2-5 5-5h263c3 0 5 2 5 5v333c0 3-2 5-5 5-44 0-80 36-80 80 0 12 3 24 8 34 1 2 1 4 0 5-1 2-2 3-4 3z"/>
 
                         <path fill="#009BD3" d="M315 465h-10c-6-13-10-27-10-42 0-53 43-96 96-96h5v11c0 3-2 5-5 5-44 0-80 36-80 80 0 12 3 24 8 34 1 2 1 4 0 5-1 2-2 3-4 3z"/>
