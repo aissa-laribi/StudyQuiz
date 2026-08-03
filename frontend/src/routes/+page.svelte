@@ -441,7 +441,7 @@
     <h1>Turn your study material into quizzes. Review at the right time.</h1>
     <p>Create quizzes from your study material with AI, test your knowledge, and let StudyQuiz schedule your next review.</p>
     <div class="button-container">
-      <a href="/login" class="signup-button"><button>New CTA</button></a>
+      <a href="/login" class="signup-button"><button>Try It Now</button></a>
     </div>
   <div id="showcase-container">
     <div id="video-spacer"></div>
