@@ -136,7 +136,7 @@ async function measureBackendWakeUp() {
         grid-template-rows: 0.6fr 10fr;
         grid-template-areas:
         'nav login-img-section'
-        'main login-img-section';
+        'main login-img-section'
         }
     nav {
         grid-area : nav;
@@ -286,6 +286,10 @@ async function measureBackendWakeUp() {
   .hide-loading {
     display: none;
   }
+
+  footer {
+      grid-area: footer;
+    }
   
 @media (max-width: 500px) {
   .container{
