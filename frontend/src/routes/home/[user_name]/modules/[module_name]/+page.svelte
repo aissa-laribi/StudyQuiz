@@ -247,6 +247,7 @@
         'sidebar1 main sidebar2'
         ;
         align-items: stretch;
+        align-content: start;
         }
     nav {
         grid-area : nav;
@@ -303,21 +304,22 @@
     }
     
     main {
-        grid-area: main;
-        background-color: #f6f7fb;
-        display: grid;
-        
-        height: auto;
-        min-height: 100vh;
-        
-        grid-template-columns: 2fr 1fr;
-        grid-template-rows: auto auto auto auto;
-        gap: 0.5rem 2rem ;
-        grid-template-areas:
-        'spacer spacer'
-        'breadcrumbs breadcrumbs'
-        'col-modules col-quizzes'
-        ;
+      grid-area: main;
+      background-color: #f6f7fb;
+      display: grid;
+
+      height: auto;
+      min-height: 0;
+
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 0.5rem 2rem;
+
+    grid-template-areas:
+      "spacer spacer"
+      "breadcrumbs breadcrumbs"
+      "col-modules col-quizzes";
+      align-content: start;
     }
     main h1 {
       font-family: 'Montserrat', sans-serif;
@@ -375,6 +377,7 @@
     #breadcrumbs {
       display: inline-flex;
       column-gap: 1rem;
+      max-height: 4rem;
     }
 
     #breadcrumbs a{
@@ -451,7 +454,7 @@
       grid-area: col-modules;
       background-color: white;
       border-radius: 1em;
-      height: fit-content;
+      padding-bottom: 1rem;
     }
 
     #col-modules h2{
@@ -751,7 +754,9 @@
       grid-area: col-quizzes;
       border-radius: 1em;
       border-radius: 1em;
-      height: fit-content;
+      //min-height: 40vh;
+      //background-color: white;
+
     }
     #upcoming-quizzes{
       background-color: white;      
@@ -1121,6 +1126,9 @@
       {/if}
     
       <div id="modules-container">
+      {#if quizzes.length === 0}
+        <p class="empty-state">No quizzes yet. Create your first quiz.</p>
+      {/if}
         {#each quizzes as quiz, i}
         <div class="module-box">
             <div class="header-quiz"><h3 class="quiz-title">{quiz.quiz_name}</h3></div>
@@ -1207,6 +1215,9 @@
       <div id="upcoming-quizzes">
         <h2>Upcoming Quizzes</h2>
         </div>
+      {#if quizzes.length === 0}
+        <p class="empty-state">No scheduled quizzes yet.</p>
+      {/if}
       {#each followups.filter(x => x.module.module_name == moduleName).slice(0,5) as followup}
           <a class="followup-box" href={`/home/${user_name}/modules/${followup.module.module_name}/quizzes/${followup.quiz.quiz_name}/attempt`}>
       <div class="quiz-icon">
