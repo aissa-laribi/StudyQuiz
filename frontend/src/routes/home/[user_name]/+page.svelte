@@ -222,8 +222,7 @@
         grid-template-rows: auto 1fr auto;
         grid-template-areas:
         'nav nav nav'
-        'sidebar1 main sidebar2'
-        'footer footer footer';
+        'sidebar1 main sidebar2';
         align-items: stretch;
 
         }
@@ -244,9 +243,6 @@
         //background-color: yellow;
         display: flex;
         justify-content: flex-end;
-        
-        
-
     }
     .logo-box img {
     }

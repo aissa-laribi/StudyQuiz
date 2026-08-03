@@ -300,7 +300,8 @@ onMount(async () => {
 <style>
     .container {
         display: grid;
-        height: 100vh;
+        min-height: 100vh;
+        height: auto;
         grid-template-columns: 1fr 10fr 1fr;
         grid-template-rows: 0.6fr 10fr;
         grid-template-areas:
@@ -367,12 +368,13 @@ onMount(async () => {
         grid-area: main;
         background-color: #f6f7fb;
         display: grid;
-        height: 100vh; 
+        min-height: 100vh;
+        height:auto; 
         //vertical-align: baseline;
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 2fr;
-        grid-template-rows: 1fr 1fr 1fr 100fr;
+        grid-template-rows: auto auto auto auto;
         gap: 0.2rem 2rem;  
         grid-template-areas:
         'spacer spacer'

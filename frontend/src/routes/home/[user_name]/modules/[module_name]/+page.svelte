@@ -239,11 +239,13 @@
     .container {
         display: grid;
         min-height: 100vh;
+        height:auto;
         grid-template-columns: 1fr 10fr 1fr;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto auto;
         grid-template-areas:
         'nav nav nav'
-        'sidebar1 main sidebar2';
+        'sidebar1 main sidebar2'
+        ;
         align-items: stretch;
         }
     nav {
@@ -304,14 +306,13 @@
         grid-area: main;
         background-color: #f6f7fb;
         display: grid;
-        height: 100vh; 
-        //vertical-align: baseline;
-        //justify-content: center;
-        vertical-align: baseline;
-        grid-template-columns: 2fr 1fr;
-        grid-template-rows: 2fr 1fr 9fr;
-        gap: 0.5rem 2rem ;
         
+        height: auto;
+        min-height: 100vh;
+        
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: auto auto auto auto;
+        gap: 0.5rem 2rem ;
         grid-template-areas:
         'spacer spacer'
         'breadcrumbs breadcrumbs'
