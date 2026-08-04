@@ -8,8 +8,13 @@
   let user_name = "";
   const apiURL = import.meta.env.VITE_API_URL;
 
-  let element;
-  let intersecting = false;
+  let element1;
+  let element2;
+  let intersecting1 = false;
+  let intersecting2 = false;
+  let toEarlyAccessList = false;
+  let toFreeList = false;
+
 
   async function turnOnAI(){
     const token = localStorage.getItem("access_token");
@@ -132,7 +137,7 @@
         vertical-align: baseline;*/
         grid-template-columns: 1fr;
         grid-template-rows: 0.1fr 0.1fr 0.1fr 0.1fr;
-        row-gap: 20px;
+        //row-gap: 20px;
         grid-template-areas:
         'hero-spacer'
         'hero'
@@ -160,6 +165,7 @@
 
     main #hero {
       grid-area: hero;
+      min-height: 90vh;
     }
 
     main #hero .button-container{
@@ -282,17 +288,19 @@
     
     #feature-grid {
       grid-area: feature-grid;
-      background-color: #f6f7fb
+      background-color: #f6f7fb;
       padding : 1.25em;
     }
     
     #feature-grid-inner {
       background-color: #f6f7fb;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      grid-template-rows: 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      grid-template-rows: 1fr 0.2fr;
       grid-template-areas:
-      'feat-col1 feat-col2 feat-col3 feat-col4';
+      'feat-col1 feat-col2 feat-col3 feat-col4'
+      'plans-intro plans-intro plans-intro plans-intro'
+      ;
       text-align: center;
       color : black;
       font-family: 'Montserrat', sans-serif;
@@ -314,32 +322,157 @@
       width: 50%;
     }
 
+    .plans-intro{
+      grid-area: plans-intro;
+      text-align: center;
+      background-color:#f6f7fb;
+    }
+
+    .plans-intro h2{
+      font-size:40pt;
+      font-family: 'Montserrat', sans-serif;
+    }
+
     #plans-grid{
       grid-area: plans-grid;
-      background-color: #f6f7fb
+      background-color: #f6f7fb;
       padding : 1.25em;
     }
 
     #plans-grid-inner {
       background-color: #f6f7fb;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
       grid-template-areas:
-      'plan-col1 plan-col2';
-      text-align: center;
+      'plans-card'
+      ;
+      //text-align: center;
       color : black;
       font-family: 'Montserrat', sans-serif;
       font-size: 1.5em;
       border-radius: 1em;
-      gap:1rem;
+      
+    }
+
+    .plans-card{
+      display: inline-flex;
+      margin: auto;
+      gap:2rem;
+      
     }
 
     .plan-col {
-      border: 0.1rem solid black;
       border-radius: 2rem;
       background-color: white;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      padding: 1rem;
+      max-width: 500px;
+      box-shadow:
+      0 1px 1px hsla(0, 0%, 0%, 0.075),
+      0 2px 2px hsl(0deg 0% 0% / 0.075),
+      0 4px 4px hsl(0deg 0% 0% / 0.075),
+      0 8px 8px hsl(0deg 0% 0% / 0.075),
+      0 16px 16px hsl(0deg 0% 0% / 0.075)
+    ;
+    }
+
+    .plan-col h3{
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .plan-col button {
+      border: 0.1em solid transparent;
+      border-radius: 0.4em;
+      background-color: rgb(0, 80, 160);
+      color: white;
+      font-size: 1.4em;
+      display: block;
+      margin: 0 auto;
+      padding: 1rem;
+      cursor: pointer;
+    }
+
+    .plan-col button:hover {
+      border: 0.1em solid transparent;
+      border-radius: 0.4em;
+      background-color: black;
+      color: white;
+      font-size: 1.4em;
+      display: block;
+      margin: 0 auto;
+      padding: 1rem;
+      cursor: pointer;
+    }
+
+    .plan-col ul{
+      list-style: none;
+      font-family: 'Open Sans';
+    }
+
+    .plan-col li::before{
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.25em;
+      width: 1.75rem;
+      height: 1.75rem;
+      background: url("/favicon.png") center / contain no-repeat;
+    }
+
+    .plan-col li{
+      position: relative;
+      padding-left: 1.5em;
+      margin: auto;
+    }
+
+    #plans {
+      scroll-margin-top: -10rem;
+    }
+
+    form {
+      display: grid;
+      gap: 1em;
+      height:fit-content;
+      margin: auto auto;
+      padding: 2rem;
+      border-radius: 2rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #ddd;
+      box-shadow: none;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    form input {
+      border: 0.1em solid rgba(0, 0, 0, 0.486);
+      border-radius: 0.4em;
+      min-height: 5vh;
+      font-size: 1.5rem;
+    }
+
+    form input::placeholder {
+      letter-spacing: 0.1em;
+      color: #111111a1;
+      text-indent: 0.6em;
+      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    form button {
+      border: 0.1em solid transparent;
+      border-radius: 0.4em;
+      background-color: rgb(0, 80, 160);
+      color: white;
+      font-size: 1.4em;
+      min-height: 5vh; 
+    }
+
+    form button:hover{
+      color:  rgb(0, 80, 160);
+      background-color:white;
+      cursor: pointer;
+      
     }
 
     #sidebar1 {
@@ -416,11 +549,15 @@
   }
 }
 </style>
-<IntersectionObserver {element} bind:intersecting>
+
+<IntersectionObserver element={element1} bind:intersecting={intersecting1}>
+<IntersectionObserver element={element2} bind:intersecting={intersecting2}>
 <section class="container">
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
   <div class="menu-box">
+      <a href="#feature-grid">Features</a>
+      <a href="#plans">Plans</a>
       <a class="login-link" href="./login">
       {#if user_name.length == 0}
         Login
@@ -441,8 +578,9 @@
     <h1>Turn your study material into quizzes. Review at the right time.</h1>
     <p>Create quizzes from your study material with AI, test your knowledge, and let StudyQuiz schedule your next review.</p>
     <div class="button-container">
-      <a href="/login" class="signup-button"><button>Try It Now</button></a>
+      <a href="/login" class="signup-button"><button>Try Guest mode</button></a>
     </div>
+    <p><small>No account required</small></p>
   <div id="showcase-container">
     <div id="video-spacer"></div>
     <div id="video-player">
@@ -454,69 +592,97 @@
     </div>
   </div>
   <div id="feature-grid">
-  <div bind:this={element} id="feature-grid-inner">
-    {#if intersecting}
-    <div class="feat-col" transition:fly={{y:1800,duration:3000,opacity:0}}>
+  <div bind:this={element1} id="feature-grid-inner">
+    {#if intersecting1}
+    <div class="feat-col" transition:fly={{y:0,duration:2000,opacity:0}}>
       <h3>AI-generated quizzes</h3>
       <p>Turn study material into quiz questions with AI support.</p>
       <img src="spaced-repetition.png">
     </div>
-    
-    <!--
-    <div class="feat-col">
+    <div class="feat-col" transition:fly={{y:0,duration:1750,opacity:0}}>
       <h3>Manual quiz builder</h3>
       <p>Create and edit your own quizzes when you want full control.</p>
       <img src="shuffling.png">
     </div>
-  -->
-    <div class="feat-col" transition:fly={{y:1600,duration:2000}}>
+    <div class="feat-col" transition:fly={{y:0,duration:1500}}>
       <h3>Spaced repetition</h3>
       <p>Review at the right time when StudyQuiz schedules it.</p>
       <img src="followups-schedule.png">
     </div>
-    <div class="feat-col" transition:fly={{y:1400,duration:1000}}>
+    <div class="feat-col" transition:fly={{y:0,duration:1000}}>
       <h3>Progress and mistakes</h3>
       <p>Track scores, due reviews, and answers to revisit.</p>
       <img src="web-api.png">
     </div>
     {/if}
+    <div class="plans-intro" id="plans">
+  <h2>Plans at launch</h2>
+  <p>
+    Both plans include the full StudyQuiz workflow, with different AI allowances.
+</div>
   </div>
-  </div>
-<!--  
+  </div> 
   <div id="plans-grid">
   <div id="plans-grid-inner">
-    <div class="plan-col">
-      <h3>Early Birds</h3>
-      <p>$0<br>Generous free access for six active early users.</p>
+   <div class="plans-card" bind:this={element2}>
+   {#if intersecting2}
+    <div class="plan-col" transition:fly={{x:-400,duration:1000}}>
+      <h2>Early Birds</h2>
+      <p>Generous free access for six active early adopters.</p>
+      <h3>$0 per month</h3>
+      <p><strong>Limited to 6 users</strong></p>
+      <button onclick={() => {toEarlyAccessList = true}}>Join the Early Birds waitlist</button>
       <ul>
         <li>60 AI-generated quizzes per month</li>
-        <li>Maximum 5 AI generations per day</li>
-        <li>Unlimited manual quizzes</li>
-        <li>Unlimited quiz attempts</li>
-        <li>Regular Usage Required*</li>
-      </ul>
-    <strong>Limited to 6 places</strong>
-    <button>Join Early Birds waiting list</button>
-    </div>
-    <div class="plan-col">
-      <h3>Free</h3>
-      <p>$0<br>Try the complete StudyQuiz workflow with a smaller AI allowance.</p>
-      <ul>
-        <li>5 AI-generated quizzes per month</li>
-        <li>Maximum 1 AI generation per day</li>
+        <li>Up to 5 AI-generated quizzes per day</li>
         <li>Unlimited manual quizzes</li>
         <li>Unlimited scheduled reviews</li>
         <li>Unlimited quiz attempts</li>
-        </ul>
-      <button>Join Free plan waiting list</button>  
+        <li><strong>Regular use required*</strong></li>
+      </ul>
+            {#if toEarlyAccessList}
+        <form action="mailto:aissa.laribi@ucdconnect.ie" method="post" enctype="text/plain">
+            <h3>Join the Early Birds waitlist</h3>
+            <input type="email" placeholder="Email address" required>
+            <input name="organization" placeholder="School, college or workplace" required>
+            <input name="city" placeholder="City" required>
+            <button>Join the waitlist</button>
+        </form>
+      {/if}
     </div>
-    <p>StudyQuiz plans are not open yet. Join a waiting list to be notified when access becomes available.</p>
+    <div class="plan-col" transition:fly={{x:400,duration:1000}}>
+      <h2>Free</h2>
+      <p>Try the complete StudyQuiz workflow with a smaller AI allowance.</p>
+      <h3>$0 per month</h3>
+      <p><strong>No credit card required</strong></p>
+      <button onclick={() => {toFreeList = true}}>Notify me at launch</button>
+      <ul>
+        <li>5 AI-generated quizzes per month</li>
+        <li>Up to 1 AI-generated quiz per day</li>
+        <li>Unlimited manual quizzes</li>
+        <li>Unlimited scheduled reviews</li>
+        <li>Unlimited quiz attempts</li>
+        </ul> 
+      {#if toFreeList}
+        <form>
+            <h3>Notify me at launch</h3>
+            <input type="email" placeholder="Email address" required>
+            <input name="organization" placeholder="School, college or workplace" required>
+            <input name="city" placeholder="City" required>
+            <button>Notify me at launch</button>
+        </form>
+      {/if}   
+    </div>
+    {/if}
+    </div>
+    <p id="plans"><small>*To keep Early Birds access, generate or complete at least two AI-generated quizzes every 10 days. Accounts that do not meet this requirement will move to the Free plan.<br>
+    </small></p>
   </div>
   </div>
--->  
 </main>
   <div id="sidebar1"></div>
   <div id="sidebar2"></div>
   
 </section>
+</IntersectionObserver>
 </IntersectionObserver>
