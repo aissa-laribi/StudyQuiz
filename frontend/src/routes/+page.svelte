@@ -14,7 +14,7 @@
   let intersecting2 = false;
   let toEarlyAccessList = false;
   let toFreeList = false;
-
+  let message = "";
 
   async function turnOnAI(){
     const token = localStorage.getItem("access_token");
@@ -49,6 +49,45 @@
       localStorage.removeItem("access_token");
     }
   }
+
+  async function addToWaitingList(event,planName){
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    const payload = {
+    email: formData.get("email"),
+    organization: formData.get("organization"),
+    city: formData.get("city"),
+  };
+
+    try {
+      let plan_id;
+      if(planName === "Early Birds"){
+        plan_id = 2
+      } else if(planName === "Free"){
+        plan_id = 1;
+      }
+      const req = await fetch(`${apiURL}/users/waiting-list?prod=true&plan_id=${plan_id}`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+      );
+      const data = await req.json();
+      console.log(payload)
+      if(req.ok){
+        message = "Successfully submitted, soon you will be invited"
+        toEarlyAccessList = false;
+        toFreeList = false;
+      } else {
+        message = "Unsuccessfully submitted"
+      }
+    } catch(error){
+      message = "Error processing";
+    }
+    }
 
   onMount(async () => {
     await turnOnAI();
@@ -136,7 +175,7 @@
         justify-content: center;
         vertical-align: baseline;*/
         grid-template-columns: 1fr;
-        grid-template-rows: 0.1fr 0.1fr 0.1fr 0.1fr;
+        grid-template-rows: 0.1fr 0.1fr auto auto auto;
         //row-gap: 20px;
         grid-template-areas:
         'hero-spacer'
@@ -343,7 +382,7 @@
       background-color: #f6f7fb;
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: 1fr 1fr;
+      grid-template-rows: 1fr;
       grid-template-areas:
       'plans-card'
       ;
@@ -445,14 +484,14 @@
       background: transparent;
     }
 
-    form input {
+    form input,textarea {
       border: 0.1em solid rgba(0, 0, 0, 0.486);
       border-radius: 0.4em;
       min-height: 5vh;
       font-size: 1.5rem;
     }
 
-    form input::placeholder {
+    form input::placeholder, textarea::placeholder {
       letter-spacing: 0.1em;
       color: #111111a1;
       text-indent: 0.6em;
@@ -594,22 +633,22 @@
   <div id="feature-grid">
   <div bind:this={element1} id="feature-grid-inner">
     {#if intersecting1}
-    <div class="feat-col" transition:fly={{y:0,duration:2000,opacity:0}}>
+    <div class="feat-col" transition:fly={{y:140,duration:2000,opacity:0}}>
       <h3>AI-generated quizzes</h3>
       <p>Turn study material into quiz questions with AI support.</p>
       <img src="spaced-repetition.png">
     </div>
-    <div class="feat-col" transition:fly={{y:0,duration:1750,opacity:0}}>
+    <div class="feat-col" transition:fly={{y:130,duration:1750,opacity:0}}>
       <h3>Manual quiz builder</h3>
       <p>Create and edit your own quizzes when you want full control.</p>
       <img src="shuffling.png">
     </div>
-    <div class="feat-col" transition:fly={{y:0,duration:1500}}>
+    <div class="feat-col" transition:fly={{y:120,duration:1500}}>
       <h3>Spaced repetition</h3>
       <p>Review at the right time when StudyQuiz schedules it.</p>
       <img src="followups-schedule.png">
     </div>
-    <div class="feat-col" transition:fly={{y:0,duration:1000}}>
+    <div class="feat-col" transition:fly={{y:100,duration:1000}}>
       <h3>Progress and mistakes</h3>
       <p>Track scores, due reviews, and answers to revisit.</p>
       <img src="web-api.png">
@@ -627,11 +666,11 @@
    <div class="plans-card" bind:this={element2}>
    {#if intersecting2}
     <div class="plan-col" transition:fly={{x:-400,duration:1000}}>
-      <h2>Early Birds</h2>
+      <h2>Early Access</h2>
       <p>Generous free access for six active early adopters.</p>
       <h3>$0 per month</h3>
       <p><strong>Limited to 6 users</strong></p>
-      <button onclick={() => {toEarlyAccessList = true}}>Join the Early Birds waitlist</button>
+      <button onclick={() => {toEarlyAccessList = !toEarlyAccessList}}>Register Your Interest</button>
       <ul>
         <li>60 AI-generated quizzes per month</li>
         <li>Up to 5 AI-generated quizzes per day</li>
@@ -641,12 +680,13 @@
         <li><strong>Regular use required*</strong></li>
       </ul>
             {#if toEarlyAccessList}
-        <form action="mailto:aissa.laribi@ucdconnect.ie" method="post" enctype="text/plain">
-            <h3>Join the Early Birds waitlist</h3>
-            <input type="email" placeholder="Email address" required>
-            <input name="organization" placeholder="School, college or workplace" required>
-            <input name="city" placeholder="City" required>
-            <button>Join the waitlist</button>
+        <form onsubmit={(event)=>addToWaitingList(event,"Early Birds")}>
+            <h3>Register your interest in Early Access</h3>
+            <input name="email" type="email" placeholder="Email address" required>
+            <input name="subject" placeholder="What are you studying?">
+            <textarea name="usage" placeholder="How could StudyQuiz help you?" maxlength="1000" rows="5" cols="1"></textarea>
+            <button>Send</button>
+            <p>{message}</p>
         </form>
       {/if}
     </div>
@@ -655,7 +695,7 @@
       <p>Try the complete StudyQuiz workflow with a smaller AI allowance.</p>
       <h3>$0 per month</h3>
       <p><strong>No credit card required</strong></p>
-      <button onclick={() => {toFreeList = true}}>Notify me at launch</button>
+      <button onclick={() => {toFreeList = !toFreeList}}>Notify me at launch</button>
       <ul>
         <li>5 AI-generated quizzes per month</li>
         <li>Up to 1 AI-generated quiz per day</li>
@@ -664,18 +704,17 @@
         <li>Unlimited quiz attempts</li>
         </ul> 
       {#if toFreeList}
-        <form>
+        <form onsubmit={(event)=>addToWaitingList(event,"Free")}>
             <h3>Notify me at launch</h3>
-            <input type="email" placeholder="Email address" required>
-            <input name="organization" placeholder="School, college or workplace" required>
-            <input name="city" placeholder="City" required>
-            <button>Notify me at launch</button>
+            <input name="email" type="email" placeholder="Email address" required>
+            <button>Notify me</button>
         </form>
       {/if}   
     </div>
     {/if}
     </div>
-    <p id="plans"><small>*To keep Early Birds access, generate or complete at least two AI-generated quizzes every 10 days. Accounts that do not meet this requirement will move to the Free plan.<br>
+    <p>{message}</p>
+    <p id="plans"><small>*To keep Early Access, generate or complete at least two AI-generated quizzes every 10 days. Accounts that do not meet this requirement will move to the Free plan.<br>
     </small></p>
   </div>
   </div>
