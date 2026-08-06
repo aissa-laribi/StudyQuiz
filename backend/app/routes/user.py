@@ -8,12 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import DBAPIError, IntegrityError, SQLAlchemyError
 from app.schemas import TokenData, Token
 from app.database import get_db
-from app.models import User, VerificationToken
+from app.models import User, VerificationToken, WaitingList
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Annotated,Optional
-from app.schemas import UserCreate,VerificationTokenCreate
+from app.schemas import UserCreate,VerificationTokenCreate,WaitingListCreate
 import os
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -195,7 +195,6 @@ async def confirm_email(user_name:str,email:str,token:str,organization: str | No
         }
         )
 
-
 @router.get("/users/me")
 async def get_user_info(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == current_user.id))
@@ -289,6 +288,57 @@ async def send_email_confirmation(client,user_email,user_token):
         email_html.close()
         return email_content
 
+@router.post("/users/waiting-list")
+async def add_to_waiting_list(user:WaitingListCreate, db: AsyncSession = Depends(get_db), prod: bool=True,plan_id: int=1):
+    new_user = WaitingList(plan_id=plan_id,email=user.email,subject=user.subject,usage=user.usage,created_at=datetime.now())
+    try:
+        db.add(new_user)
+        await db.commit()
+        data = {
+                    "message": "User successfully added to waiting list",
+                    "user_id": new_user.id,
+                    "email": new_user.email,
+                    "plan_id": new_user.plan_id,
+                    "subject": user.subject,
+                    "usage": user.usage,
+                    "created_at" : new_user.created_at,
+                }
+        if prod:
+            resend.api_key = SEND_EMAIL
+            params: resend.Emails.SendParams = {
+                        "from": "StudyQuiz <hello@studyquiz.co>",
+                        "to": ["hello@studyquiz.co"],
+                        "subject": "Welcome to StudyQuiz!",
+                        "html":f"""
+                            <p><strong>Email:</strong> {data['email']}</p>
+                            <p><strong>Plan ID:</strong> {data['plan_id']}</p>
+                            <p><strong>What they are studying:</strong> {data['subject']}</p>
+                            <p><strong>How they would use StudyQuiz:</strong></p>
+                            <p>{data['usage']}</p>
+                            <p><strong>Submitted:</strong> {data['created_at']}</p>
+            """,
+                        }
+            resend.Emails.send(params)
+        return data
+    except IntegrityError as e:
+        await db.rollback()
+        print("IntegrityError type:", type(e).__name__)
+        print("Original database error:", e.orig)
+
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
+                            detail="Account creation conflicts with existing database data."
+                            )
+    except DBAPIError as e:
+        await db.rollback()  # Rollback the transaction to clean up the session
+        print(e)
+        raise HTTPException(status_code=500,
+                    detail={
+                        "error_type": type(e).__name__,
+                        "message": "A database operation failed."
+                }
+            )
+    
+
 @router.post("/users")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod: bool=True):
     #async: Defines this function as asynchronous, allowing non-blocking operations for the /users route.
@@ -303,7 +353,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),prod:
                     updated_at=datetime.now(),
                     verified=data['verified'],
                     plan_id=1
-                )    
+                )
     try:
         db.add(new_user) #Add the instance of the ORM User to the db session
         await db.commit() #Commits the transaction, and saves the changes to the database(user details saved)

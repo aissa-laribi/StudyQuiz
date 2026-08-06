@@ -29,11 +29,10 @@ class User(Base):
 class WaitingList(Base):
     __tablename__ = "waiting_list"
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_name: Mapped[Optional[str]] = mapped_column(String(45), nullable=True, unique=False)
     plan_id = mapped_column(ForeignKey("plan.id", ondelete="RESTRICT"),nullable=False,index=True,default=1)
     email: Mapped[str] = mapped_column(String(245), nullable=False, unique=True)
-    organization: Mapped[str] = mapped_column(String(20), nullable=True)
-    city: Mapped[str] = mapped_column(String(20), nullable=True)
+    subject: Mapped[str] = mapped_column(String(245),nullable=True,unique=False)
+    usage:  Mapped[str] = mapped_column(String(1000),nullable=True,unique=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=True)
     invited_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True),nullable=True)
     registered_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True),nullable=True)
