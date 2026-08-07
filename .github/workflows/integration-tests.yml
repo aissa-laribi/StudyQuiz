@@ -42,7 +42,10 @@ jobs:
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (user_name, email, password, role, verified,plan_id) VALUES ('test_user3', 'user3@gmail.com', '$P3', 'user', false,1);"
           sudo -u postgres psql -d test -c '\dt'
           sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";'
-  
+      
+      - name: Check Alembic history
+        run: alembic history --verbose
+
       - name: Test with pytest
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
