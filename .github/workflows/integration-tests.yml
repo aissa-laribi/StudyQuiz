@@ -44,6 +44,8 @@ jobs:
           sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";'
       
       - name: Check Alembic history
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
         run: |
           cd backend
           alembic upgrade head
