@@ -29,13 +29,15 @@ jobs:
           P2: ${{ secrets.P2}}
           P3: ${{ secrets.P3}}
           TABLE_NAME : user
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
         run: |
           sudo apt-get update -y
           sudo apt-get install -y postgresql postgresql-client
           sudo systemctl start postgresql.service
           sudo -u postgres createdb test
           sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
-          sudo -u postgres psql -d test -f dbschema.sql
+          cd backend
+          alembic upgrade head
           sudo -u postgres psql -d test -c "INSERT INTO plan (id,plan_code,display_name,ai_monthly_allowance,ai_daily_allowance,price_monthly_pence) VALUES(1, 'free', 'Free', 5, 1, 0),(2, 'early_bird', 'Early Birds', 60, 5, 0),(3, 'plus', 'Plus', 100, 10, 499);"
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (user_name, email, password, role, verified,plan_id) VALUES ('testuser1', 'user1@gmail.com', '$P1', 'root', true,1);"
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (user_name, email, password, role, verified,plan_id) VALUES ('testuser2', 'user2@gmail.com', '$P2', 'user', false,1);"
@@ -43,13 +45,6 @@ jobs:
           sudo -u postgres psql -d test -c '\dt'
           sudo -u postgres psql -d test -c 'SELECT id, user_name, email, role, verified FROM "user";'
       
-      - name: Check Alembic history
-        env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
-        run: |
-          cd backend
-          alembic upgrade head
-
       - name: Test with pytest
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
