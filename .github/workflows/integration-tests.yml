@@ -46,7 +46,7 @@ jobs:
       - name: Check Alembic history
         run: |
           cd backend
-          alembic history --verbose
+          alembic upgrade head
 
       - name: Test with pytest
         env:
