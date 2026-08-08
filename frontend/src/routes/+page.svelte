@@ -624,9 +624,31 @@
 
   white-space: nowrap;
 }
-  main {
-    display: block;
-  }
+
+main h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+main p {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+main #hero button {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+#hero {
+  padding: 1rem;
+}
+
   #feature-grid-inner {
     display: grid;
     grid-template-columns: 1fr;
