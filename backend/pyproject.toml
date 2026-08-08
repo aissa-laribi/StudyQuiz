@@ -4,3 +4,7 @@ version = "1.3.0"
 
 [tool.fastapi]
 entrypoint = "app.main:app"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["migrations*"]
