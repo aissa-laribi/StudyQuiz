@@ -6,6 +6,7 @@
   import IntersectionObserver from 'svelte-intersection-observer';
 
   let user_name = "";
+  let menuOpen = false;
   const apiURL = import.meta.env.VITE_API_URL;
 
   let element1;
@@ -159,11 +160,34 @@
       padding: 0.4rem 0.8rem;
       
     }
-    
+  
     .menu-box a:hover{
       background-color: rgb(20, 128, 236);
       color:white;
     }
+
+    .hamburger {
+      display: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    .hamburger img {
+      width: 40px;
+      height: 40px;
+      display: block;
+    }
+
+    .desktop-menu {
+      display: flex;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
     main {
         grid-area: main;
         background-color: white;
@@ -556,6 +580,50 @@
     font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 1em;
   }*/
+  .desktop-menu {
+  display: none;
+}
+
+.hamburger {
+  display: block;
+}
+
+.menu-box {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.mobile-menu {
+  position: absolute;
+
+  top: 100%;
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: white;
+
+  min-width: 180px;
+  padding: 0.5rem;
+
+  border-radius: 0.5rem;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  z-index: 1000;
+}
+
+.mobile-menu a {
+  display: block;
+  font-size: 1.3rem;
+  padding: 0.8rem 1rem;
+  margin: 0;
+
+  white-space: nowrap;
+}
   main {
     display: block;
   }
@@ -595,16 +663,44 @@
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
   <div class="menu-box">
-      <a href="#feature-grid">Features</a>
-      <a href="#plans">Plans</a>
-      <a class="login-link" href="./login">
+
+  <div class="desktop-menu">
+    <a href="#feature-grid">Features</a>
+    <a href="#plans">Plans</a>
+
+    <a class="login-link" href="./login">
       {#if user_name.length == 0}
         Login
       {:else}
         {goto(`/home/${user_name}`)}
       {/if}
-      </a>
+    </a>
   </div>
+
+  <button class="hamburger" onclick={() => menuOpen = !menuOpen} aria-label="Toggle navigation menu" aria-expanded={menuOpen}>
+    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="48" height="48" viewBox="0,0,256,256">
+      <defs><linearGradient x1="12.066" y1="0.066" x2="34.891" y2="22.891" gradientUnits="userSpaceOnUse" id="color-1_Rdp3AydLFY2A_gr1"><stop offset="0.237" stop-color="#3bc9f3"></stop><stop offset="0.85" stop-color="#1269c0"></stop></linearGradient><linearGradient x1="12.066" y1="12.066" x2="34.891" y2="34.891" gradientUnits="userSpaceOnUse" id="color-2_Rdp3AydLFY2A_gr2"><stop offset="0.237" stop-color="#3bc9f3"></stop><stop offset="0.85" stop-color="#1269c0"></stop></linearGradient><linearGradient x1="12.066" y1="24.066" x2="34.891" y2="46.891" gradientUnits="userSpaceOnUse" id="color-3_Rdp3AydLFY2A_gr3"><stop offset="0.237" stop-color="#3bc9f3"></stop><stop offset="0.85" stop-color="#1269c0"></stop></linearGradient></defs><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.33333,5.33333)"><path d="M43,15h-38c-1.1,0 -2,-0.9 -2,-2v-2c0,-1.1 0.9,-2 2,-2h38c1.1,0 2,0.9 2,2v2c0,1.1 -0.9,2 -2,2z" fill="url(#color-1_Rdp3AydLFY2A_gr1)"></path><path d="M43,27h-38c-1.1,0 -2,-0.9 -2,-2v-2c0,-1.1 0.9,-2 2,-2h38c1.1,0 2,0.9 2,2v2c0,1.1 -0.9,2 -2,2z" fill="url(#color-2_Rdp3AydLFY2A_gr2)"></path><path d="M43,39h-38c-1.1,0 -2,-0.9 -2,-2v-2c0,-1.1 0.9,-2 2,-2h38c1.1,0 2,0.9 2,2v2c0,1.1 -0.9,2 -2,2z" fill="url(#color-3_Rdp3AydLFY2A_gr3)"></path></g></g>
+    </svg>
+  
+  </button>
+
+  {#if menuOpen}
+    <div class="mobile-menu">
+      <a href="#feature-grid" onclick={() => menuOpen = false}>
+        Features
+      </a>
+
+      <a href="#plans" onclick={() => menuOpen = false}>
+        Plans
+      </a>
+
+      <a href="./login" onclick={() => menuOpen = false}>
+        Login
+      </a>
+    </div>
+  {/if}
+
+</div>
   </nav>
   <!--
   <div id="notice" role="status" aria-live="polite">
