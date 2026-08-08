@@ -55,10 +55,10 @@
     const formData = new FormData(event.currentTarget);
     
     const payload = {
-    email: formData.get("email"),
-    organization: formData.get("organization"),
-    city: formData.get("city"),
-  };
+      email: formData.get("email"),
+      subject: formData.get("subject"),
+      usage: formData.get("usage"),
+    };
 
     try {
       let plan_id;
