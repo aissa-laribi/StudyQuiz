@@ -645,7 +645,8 @@ main #hero button {
   font-weight: 500;
 }
 
-#hero {
+main #hero, #feature-grid,#plans-grid{
+  min-height: auto;
   padding: 1rem;
   margin: auto 0;
 }
@@ -674,6 +675,11 @@ main #hero button {
   width: 90%;
   margin: 0 auto 0.75rem;
   box-sizing: border-box;
+}
+
+.plan-col button {
+  font-size: 1.1rem;
+  padding: 0.8rem 1rem;
 }
 
 .plan-col button {
