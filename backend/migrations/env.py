@@ -3,12 +3,27 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool, create_engine
 from alembic import context
 from app.models import Base
+from dotenv import load_dotenv
 
+load_dotenv()
 
+if os.getenv("USE_TEST_DB") == "1":
+    database_url = os.getenv("TEST_DATABASE_URL")
+else:
+    database_url = os.getenv("DATABASE_URL")
+
+if not database_url:
+    raise RuntimeError("Database URL is not set")
+
+database_url = database_url.replace(
+    "postgresql+asyncpg://",
+    "postgresql://",
+    1
+)
 
 # Load the Alembic config and database URL from the environment variable
 config = context.config
-config.set_main_option('sqlalchemy.url', os.getenv("DATABASE_URL_SYNC"))
+config.set_main_option('sqlalchemy.url', database_url)
 
 
 # Setup logging

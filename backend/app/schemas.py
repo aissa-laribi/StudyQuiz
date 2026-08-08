@@ -6,7 +6,11 @@ from typing import List, Optional
 class UserCreate(BaseModel):
     email: EmailStr
     password: str #Plain text password entered from User
-    
+
+class WaitingListCreate(BaseModel):
+    email: EmailStr
+    subject: Optional[str]
+    usage: Optional[str]    
 
 #Ensuring password not sent in the response
 class UserResponse(BaseModel):

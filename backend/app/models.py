@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import List,Optional
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, DateTime, Float, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, Date, Integer, String, ForeignKey, Boolean, func, DateTime, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +12,7 @@ class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
     user_name: Mapped[Optional[str]] = mapped_column(String(45), nullable=True, unique=False)
+    plan_id = mapped_column(ForeignKey("plan.id", ondelete="RESTRICT"),nullable=False,index=True,default=1)
     email: Mapped[str] = mapped_column(String(245), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(4), nullable=False)
@@ -22,6 +23,19 @@ class User(Base):
     verified: Mapped[bool] = mapped_column(Boolean,nullable=False,unique=False)
     modules: Mapped[List["Module"]] = relationship(back_populates="owner")
     verification_tokens: Mapped[list["VerificationToken"]] = relationship(back_populates="user",cascade="all, delete-orphan")
+    plan: Mapped["Plan"] = relationship(back_populates="users")
+    ai_usage: Mapped[list["AIUsage"]] = relationship(back_populates="user",cascade="all,delete-orphan",passive_deletes=True)
+
+class WaitingList(Base):
+    __tablename__ = "waiting_list"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    plan_id = mapped_column(ForeignKey("plan.id", ondelete="RESTRICT"),nullable=False,index=True,default=1)
+    email: Mapped[str] = mapped_column(String(245), nullable=False, unique=True)
+    subject: Mapped[str] = mapped_column(String(245),nullable=True,unique=False)
+    usage:  Mapped[str] = mapped_column(String(1000),nullable=True,unique=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=True)
+    invited_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True),nullable=True)
+    registered_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True),nullable=True)
 
 class VerificationToken(Base):
     __tablename__= "verification_token"
@@ -111,4 +125,26 @@ class Followup(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=func.now(), nullable=True)
     module: Mapped["Module"] = relationship(back_populates="followups")
     quiz: Mapped["Quiz"] = relationship(back_populates="followups")
-    
+
+class Plan(Base):
+    __tablename__ = "plan"
+    __table_args__ = (CheckConstraint("ai_monthly_allowance >= 0", name="ck_plan_ai_monthly_allowance_non_negative",),
+                      CheckConstraint("ai_daily_allowance >= 0",name="ck_plan_ai_daily_allowance_non_negative",),
+                      CheckConstraint("price_monthly_pence >= 0",name="ck_plan_price_non_negative",),
+                      )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    plan_code: Mapped[str] = mapped_column(String(30),nullable=False,unique=True,index=True)
+    display_name: Mapped[str] = mapped_column(String(40),nullable=False)
+    ai_monthly_allowance: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
+    ai_daily_allowance: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
+    price_monthly_pence: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
+    users: Mapped[list["User"]] = relationship(back_populates="plan")
+
+class AIUsage(Base):
+    __tablename__ = "ai_usage"
+    __table_args__ = (UniqueConstraint("user_id","usage_date",name="uq_ai_usage_user_date"), CheckConstraint("consumption >= 0",name="ck_ai_usage_consumption_not_negative"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id",ondelete="CASCADE"),nullable=False,index=True)
+    usage_date: Mapped[date] = mapped_column(Date,nullable=False,index=True,default=date.today)
+    consumption: Mapped[int] = mapped_column(Integer,nullable=False,default=0)
+    user: Mapped["User"] = relationship(back_populates="ai_usage")

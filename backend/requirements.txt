@@ -1,3 +1,4 @@
+alembic==1.19.0 
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.9.0
@@ -32,6 +33,7 @@ packaging==25.0
 passlib==1.7.4
 pip==22.0.2
 pluggy==1.6.0
+psycopg2-binary>=2.9.12
 pyasn1==0.6.1
 pycparser==2.22
 pydantic==2.12.0
