@@ -624,29 +624,73 @@
 
   white-space: nowrap;
 }
-  main {
-    display: block;
-  }
-  #feature-grid-inner {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'feat-col1'
-      'feat-col2'
-      'feat-col3'
-      'feat-col4';
-  }
 
-#video-player video{
-  width: 40vh;
-  border-radius: 2vh;
-  border: 1rem black solid;
+main h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  line-height: 1.45;
+  font-weight: 700;
 }
 
-  #col1{
-    display: block;
-    grid-area: feat-col1;
-  }
+main p {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+main #hero button {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+#hero {
+  padding: 1rem;
+  margin: auto 0;
+}
+
+#feature-grid-inner {
+  display: block;
+}
+
+#showcase-container{
+  margin: auto;
+  display: block;
+}
+#video-player video{
+  width: 90%;
+  border-radius: 2vh;
+  border: 1rem black solid;
+  margin: auto;
+}
+
+
+#feature-grid-inner {
+  display: block;
+}
+
+.feat-col, .plan-col {
+  width: 90%;
+  margin: 0 auto 0.75rem;
+  box-sizing: border-box;
+}
+
+.plan-col button {
+  font-size: 1.1rem;
+  padding: 0.8rem 1rem;
+}
+
+#plans{
+  display: block
+}
+
+.plan-col ul {
+  
+}
+.plans-card {
+  display: block;
+}
   
   #sidebar1{
     display: none;
