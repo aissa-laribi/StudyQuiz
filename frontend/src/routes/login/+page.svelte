@@ -128,6 +128,11 @@ async function measureBackendWakeUp() {
 
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex, follow" />
+	<title>Log in | StudyQuiz</title>
+</svelte:head>
+
 <style>
     .container {
         display: grid;
@@ -348,9 +353,6 @@ async function measureBackendWakeUp() {
 
 
 </style>
-<svelte:head>
-	<meta name="robots" content="noindex, follow" />
-</svelte:head>
 <section class="container">
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
