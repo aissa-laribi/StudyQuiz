@@ -348,7 +348,9 @@ async function measureBackendWakeUp() {
 
 
 </style>
-
+<svelte:head>
+	<meta name="robots" content="noindex, follow" />
+</svelte:head>
 <section class="container">
   <nav>
   <div class="logo-box"><a href="/"><img src="/logo.png"></a></div>
