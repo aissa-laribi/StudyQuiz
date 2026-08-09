@@ -385,7 +385,8 @@ async function measureBackendWakeUp() {
       <p style="color: red;">{message}</p>
       {/if}
         </form>
-        <p id="new-account">Don't have an account? <a href="/signup">Sign up</a></p>
+       <!-- 
+        <p id="new-account">Don't have an account? <a href="/signup">Sign up</a></p>-->
     </div>
     </div>  
 </main>
