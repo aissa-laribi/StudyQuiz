@@ -96,6 +96,10 @@
   });
 
 </script>
+<svelte:head>
+	<title>StudyQuiz | Turn Study Material into Quizzes</title>
+	<meta name="description" content="StudyQuiz helps students create quizzes from study material with AI, test their knowledge, and review at the right time with spaced repetition and progress tracking."/>
+</svelte:head>
 
 <style>
     .container {
