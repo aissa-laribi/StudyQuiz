@@ -13,6 +13,7 @@
   let questionNameOpen = "";
   let questionEdited = "";
   let answerEdited = "";
+  let adding = false;
   let editing = false;
   let correctAnswer = false;
   let newQuestionName = "";
@@ -25,7 +26,13 @@
   let quizData = "";
   let moduleImgId = 0;
   let imageIndex;
-  let answers = [{ name: "", correct: false }];
+  let answers = [
+    { name: "", correct: false },
+    { name: "", correct: false },
+    { name: "", correct: false },
+    { name: "", correct: false },
+    { name: "", correct: false }
+];
   const apiURL = import.meta.env.VITE_API_URL;
   const from = get(page).url.searchParams.get("from");
 
@@ -40,40 +47,6 @@
     console.log('Web Storage is not supported in this environment.');
   }
 
-  const aiPrompt = `Generate a StudyQuiz-compatible quiz from my study material.
-
-  Return valid JSON only.
-  Do not include markdown fences, explanations, title, description, or extra text.
-
-  The JSON must use this exact structure:
-
-  {
-    "questions": [
-      {
-        "name": "Question text here",
-        "answers": [
-          {"name": "Answer 1", "correct": true},
-          {"name": "Answer 2", "correct": false},
-          {"name": "Answer 3", "correct": false},
-          {"name": "Answer 4", "correct": false},
-          {"name": "Answer 5", "correct": false}
-        ]
-      }
-    ]
-  }
-
-  Rules:
-  - Create 10 questions by default.
-  - Use fewer if the material is short, up to 15 if dense.
-  - Each question must use "name" and "answers".
-  - Each answer must use "name" and "correct".
-  - Each question must have exactly 5 answers.
-  - Exactly one answer per question must have "correct": true.
-  - Use plausible but wrong distractors.
-  - Keep answers concise.
-  - Use the same language as the study material.`;
-
-  
   $: login = logged ? "Logged in" : "Login";
   
   function addAnswerField() {
@@ -100,6 +73,7 @@
         correct: a.correct
       }))
   };
+  console.log(answers);
 
   const res = await fetch(`${apiURL}/users/me/modules/${module_name}/quizzes/${quiz_name}/questions/with-answers`, {
     method: "POST",
@@ -111,10 +85,17 @@
   });
 
   if (res.ok) {
-    showModal = false;
-    loadQuestions();
+    loadQuestionsAndAnswers()
+    adding = false;
     newQuestionName = "";
-    answers = [{ name: "", correct: false }];
+    answers = [
+        { name: "", correct: false },
+        { name: "", correct: false },
+        { name: "", correct: false },
+        { name: "", correct: false },
+        { name: "", correct: false }
+    ];
+
   } else {
     message = "Error saving question.";
   }
@@ -366,20 +347,16 @@ onMount(async () => {
         //justify-content: center;
         vertical-align: baseline;
         grid-template-columns: 1fr 2fr;
-        grid-template-rows: auto auto auto auto;
+        grid-template-rows: auto auto auto auto auto;
         gap: 0.2rem 2rem;  
         grid-template-areas:
         'spacer spacer'
         'breadcrumbs breadcrumbs'
         'edit-questions edit-questions'
+        'add-questions add-questions'
         'col-modules col-quizzes'
     }
-    main h1 {
-      font-family: 'Montserrat', sans-serif;
-      text-align: center;
-      font-weight: 700;
-      font-size: 2.5rem;
-    }
+
     main p {
       font-family: 'Montserrat', sans-serif;
       min-height: 1.5rem;
@@ -454,253 +431,73 @@ onMount(async () => {
       padding: 8px;
       color: #3174ec;
       content: ">>>";
-    }  
-    
-    #col-modules{
-      grid-area: col-modules;
-      background-color: white;
-      border-radius: 1em;
-      height: fit-content;
     }
-
-    #my-modules {
-      border-bottom: 3px solid #eff0f3;
-      margin: 2em; 
-    
-    }
-    #my-modules {
-      border-bottom: 3px solid #eff0f3;
-      margin: 2em; 
-    
-    }
-    #my-modules button {
-      border: 0px;
-      background-color: white;
-      display: inline-flex;
-      align-items: center;
-    }
-
-    #my-modules button .tooltiptext{
-      text-align: center;
-      border-radius: 0.25em;
-      margin-left: 0.5rem
-    }
-
-
-    #new-module-button {
-      cursor: pointer;
-      border-radius: 1rem;
-      padding: 0.5rem 0.5rem;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 13pt;
-      font-weight: 500;
-    }
-    
-    
-    #new-module-button:hover {
-      background-color: rgb(18, 105, 192);
-      color: white;
-      cursor: pointer;
-      border-radius: 1rem;
-    }
-
-    #module-name {
-      font-size: 2em;
-    }
-
-    #form-navbar {
-      display: flex;
-      border-radius: 1em;
-      max-width: 100%;
-      height: 30%;
-      //padding: 1vh;
-      color: rgb(18, 105, 192);
-      display: flex;
-      justify-content: space-between;  
-      align-items: center;
-      background-color: white;
-    }
-
-    #form-navbar h2{
-      color: rgb(18, 105, 192);
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 600;
-      font-size: 2rem;
-    }
-
-    form span {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1rem;      
-    }
-
-    #form-navbar button{
-      color: white;
-      background-color: rgb(18, 105, 192);
-      border: 0;
-      font-size: 2rem;
-    }
-
-    #form-fields {
-      padding: 1vh;
-      height: 30%;
-      display: flex;
-      gap: 1em;
-    }
-
-    #form-fields input {
-      border-radius: 0.2em;
-      border: 0.01em solid black;
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1.75em;
-      letter-spacing: -0.02em;
-    }
-
-    #form-button-section{
-      height: 40%;
-      padding: 1vh;
-      display: inline-flex;
-      gap: inherit;
-      //align-items: center;
-      //justify-content: flex-end;  /* <-- pushes button to the right */
-      //padding: 1em;
-      //border-radius: 1em;
-      //align-items: center;
-    }
-
-    #form-button-section button{
-      //height: 80%;
-      border-radius: 2em;
-      //width: auto;
-      border: 0.1em solid transparent;
-      background-color: rgb(18, 105, 192);
-      //display: flex;
-      //align-items: center;
-      width: 40%;
-      color: white;
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1.4rem;
-      font-weight: 600;
-      
-    }
-
-    #form-button-section button:hover{
-      background-color:green;
-    }
-
-
-    #form-button-section button p{
-      color:white;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 600;      
-    }
-
-    .answer-row span {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1.5rem;
-    }
-
-    #modules-container{
-      //display:inline-flex;
-      //flex-wrap: wrap;
-      margin: 0 2em 0 2em;
-      gap: 1em;
-      max-width: 100%;
-      height: auto;
-    }
-
-    #modules-container button{
-      display: none;
-    }
-    .module-box{
-      border: 1px #d6d9dc solid;
-      border-radius: 0.51em;
-      
-    }
-
-    .module-box p {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      text-align: left;
-      font-size: 1.15em;
-      line-height: 1em;
-
-    }
-
-    #col-modules h2{
-      font-family: 'Montserrat', sans-serif;
-      font-size: 2rem;
-      font-weight: 600;
-      
-    }
-    
-    #col-quizzes{
-      grid-area: col-quizzes;
-      border-radius: 1em;
-      border-radius: 1em;
-      height: fit-content;
-    }
-    #col-quizzes h2{
-      //font-family: 'Lato', 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
-      //font-size: 1.5rem;
-      //font-weight: 600;
-     
-    }
-    #upcoming-quizzes{
-      //text-align: left;
-      //gap: 1em;
-      //max-width: 100%;
-      //height: auto;
-      background-color: white;
-      //padding: 2em;
-      
-      
-    }
-    #upcoming-quizzes h2{
-      text-align: left;
-      //margin: 2em 2em 2em 2em;
-      //gap: 1em;
-      font-family: 'Montserrat', sans-serif;
-      //max-width: 100%;
-      //height: auto;
-      background-color: white;
-      font-size: 2.1rem;
-    }
-
-    #upcoming-quizzes {
-      font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 1.2rem;
-      color: black;
-    }
-
-    ol li strong{
-
-    }
-
-    #followups-container{
-      background-color: white;
-      padding: 1em;
-      //display:flex;
-      //flex-wrap: wrap;
-      //margin: 2em 2em 2em 2em;
-      gap: 1em;
-      max-width: 100%;
-      height: auto;
-    }
-#generate-quiz-btn {
-  padding: 0.9rem 2rem;
-  border-radius: 0.5rem;
-  border: 1px solid #bbb;
-  font-size: 1.1rem;
-  cursor: pointer;
+  
+  .add-questions {
+    grid-area: add-questions;
+    width: 100%;
 }
 
-#generate-quiz-btn:hover{
-  background-color: #0f0f0f;
-  color: white;
-} 
+.add-questions form {
+    width: 100%;
+}
 
+#add-questions-table {
+    width: 100%;
+
+}
+
+#add-questions-table tr {
+    width: 100%;
+}
+
+#add-questions-table td:first-child {
+    width: 75%;
+}
+
+#add-questions-table td:last-child {
+    width: 20%;
+}
+
+#correct {
+  text-align: center;
+}
+
+#add-questions-table input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    height: 5rem;
+    border: 1px black solid;
+    border-radius: 0.3rem;
+    font-size: 18pt;
+}
+
+#add-questions-table button {
+    width: 100%;
+    padding: 0.9rem 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid #bbb;
+    font-size: 1.1rem;
+    cursor: pointer;
+    height: 5rem;
+}
+
+#add-questions-table button:hover {
+    width: 100%;
+    padding: 0.9rem 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid #bbb;
+    font-size: 1.1rem;
+    cursor: pointer;
+    height: 5rem;
+    background-color: black;
+    color: white;
+}
   .edit-questions {
     grid-area: edit-questions;
-    width: fit-content;
+    width: 100%;
     display:grid;
   }
 
@@ -757,14 +554,6 @@ onMount(async () => {
   .editing-form textarea{
     border-radius: 0.4rem;
   }
-
-  .table-answers{
-  }
-
-  .table-answers tr{
-    
-  }
-
 
   .table-answers th {
     width:100%;
@@ -891,8 +680,6 @@ onMount(async () => {
         <li>{quiz_name}</li>
       </ul>
     </div> 
-
-
   <div class="edit-questions">
     <table id="questions-table">
       <thead>
@@ -992,63 +779,84 @@ onMount(async () => {
       </tbody>
     </table>
   </div>
+  <div class="add-questions">
+    <form onsubmit={registerQuestion}>
+        <table id="add-questions-table">
+            <thead>
+            </thead>
 
-    {#if showModal}
-      <Modal bind:showModal>
-  <form onsubmit={registerQuestion}>
-    <nav id="form-navbar">
-      <h2>Add a New Question</h2>
-      <button type="button" onclick={() => (showModal = false)}>✖</button>
-    </nav>
+            <tbody>
+                <tr>
+                    <td>
+                        <input placeholder="New question name" bind:value={newQuestionName}>
+                    </td>
+                    <td>
+                        <button type="button" onclick={() => { adding = !adding; }}>
+                            Add Question
+                        </button>
+                    </td>
+                </tr>
 
-    <div id="form-fields" style="flex-direction: column;">
-      <input
-        id="question-name"
-        bind:value={newQuestionName}
-        type="text"
-        placeholder="Question text"
-        required
-      />
+                {#if adding}
+                    <tr>
+                      <td></td>
+                      <td id="correct">Correct answer</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input placeholder="Answer 1" bind:value={answers[0].name}>
+                        </td>
+                        <td>
+                            <input type="checkbox" bind:checked={answers[0].correct}>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input placeholder="Answer 2" bind:value={answers[1].name}>
+                        </td>
+                        <td>
+                            <input type="checkbox" bind:checked={answers[1].correct}>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input placeholder="Answer 3" bind:value={answers[2].name}>
+                        </td>
+                        <td>
+                            <input type="checkbox" bind:checked={answers[2].correct}>
+                        </td>
+                    </tr>
 
-      {#each answers as answer, index}
-        <div class="answer-row" style="display: flex; align-items: center; gap: 0.5rem;">
-          <input
-            type="text"
-            placeholder="Answer"
-            bind:value={answer.name}
-            required={index === 0}
-          />
-          <input
-  type="checkbox"
-  checked={answer.correct}
-  onchange={(e) => {
-    answers = answers.map((a, i) =>
-      i === index ? { ...a, correct: e.target.checked } : a
-    );
-  }}
-/>
+                    <tr>
+                        <td>
+                            <input placeholder="Answer 4" bind:value={answers[3].name}>
+                        </td>
+                        <td>
+                            <input type="checkbox" bind:checked={answers[3].correct}>
+                        </td>
+                    </tr>
 
-          <span>Correct?</span>
-          {#if answers.length > 1}
-            <button type="button" onclick={() => removeAnswer(index)}>✖</button>
-          {/if}
-        </div>
-      {/each}
-      <div id="form-button-section">
-      {#if answers.length < 5}
-        <button type="button" id="add-new-answer" onclick={addAnswerField}>Add an answer</button>
-      {/if}
+                    <tr>
+                        <td>
+                            <input placeholder="Answer 5" bind:value={answers[4].name}>
+                        </td>
+                        <td>
+                            <input type="checkbox" bind:checked={answers[4].correct}>
+                        </td>
+                    </tr>
 
-    
-      <button type="submit">
-        <p>Save Question</p>
-      </button>
-      </div>
-    </div>
-  </form>
-</Modal>
-    {/if}
-
+                    <tr>
+                        <td colspan="2">
+                            <button type="submit">
+                                Submit
+                            </button>
+                        </td>
+                    </tr>
+                {/if}
+            </tbody>
+        </table>
+    </form>
+</div> 
   
 </main>
   <div id="sidebar1"></div>
