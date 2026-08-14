@@ -13,7 +13,7 @@
     let quiz = $state([]);
     let quiz_name = $state("");
     let user_name = $state("");
-    let rateLimitMessage = $state("");
+    let errorMessage = $state("");
     let loading = $state(false);
     let animationContainer;
 
@@ -37,7 +37,7 @@
       }
   }
     async function getRateLimitMessage() {
-      return rateLimitMessage;
+      return errorMessage;
     }
 
     async function sendSlides() {
@@ -56,7 +56,7 @@
             animationData
           });
         
-        if (!token) return;
+        if (!token) loading = false;
         const formData = new FormData();
         formData.append('file', file);
         
@@ -106,9 +106,10 @@
             } else {
 
             }
-            console.log(data);
-          } else if(res.status == 419){
-            rateLimitMessage = "You have used the free daily limit.";
+          } else {
+            const data = await res.json();
+            errorMessage = data.detail;
+            loading = false;
           }
         }} catch (err) {
           console.error("Invalid File", err);
@@ -207,6 +208,11 @@
     display:grid;
     max-height: 40vh;
   }
+  #error-message{
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    color: red;
+  }
 </style>
 <div id="edit-questions">
         <div id="spacer"><h1>AI Generated Quiz</h1></div>
@@ -266,8 +272,8 @@
               <button type="submit" class="generate-quiz-btn" onclick={sendSlides}>Generate Quiz</button>
             {/if}    
           </form>
-          {#if rateLimitMessage.length > 0}
-            <p>{rateLimitMessage}</p>
+          {#if errorMessage.length > 0}
+            <p id="error-message">{errorMessage}</p>
           {/if}
           </div>
         {/if}

@@ -49,21 +49,31 @@ async def receive_from_sq(current_user: Annotated[User, Depends(get_current_acti
             x = requests.post(os.getenv("AI_SYSTEM"), files=files)
             if x.status_code == 200:
                 fp.close()
+
+                data = x.json()
+                if usage:
+                    usage.consumption +=1
+                else:
+                    new_usage = AIUsage(user_id=current_user.id,usage_date=date.today(),consumption=1)
+                    db.add(new_usage)
+                await db.commit()
+                return data
             
-                try:
-                    data = x.json()
-                    return data
-                except Exception as e:
-                    print("ERROR:", repr(e))
-                    raise HTTPException(
-                        status_code=502,
-                        detail="AI provider rejected the request. This may be a network or provider permission issue."
-                    )
-            else:
-                raise HTTPException(419,detail="Unprocessable Query")
-            #Leverage it to another function? Do not forget to assert the usage again
-        else:
-            raise HTTPException(status_code=501,detail="You used all your AI allowance.Please try again tomorrow.")
+            raise HTTPException(
+            status_code=419,
+            detail="Unprocessable Query")
+
+        raise HTTPException(
+            status_code=429,
+            detail="You used all your AI allowance. Please try again tomorrow.")
+
+    except HTTPException:
+        raise
+
     except Exception as e:
         print("ERROR:", repr(e))
-        raise HTTPException(status_code=502,detail="AI provider rejected the request. This may be a network or provider permission issue.")
+        raise HTTPException(
+            status_code=502,
+            detail="AI provider rejected the request. This may be a network or provider permission issue."
+        )
+    
