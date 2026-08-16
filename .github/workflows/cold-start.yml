@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} is measuring FastAPI backend response time
 
 on: 
   schedule:
-    - cron: "* 21 * * *"
+    - cron: "11,12,13,14 22 * * *"
 
 jobs:
   run:
