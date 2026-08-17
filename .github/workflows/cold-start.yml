@@ -16,4 +16,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Measure cold start
-        run: bash ./script.sh
+        run: bash observability/cold-start/script.sh
