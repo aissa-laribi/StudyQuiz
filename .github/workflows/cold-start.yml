@@ -1,5 +1,6 @@
 name: FastAPI latency cold start
 
+
 run-name: ${{ github.actor }} is measuring FastAPI backend response time
 
 on:
@@ -7,16 +8,14 @@ on:
   schedule:
     - cron: "0 2,8,14,20 * * *"
 
-permissions:
+permissions: 
   contents: write
-
 jobs:
   run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Measure cold start
         run: bash observability/cold-start/script.sh
