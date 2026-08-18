@@ -1,13 +1,32 @@
 name: FastAPI latency cold start
+
+
 run-name: ${{ github.actor }} is measuring FastAPI backend response time
 
-on: 
+on:
+  push:
   schedule:
-    - cron: "11,12,13,14 22 * * *"
+    - cron: "0 2,8,14,20 * * *"
 
+permissions: 
+  contents: write
 jobs:
   run:
     runs-on: ubuntu-latest
+
     steps:
-      - run:
-          bash observability/cold-start/script.sh
+      - uses: actions/checkout@v4
+
+      - name: Measure cold start
+        run: bash observability/cold-start/script.sh
+
+      - name: Commit measurement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add observability/cold-start/fastapi-coldstart.csv
+
+          git commit -m "Record FastAPI cold start measurement" || exit 0
+
+          git push
