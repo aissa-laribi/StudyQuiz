@@ -4,10 +4,9 @@ name: FastAPI latency cold start
 run-name: ${{ github.actor }} is measuring FastAPI backend response time
 
 on:
-  push:
+  workflow_dispatch:
   schedule:
-    - cron: "0 2,8,14,20 * * *"
-
+    - cron: "20 2,8,14,20 * * *"
 permissions: 
   contents: write
 jobs:
