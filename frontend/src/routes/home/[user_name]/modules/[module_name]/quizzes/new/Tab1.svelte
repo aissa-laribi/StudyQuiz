@@ -213,6 +213,20 @@
     font-weight: bold;
     color: red;
   }
+  @media (max-width: 500px) {
+    #edit-questions{
+      display: block;
+    }
+    #col2{
+      width: 90%;
+      margin: auto;
+    }
+    label{
+    }
+    #col2-box{
+      height: auto;
+    }
+  }
 </style>
 <div id="edit-questions">
         <div id="spacer"><h1>AI Generated Quiz</h1></div>

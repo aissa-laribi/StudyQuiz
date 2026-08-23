@@ -589,6 +589,12 @@ onMount(() => {
   #spacer {
     display: none;
   }
+  #breadcrumbs{
+    display: none;
+  }
+  .questions-iter {
+    display: grid;
+  }
   #question-index{
     display: none;
   }
@@ -599,7 +605,9 @@ onMount(() => {
   #question-page form{
     margin: 0;
   }
-
+  button {
+    width: stretch;
+  }
   }  
  
 </style>
