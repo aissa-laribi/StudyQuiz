@@ -890,8 +890,9 @@
   main {
     display: grid;
     grid-template-columns:1fr;
-    grid-template-rows: 1fr 9fr;
+    grid-template-rows: auto auto auto;
     grid-template-areas:
+    'breadcrumbs'
     'col-quizzes'
     'col-modules';
     gap: 0;
@@ -906,10 +907,8 @@
     grid-area: col-quizzes;
     border-radius: 1em;
     border-radius: 1em;
-    height: fit-content;
-    
-    }
-
+    height: fit-content;  
+  }
 
   .header-quiz{
     display: inline-block;
@@ -919,6 +918,15 @@
     right: 1rem;
   }
   #sidebar1{
+    display: none;
+  }
+  .edit-module-btn{
+    display: none;
+  }
+  .delete-module-btn{
+    display: none;
+  }
+  .quiz-modifiers{
     display: none;
   }
   sidebar2{

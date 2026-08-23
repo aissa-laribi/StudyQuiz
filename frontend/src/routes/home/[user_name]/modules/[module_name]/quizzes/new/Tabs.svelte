@@ -57,4 +57,10 @@
     background-color: #fff;
     border-color: #5d5e5f #5d5e5f #fff;
   }
+  @media (max-width:500px){
+    .box {
+      min-height: 100vh;
+      height: auto;
+    }
+  }
 </style>

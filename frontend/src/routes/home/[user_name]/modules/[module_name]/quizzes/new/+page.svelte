@@ -649,13 +649,7 @@ onMount(async () => {
   }
 
   main {
-    display: grid;
-    grid-template-columns:1fr;
-    grid-template-rows: 1fr 9fr;
-    grid-template-areas:
-    'col-quizzes'
-    'col-modules';
-    gap: 0;
+    display: block;
   }
   #spacer {
     display : none;
