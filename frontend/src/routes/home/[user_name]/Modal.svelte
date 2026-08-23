@@ -43,6 +43,21 @@
     background-color: white;
     height:15vh;
   }
+  @media (max-width: 500px) {
+    .modal-box {
+    padding: 1vh;
+    border-radius:1em;
+    top: 20vh;
+    left: 5vh;
+    margin: auto;
+    display: flex;
+    position: fixed;
+    border: 1px black solid;
+    background-color: white;
+    height:15vh;
+    }
+  }
+
 
 
   
