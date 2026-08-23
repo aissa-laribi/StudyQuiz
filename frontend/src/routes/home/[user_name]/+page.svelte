@@ -765,14 +765,7 @@
   }
 
   main {
-    display: grid;
-    grid-template-columns:1fr;
-    grid-template-rows: 1fr 9fr 1fr;
-    grid-template-areas:
-    'spacer'
-    'col-modules'
-    'col-quizzes';
-    
+    display: block;
   }
   #col-modules {
     grid-area: col-modules;
@@ -785,6 +778,7 @@
   }
   .modal-box {
     right: 1rem;
+    display:none;
   }
   #sidebar1{
     display: none;
