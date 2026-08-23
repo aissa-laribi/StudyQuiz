@@ -326,14 +326,27 @@ async function measureBackendWakeUp() {
   }
   #login-col1 {
     display: none;
-    
   }
   #login-spacer {
     display: none;
   }
+  #login-col2{
+    width:100%;
+  }
+  #login-intro {
+    text-align: center;
+  }
+  .login-title{
+    text-align: center;
+  }
   #login-form-section {
     padding: 1rem;
-    //align-items: center;
+    text-align: center;
+  }
+
+  form{
+    width: 90%;
+    margin: auto;
   }
 
   form input,
@@ -341,12 +354,6 @@ async function measureBackendWakeUp() {
     font-size: 1.2rem;
   }
   
-  #sidebar1{
-    display: none;
-  }
-  #sidebar2{
-    display: none;
-  }
 
 }
 
