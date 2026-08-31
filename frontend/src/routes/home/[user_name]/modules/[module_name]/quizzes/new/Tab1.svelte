@@ -57,6 +57,12 @@
           });
         
         if (!token) loading = false;
+        if(files[0].size > 1024 * 2){
+          errorMessage = "File must be 2MB max";
+          loading = false;
+          files = null;
+          return;
+        }
         const formData = new FormData();
         formData.append('file', file);
         
