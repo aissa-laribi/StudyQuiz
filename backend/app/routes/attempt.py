@@ -49,6 +49,12 @@ async def get_questions_from_name_shuffled(
         raise HTTPException(status_code=404, detail="Quiz not found for user " + str(user_id))
     result = await get_questions(current_user, user_id, module_id, quiz.id,db)
     questions = fgd_shuffling(result,len(result))
+    """
+    for q in result:
+        print(q.question_name)
+        for a in q.answers:
+            print(a.answer_name + ":" + a.answer_correct)
+    """
     return questions
 
 @router.post("/users/me/modules/{module_name}/quizzes/{quiz_name}/attempts/")
