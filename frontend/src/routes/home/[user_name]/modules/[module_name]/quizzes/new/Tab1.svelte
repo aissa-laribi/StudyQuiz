@@ -14,6 +14,7 @@
     let quiz_name = $state("");
     let user_name = $state("");
     let errorMessage = $state("");
+    let message = $state("");
     let loading = $state(false);
     let animationContainer;
 
@@ -57,7 +58,7 @@
           });
         
         if (!token) loading = false;
-        if(files[0].size > 1024 * 2){
+        if(files[0].size > 1024 * 2 * 1024){
           errorMessage = "File must be 2MB max";
           loading = false;
           files = null;
@@ -76,6 +77,7 @@
 
           if(res.ok){
             const data = await res.json();
+            message = "The quiz will cover the slides until page" + data.pages;
             data['quiz']['questions'].forEach(element => {
               quiz.push(element)
             }); 
@@ -85,7 +87,6 @@
             console.log("Quiz:" + `${quiz_name}`);*/
             
             quiz_name = files[0].name.slice(0,files[0].name.length -4);
-            console.log(quiz_name);
             const quizNameReq = await fetch(`${apiURL}/users/me/modules/${module_name}/quizzes/`,{
               method: "POST",
               headers : {
@@ -219,6 +220,11 @@
     font-weight: bold;
     color: red;
   }
+  #message{
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    color: rgb(23, 238, 3);
+  }
   @media (max-width: 500px) {
     #edit-questions{
       display: block;
@@ -294,6 +300,9 @@
           </form>
           {#if errorMessage.length > 0}
             <p id="error-message">{errorMessage}</p>
+          {/if}
+          {#if errorMessage.length == 0 && message.length > 0}
+            <p id="message">{message}</p>
           {/if}
           </div>
         {/if}
