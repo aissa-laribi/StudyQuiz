@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
-  import Tabs from './Tabs.svelte'; 
+  import Tabs from '$lib/components/Tabs.svelte';
   import Tab1 from "./Tab1.svelte";
 	import Tab2 from "./Tab2.svelte";
 
@@ -683,7 +683,7 @@ onMount(async () => {
       </ul>
     </div> 
   <div class="edit-questions">
-    <Tabs {items} />
+    <Tabs {items} variant="compact" />
   </div>
  
     {#if showModal}

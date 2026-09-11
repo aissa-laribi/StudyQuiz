@@ -1,6 +1,6 @@
     
 <script>
-    import Modal from './Modal.svelte';
+    import Modal from '$lib/components/Modal.svelte';
     let showModal = false;
     let questions = [];
     let newQuestionName = "";
@@ -31,7 +31,7 @@
         {/each}
     </div>
     {#if showModal}
-      <Modal bind:showModal>
+      <Modal bind:showModal variant="positioned">
         <form onsubmit={registerQuestion}>
         <nav id="form-navbar">
           <h2>Add a New Question</h2>

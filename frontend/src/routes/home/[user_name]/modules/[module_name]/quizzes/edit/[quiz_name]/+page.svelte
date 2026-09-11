@@ -1,6 +1,5 @@
 <script>
   import { onMount } from 'svelte';
-  import Modal from './Modal.svelte';
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
 
