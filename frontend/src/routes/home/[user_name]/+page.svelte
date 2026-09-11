@@ -1,5 +1,5 @@
 <script>
-  import Modal from './Modal.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
 
@@ -929,7 +929,7 @@
   
 
     {#if showModal}
-      <Modal bind:showModal>
+      <Modal bind:showModal variant="compact">
         <form onsubmit={registerModule}>
         <nav id="form-navbar">
           <h2>Register a New Module</h2>

@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import Modal from './Modal.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import { goto } from '$app/navigation';
   import { writable } from 'svelte/store';
 

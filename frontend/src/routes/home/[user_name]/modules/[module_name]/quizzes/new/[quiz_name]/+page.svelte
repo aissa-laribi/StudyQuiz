@@ -1,9 +1,9 @@
 <script>
   import { onMount } from 'svelte';
-  import Modal from './Modal.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
-  import Tabs from './Tabs.svelte'; 
+  import Tabs from '$lib/components/Tabs.svelte';
   import Tab1 from "./Tab1.svelte";
 	import Tab2 from "./Tab2.svelte";
 
@@ -692,7 +692,7 @@ onMount(async () => {
   </div>
  
     {#if showModal}
-      <Modal bind:showModal>
+      <Modal bind:showModal variant="positioned">
   <form onsubmit={registerQuestion}>
     <nav id="form-navbar">
       <h2>Add a New Question</h2>
