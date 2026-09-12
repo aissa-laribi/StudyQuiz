@@ -25,10 +25,6 @@ jobs:
         run: pip3 install -r backend/requirements.txt
       - name: Install postgres + psql
         env:
-          P1: ${{ secrets.P1}}
-          P2: ${{ secrets.P2}}
-          P3: ${{ secrets.P3}}
-          TABLE_NAME : user
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost/test
         run: |
           sudo apt-get update -y
@@ -38,6 +34,9 @@ jobs:
           sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
           cd backend
           alembic upgrade head
+          P1=$(python3 -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('StrongPwd1234,,,,tewfw4g'))")
+          P2=$(python3 -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('StrongPwd1234,,,,tewfw4g2'))")
+          P3=$(python3 -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('StrongPwd1234,,,,tewfw4g3'))")
           sudo -u postgres psql -d test -c "INSERT INTO plan (id,plan_code,display_name,ai_monthly_allowance,ai_daily_allowance,price_monthly_pence) VALUES(1, 'free', 'Free', 5, 1, 0),(2, 'early_bird', 'Early Birds', 60, 5, 0),(3, 'plus', 'Plus', 100, 10, 499);"
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (user_name, email, password, role, verified,plan_id) VALUES ('testuser1', 'user1@gmail.com', '$P1', 'root', true,1);"
           sudo -u postgres psql -d test -c "INSERT INTO \"user\" (user_name, email, password, role, verified,plan_id) VALUES ('testuser2', 'user2@gmail.com', '$P2', 'user', false,1);"
